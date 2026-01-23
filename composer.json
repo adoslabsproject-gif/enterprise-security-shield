@@ -1,0 +1,68 @@
+{
+    "name": "senza1dio/enterprise-security-shield",
+    "description": "Enterprise WAF, Honeypot & Bot Protection for PHP - Framework-Agnostic, Zero Configuration, Million-User Ready",
+    "type": "library",
+    "keywords": [
+        "waf",
+        "web application firewall",
+        "security",
+        "honeypot",
+        "bot protection",
+        "ddos protection",
+        "vulnerability scanner",
+        "threat detection",
+        "enterprise security",
+        "php security",
+        "laravel",
+        "symfony"
+    ],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "AIDOS (AI Developer Orchestration System)",
+            "email": "senza1dio@gmail.com",
+            "homepage": "https://github.com/senza1dio"
+        }
+    ],
+    "require": {
+        "php": "^8.0",
+        "ext-json": "*"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^10.0",
+        "phpstan/phpstan": "^1.10",
+        "friendsofphp/php-cs-fixer": "^3.0"
+    },
+    "suggest": {
+        "ext-redis": "Required for RedisStorage backend (recommended for production)",
+        "monolog/monolog": "PSR-3 compatible logger for security events",
+        "psr/log": "PSR-3 logging interface"
+    },
+    "autoload": {
+        "psr-4": {
+            "Senza1dio\\SecurityShield\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Senza1dio\\SecurityShield\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit tests/",
+        "stan": "phpstan analyse src/ --level=9",
+        "fix": "php-cs-fixer fix",
+        "fix-dry": "php-cs-fixer fix --dry-run --diff",
+        "quality": [
+            "@fix-dry",
+            "@stan"
+        ]
+    },
+    "config": {
+        "sort-packages": true,
+        "optimize-autoloader": true,
+        "preferred-install": "dist"
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
