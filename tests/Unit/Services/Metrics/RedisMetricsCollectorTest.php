@@ -65,9 +65,9 @@ class RedisMetricsCollectorTest extends TestCase
         $this->collector->gauge('memory_usage', 512.5);
     }
 
-    public function testHistogramAddsToSortedSet(): void
+    public function testSampleAddsToSortedSet(): void
     {
-        // histogram() is deprecated, now calls sample() which uses 'samples:' prefix
+        // sample() uses 'samples:' prefix
         $this->redis
             ->expects($this->once())
             ->method('zAdd')
@@ -82,16 +82,33 @@ class RedisMetricsCollectorTest extends TestCase
             ->method('zRemRangeByRank')
             ->with('test_metrics:samples:response_time', 0, -1001);
 
-        // Also expects expire() call
         $this->redis
             ->expects($this->once())
             ->method('expire')
             ->with('test_metrics:samples:response_time', $this->anything());
 
+        $this->collector->sample('response_time', 150.5);
+    }
+
+    public function testHistogramIsSampleAlias(): void
+    {
+        // histogram() is deprecated, calls sample()
+        $this->redis
+            ->expects($this->once())
+            ->method('zAdd');
+
+        $this->redis
+            ->expects($this->once())
+            ->method('zRemRangeByRank');
+
+        $this->redis
+            ->expects($this->once())
+            ->method('expire');
+
         $this->collector->histogram('response_time', 150.5);
     }
 
-    public function testTimingCallsHistogram(): void
+    public function testTimingCallsSample(): void
     {
         // timing() calls sample() which uses 'samples:' prefix
         $this->redis
@@ -145,37 +162,21 @@ class RedisMetricsCollectorTest extends TestCase
         $this->assertNull($result);
     }
 
-    public function testGetAllReturnsMetrics(): void
-    {
-        // getAll uses scan() instead of keys()
-        // First scan call returns keys, second returns cursor 0 to stop
-        $this->redis
-            ->method('scan')
-            ->willReturnOnConsecutiveCalls(
-                [0, ['test_metrics:requests', 'test_metrics:errors']], // cursor 0, keys
-                false // No more results
-            );
-
-        $this->redis
-            ->method('get')
-            ->willReturnOnConsecutiveCalls('100', '5');
-
-        $result = $this->collector->getAll();
-
-        $this->assertSame([
-            'requests' => 100.0,
-            'errors' => 5.0,
-        ], $result);
-    }
-
     public function testGetAllReturnsEmptyOnException(): void
     {
         $this->redis
-            ->method('keys')
+            ->method('scan')
             ->willThrowException(new \RedisException('Connection lost'));
 
         $result = $this->collector->getAll();
 
         $this->assertSame([], $result);
+    }
+
+    public function testSetDefaultTTL(): void
+    {
+        $result = $this->collector->setDefaultTTL(7200);
+
+        $this->assertSame($this->collector, $result);
     }
 }

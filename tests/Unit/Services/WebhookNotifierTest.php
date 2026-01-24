@@ -36,10 +36,17 @@ class WebhookNotifierTest extends TestCase
         $this->notifier->addWebhook('invalid', 'not-a-url');
     }
 
+    public function testAddWebhookHttpBlockedRequiresHttps(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Webhook URL must use HTTPS');
+
+        $this->notifier->addWebhook('local', 'http://example.com/webhook');
+    }
+
     public function testAddWebhookLocalhostBlocked(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        // Use HTTPS to pass the first validation, then fail on localhost check
         $this->expectExceptionMessage('Webhook URL cannot be localhost');
 
         $this->notifier->addWebhook('local', 'https://localhost/webhook');
@@ -48,7 +55,6 @@ class WebhookNotifierTest extends TestCase
     public function testAddWebhookPrivateIPBlocked(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        // Use HTTPS to pass the first validation, then fail on private IP check
         $this->expectExceptionMessage('Webhook URL cannot be private/reserved IP');
 
         $this->notifier->addWebhook('private', 'https://192.168.1.1/webhook');
