@@ -67,11 +67,12 @@ class RedisMetricsCollectorTest extends TestCase
 
     public function testHistogramAddsToSortedSet(): void
     {
+        // histogram() is deprecated, now calls sample() which uses 'samples:' prefix
         $this->redis
             ->expects($this->once())
             ->method('zAdd')
             ->with(
-                'test_metrics:histogram:response_time',
+                'test_metrics:samples:response_time',
                 $this->isType('float'),
                 $this->isType('string')
             );
@@ -79,13 +80,20 @@ class RedisMetricsCollectorTest extends TestCase
         $this->redis
             ->expects($this->once())
             ->method('zRemRangeByRank')
-            ->with('test_metrics:histogram:response_time', 0, -1001);
+            ->with('test_metrics:samples:response_time', 0, -1001);
+
+        // Also expects expire() call
+        $this->redis
+            ->expects($this->once())
+            ->method('expire')
+            ->with('test_metrics:samples:response_time', $this->anything());
 
         $this->collector->histogram('response_time', 150.5);
     }
 
     public function testTimingCallsHistogram(): void
     {
+        // timing() calls sample() which uses 'samples:' prefix
         $this->redis
             ->expects($this->once())
             ->method('zAdd');
@@ -93,6 +101,10 @@ class RedisMetricsCollectorTest extends TestCase
         $this->redis
             ->expects($this->once())
             ->method('zRemRangeByRank');
+
+        $this->redis
+            ->expects($this->once())
+            ->method('expire');
 
         $this->collector->timing('api_latency', 75.3);
     }
@@ -135,13 +147,14 @@ class RedisMetricsCollectorTest extends TestCase
 
     public function testGetAllReturnsMetrics(): void
     {
+        // getAll uses scan() instead of keys()
+        // First scan call returns keys, second returns cursor 0 to stop
         $this->redis
-            ->method('keys')
-            ->with('test_metrics:*')
-            ->willReturn([
-                'test_metrics:requests',
-                'test_metrics:errors',
-            ]);
+            ->method('scan')
+            ->willReturnOnConsecutiveCalls(
+                [0, ['test_metrics:requests', 'test_metrics:errors']], // cursor 0, keys
+                false // No more results
+            );
 
         $this->redis
             ->method('get')

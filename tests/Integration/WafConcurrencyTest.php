@@ -71,7 +71,7 @@ class WafConcurrencyTest extends TestCase
 
         // Should extract real IP and block (blacklist match)
         $this->assertFalse($this->waf->handle($server));
-        $this->assertSame('ip_blacklisted', $this->waf->getBlockReason());
+        $this->assertSame('blacklisted', $this->waf->getBlockReason());
     }
 
     /**
@@ -105,6 +105,7 @@ class WafConcurrencyTest extends TestCase
             'REMOTE_ADDR' => '203.0.113.50',  // Attacker's real IP
             'HTTP_X_FORWARDED_FOR' => '127.0.0.1',  // Spoofed localhost
             'REQUEST_URI' => '/',
+            'HTTP_USER_AGENT' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0',
         ];
 
         // Whitelist localhost
@@ -147,7 +148,7 @@ class WafConcurrencyTest extends TestCase
 
         // Should match CIDR blacklist
         $this->assertFalse($this->waf->handle($server));
-        $this->assertSame('ip_blacklisted', $this->waf->getBlockReason());
+        $this->assertSame('blacklisted', $this->waf->getBlockReason());
     }
 
     /**
@@ -214,11 +215,13 @@ class WafConcurrencyTest extends TestCase
      */
     public function test_rate_limiting_rapid_requests()
     {
-        $this->config->setRateLimitPerMinute(10);
+        $this->config->setRateLimitMax(10);
+        $this->config->setRateLimitWindow(60);
 
         $server = [
             'REMOTE_ADDR' => '203.0.113.100',
             'REQUEST_URI' => '/api/test',
+            'HTTP_USER_AGENT' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0',
         ];
 
         $allowed = 0;

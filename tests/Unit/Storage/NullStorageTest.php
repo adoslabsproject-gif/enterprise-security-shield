@@ -10,12 +10,12 @@ use Senza1dio\SecurityShield\Storage\NullStorage;
 /**
  * Test Suite for NullStorage
  *
- * Coverage:
- * - Null storage behavior (no actual storage)
- * - get/set/delete operations
- * - incrementRequestCount
- * - getRequestCount
- * - Verifica che nulla venga memorizzato
+ * NullStorage is an IN-MEMORY storage for testing and development.
+ * Despite its name, it DOES store data (in memory, not persisted).
+ *
+ * IMPORTANT: This is NOT a "null object" pattern storage.
+ * Data is stored in memory and functions correctly for testing.
+ * Data is NOT persisted across requests.
  *
  * @package Senza1dio\SecurityShield\Tests\Unit\Storage
  */
@@ -28,336 +28,234 @@ final class NullStorageTest extends TestCase
         $this->storage = new NullStorage();
     }
 
-    // ==================== BASIC OPERATIONS ====================
+    // ==================== BASIC CACHE OPERATIONS ====================
 
-    public function testGetAlwaysReturnsNull(): void
+    public function testGetReturnsNullForNonExistentKey(): void
     {
-        $value = $this->storage->get('any_key');
-
-        $this->assertNull($value);
+        $this->assertNull($this->storage->get('non_existent_key'));
     }
 
-    public function testGetAfterSetReturnsNull(): void
+    public function testSetAndGetWorks(): void
     {
         $this->storage->set('key', 'value', 60);
-
-        $value = $this->storage->get('key');
-
-        $this->assertNull($value, 'NullStorage should always return null');
+        $this->assertSame('value', $this->storage->get('key'));
     }
 
-    public function testSetDoesNotStoreData(): void
-    {
-        $this->storage->set('key1', 'value1', 60);
-        $this->storage->set('key2', 'value2', 60);
-
-        $this->assertNull($this->storage->get('key1'));
-        $this->assertNull($this->storage->get('key2'));
-    }
-
-    public function testDeleteDoesNothing(): void
-    {
-        // Non dovrebbe lanciare eccezioni
-        $this->storage->delete('non_existent_key');
-
-        $this->assertTrue(true);
-    }
-
-    public function testDeleteAfterSetDoesNothing(): void
+    public function testDeleteRemovesKey(): void
     {
         $this->storage->set('key', 'value', 60);
         $this->storage->delete('key');
-
-        // Dovrebbe comunque tornare null
         $this->assertNull($this->storage->get('key'));
     }
 
-    // ==================== REQUEST COUNT ====================
+    public function testExistsReturnsTrueForExistingKey(): void
+    {
+        $this->storage->set('key', 'value', 60);
+        $this->assertTrue($this->storage->exists('key'));
+    }
 
-    public function testIncrementRequestCountReturnsOne(): void
+    public function testExistsReturnsFalseForNonExistentKey(): void
+    {
+        $this->assertFalse($this->storage->exists('non_existent'));
+    }
+
+    // ==================== INCREMENT OPERATIONS ====================
+
+    public function testIncrementCreatesNewKey(): void
+    {
+        $result = $this->storage->increment('counter', 5, 60);
+        $this->assertSame(5, $result);
+    }
+
+    public function testIncrementAddsToExistingValue(): void
+    {
+        $this->storage->set('counter', '10', 60);
+        $result = $this->storage->increment('counter', 5, 60);
+        $this->assertSame(15, $result);
+    }
+
+    public function testIncrementWithNegativeDelta(): void
+    {
+        $this->storage->set('counter', '10', 60);
+        $result = $this->storage->increment('counter', -3, 60);
+        $this->assertSame(7, $result);
+    }
+
+    public function testIncrementNeverGoesBelowZero(): void
+    {
+        $this->storage->set('counter', '5', 60);
+        $result = $this->storage->increment('counter', -10, 60);
+        $this->assertSame(0, $result);
+    }
+
+    // ==================== SCORE OPERATIONS ====================
+
+    public function testSetAndGetScore(): void
+    {
+        $this->storage->setScore('1.2.3.4', 50, 3600);
+        $this->assertSame(50, $this->storage->getScore('1.2.3.4'));
+    }
+
+    public function testGetScoreReturnsNullForUnknownIP(): void
+    {
+        $this->assertNull($this->storage->getScore('unknown'));
+    }
+
+    public function testIncrementScore(): void
+    {
+        $this->storage->setScore('1.2.3.4', 10, 3600);
+        $newScore = $this->storage->incrementScore('1.2.3.4', 15, 3600);
+        $this->assertSame(25, $newScore);
+    }
+
+    public function testIncrementScoreCreatesNewIfNotExists(): void
+    {
+        $newScore = $this->storage->incrementScore('new_ip', 20, 3600);
+        $this->assertSame(20, $newScore);
+    }
+
+    // ==================== BAN OPERATIONS ====================
+
+    public function testBanAndCheckIP(): void
+    {
+        $this->storage->banIP('1.2.3.4', 3600, 'test ban');
+        $this->assertTrue($this->storage->isBanned('1.2.3.4'));
+    }
+
+    public function testUnbannedIPReturnsFalse(): void
+    {
+        $this->assertFalse($this->storage->isBanned('1.2.3.4'));
+    }
+
+    public function testUnbanIP(): void
+    {
+        $this->storage->banIP('1.2.3.4', 3600, 'test ban');
+        $this->storage->unbanIP('1.2.3.4');
+        $this->assertFalse($this->storage->isBanned('1.2.3.4'));
+    }
+
+    public function testIsIpBannedCachedSameAsIsBanned(): void
+    {
+        $this->storage->banIP('1.2.3.4', 3600, 'test');
+        $this->assertTrue($this->storage->isIpBannedCached('1.2.3.4'));
+        $this->assertFalse($this->storage->isIpBannedCached('5.6.7.8'));
+    }
+
+    // ==================== REQUEST COUNT (RATE LIMITING) ====================
+
+    public function testIncrementRequestCountStartsAtOne(): void
     {
         $count = $this->storage->incrementRequestCount('1.2.3.4', 60);
-
-        $this->assertEquals(1, $count, 'NullStorage should always return 1 on increment');
+        $this->assertSame(1, $count);
     }
 
-    public function testIncrementRequestCountAlwaysReturnsOne(): void
+    public function testIncrementRequestCountAccumulates(): void
     {
-        $ip = '1.2.3.4';
-        $window = 60;
-
-        $count1 = $this->storage->incrementRequestCount($ip, $window);
-        $count2 = $this->storage->incrementRequestCount($ip, $window);
-        $count3 = $this->storage->incrementRequestCount($ip, $window);
-
-        $this->assertEquals(1, $count1);
-        $this->assertEquals(1, $count2);
-        $this->assertEquals(1, $count3);
+        $this->storage->incrementRequestCount('1.2.3.4', 60);
+        $this->storage->incrementRequestCount('1.2.3.4', 60);
+        $count = $this->storage->incrementRequestCount('1.2.3.4', 60);
+        $this->assertSame(3, $count);
     }
 
-    public function testGetRequestCountReturnsZero(): void
+    public function testGetRequestCountReturnsStoredCount(): void
     {
+        $this->storage->incrementRequestCount('1.2.3.4', 60);
+        $this->storage->incrementRequestCount('1.2.3.4', 60);
         $count = $this->storage->getRequestCount('1.2.3.4', 60);
-
-        $this->assertEquals(0, $count, 'NullStorage should always return 0 on getRequestCount');
+        $this->assertSame(2, $count);
     }
 
-    public function testGetRequestCountAfterIncrementReturnsZero(): void
+    public function testGetRequestCountReturnsZeroForUnknownIP(): void
     {
-        $ip = '1.2.3.4';
-        $window = 60;
-
-        $this->storage->incrementRequestCount($ip, $window);
-
-        $count = $this->storage->getRequestCount($ip, $window);
-
-        $this->assertEquals(0, $count);
+        $count = $this->storage->getRequestCount('unknown', 60);
+        $this->assertSame(0, $count);
     }
 
-    public function testMultipleIncrementsDoNotAccumulate(): void
+    public function testRequestCountWithDifferentActions(): void
     {
-        $ip = '1.2.3.4';
-        $window = 60;
+        $this->storage->incrementRequestCount('1.2.3.4', 60, 'login');
+        $this->storage->incrementRequestCount('1.2.3.4', 60, 'login');
+        $this->storage->incrementRequestCount('1.2.3.4', 60, 'checkout');
 
-        for ($i = 0; $i < 100; $i++) {
-            $count = $this->storage->incrementRequestCount($ip, $window);
-            $this->assertEquals(1, $count);
-        }
-
-        $finalCount = $this->storage->getRequestCount($ip, $window);
-        $this->assertEquals(0, $finalCount);
+        $this->assertSame(2, $this->storage->getRequestCount('1.2.3.4', 60, 'login'));
+        $this->assertSame(1, $this->storage->getRequestCount('1.2.3.4', 60, 'checkout'));
     }
 
-    // ==================== TTL BEHAVIOR ====================
+    // ==================== BOT VERIFICATION CACHE ====================
 
-    public function testTTLIsIgnored(): void
+    public function testCacheBotVerification(): void
     {
-        $this->storage->set('key', 'value', 1); // TTL 1 secondo
+        $metadata = ['hostname' => 'crawl-66-249-66-1.googlebot.com'];
+        $this->storage->cacheBotVerification('66.249.66.1', true, $metadata, 3600);
 
-        // Non aspettiamo, verifichiamo subito
-        $this->assertNull($this->storage->get('key'));
-
-        // Aspettiamo comunque per sicurezza
-        sleep(2);
-
-        $this->assertNull($this->storage->get('key'));
+        $cached = $this->storage->getCachedBotVerification('66.249.66.1');
+        $this->assertNotNull($cached);
+        $this->assertTrue($cached['verified']);
+        $this->assertSame($metadata, $cached['metadata']);
     }
 
-    public function testZeroTTLIsIgnored(): void
+    public function testGetCachedBotVerificationReturnsNullIfNotCached(): void
     {
-        $this->storage->set('key', 'value', 0);
-
-        $this->assertNull($this->storage->get('key'));
+        $this->assertNull($this->storage->getCachedBotVerification('unknown'));
     }
 
-    public function testNegativeTTLIsIgnored(): void
-    {
-        $this->storage->set('key', 'value', -1);
+    // ==================== SECURITY EVENTS ====================
 
-        $this->assertNull($this->storage->get('key'));
+    public function testLogSecurityEvent(): void
+    {
+        $result = $this->storage->logSecurityEvent('scan', '1.2.3.4', ['path' => '/.env']);
+        $this->assertTrue($result);
     }
 
-    // ==================== EDGE CASES ====================
-
-    public function testGetWithEmptyKey(): void
+    public function testGetRecentEvents(): void
     {
-        $value = $this->storage->get('');
+        $this->storage->logSecurityEvent('scan', '1.2.3.4', ['path' => '/.env']);
+        $this->storage->logSecurityEvent('ban', '5.6.7.8', ['reason' => 'test']);
 
-        $this->assertNull($value);
+        $events = $this->storage->getRecentEvents(10);
+        $this->assertCount(2, $events);
     }
 
-    public function testSetWithEmptyKey(): void
+    public function testGetRecentEventsFilteredByType(): void
     {
-        $this->storage->set('', 'value', 60);
+        $this->storage->logSecurityEvent('scan', '1.2.3.4', ['path' => '/.env']);
+        $this->storage->logSecurityEvent('ban', '5.6.7.8', ['reason' => 'test']);
 
-        $this->assertNull($this->storage->get(''));
+        $events = $this->storage->getRecentEvents(10, 'scan');
+        $this->assertCount(1, $events);
+        $this->assertSame('scan', $events[0]['type']);
     }
 
-    public function testSetWithEmptyValue(): void
+    // ==================== CLEAR ====================
+
+    public function testClearRemovesAllData(): void
     {
-        $this->storage->set('key', '', 60);
+        $this->storage->set('key', 'value', 60);
+        $this->storage->setScore('1.2.3.4', 50, 60);
+        $this->storage->banIP('5.6.7.8', 60, 'test');
+
+        $this->storage->clear();
 
         $this->assertNull($this->storage->get('key'));
+        $this->assertNull($this->storage->getScore('1.2.3.4'));
+        $this->assertFalse($this->storage->isBanned('5.6.7.8'));
     }
 
-    public function testSetWithNullValue(): void
+    // ==================== GET ALL DATA (TEST HELPER) ====================
+
+    public function testGetAllDataReturnsAllInternalData(): void
     {
-        $this->storage->set('key', null, 60);
+        $this->storage->set('key', 'value', 60);
+        $this->storage->setScore('1.2.3.4', 50, 60);
 
-        $this->assertNull($this->storage->get('key'));
-    }
+        $data = $this->storage->getAllData();
 
-    public function testSetWithNumericValue(): void
-    {
-        $this->storage->set('key', '12345', 60);
-
-        $this->assertNull($this->storage->get('key'));
-    }
-
-    public function testSetWithVeryLongValue(): void
-    {
-        $longValue = str_repeat('a', 1000000); // 1MB string
-        $this->storage->set('key', $longValue, 60);
-
-        $this->assertNull($this->storage->get('key'));
-    }
-
-    public function testIncrementWithEmptyIP(): void
-    {
-        $count = $this->storage->incrementRequestCount('', 60);
-
-        $this->assertEquals(1, $count);
-    }
-
-    public function testIncrementWithInvalidIP(): void
-    {
-        $count = $this->storage->incrementRequestCount('not-an-ip', 60);
-
-        $this->assertEquals(1, $count);
-    }
-
-    public function testIncrementWithIPv6(): void
-    {
-        $count = $this->storage->incrementRequestCount('2001:db8::1', 60);
-
-        $this->assertEquals(1, $count);
-    }
-
-    public function testIncrementWithZeroWindow(): void
-    {
-        $count = $this->storage->incrementRequestCount('1.2.3.4', 0);
-
-        $this->assertEquals(1, $count);
-    }
-
-    public function testIncrementWithNegativeWindow(): void
-    {
-        $count = $this->storage->incrementRequestCount('1.2.3.4', -1);
-
-        $this->assertEquals(1, $count);
-    }
-
-    // ==================== CONSISTENCY TESTS ====================
-
-    public function testMultipleInstancesDoNotShareState(): void
-    {
-        $storage1 = new NullStorage();
-        $storage2 = new NullStorage();
-
-        $storage1->set('key', 'value1', 60);
-        $storage2->set('key', 'value2', 60);
-
-        $this->assertNull($storage1->get('key'));
-        $this->assertNull($storage2->get('key'));
-    }
-
-    public function testMultipleKeysDontInterfere(): void
-    {
-        $this->storage->set('key1', 'value1', 60);
-        $this->storage->set('key2', 'value2', 60);
-        $this->storage->set('key3', 'value3', 60);
-
-        $this->assertNull($this->storage->get('key1'));
-        $this->assertNull($this->storage->get('key2'));
-        $this->assertNull($this->storage->get('key3'));
-    }
-
-    // ==================== PERFORMANCE TESTS ====================
-
-    public function testMultipleSetOperationsAreFast(): void
-    {
-        $start = microtime(true);
-
-        for ($i = 0; $i < 10000; $i++) {
-            $this->storage->set("key{$i}", "value{$i}", 60);
-        }
-
-        $duration = microtime(true) - $start;
-
-        // Dovrebbe essere MOLTO veloce (no actual storage)
-        $this->assertLessThan(0.1, $duration);
-    }
-
-    public function testMultipleGetOperationsAreFast(): void
-    {
-        $start = microtime(true);
-
-        for ($i = 0; $i < 10000; $i++) {
-            $this->storage->get("key{$i}");
-        }
-
-        $duration = microtime(true) - $start;
-
-        // Dovrebbe essere MOLTO veloce
-        $this->assertLessThan(0.1, $duration);
-    }
-
-    public function testMultipleIncrementOperationsAreFast(): void
-    {
-        $start = microtime(true);
-
-        for ($i = 0; $i < 10000; $i++) {
-            $this->storage->incrementRequestCount('1.2.3.4', 60);
-        }
-
-        $duration = microtime(true) - $start;
-
-        // Dovrebbe essere MOLTO veloce
-        $this->assertLessThan(0.1, $duration);
-    }
-
-    // ==================== USE CASE TESTS ====================
-
-    public function testNullStorageForDevelopment(): void
-    {
-        // In sviluppo, NullStorage permette di testare senza Redis
-
-        // Simula WAF che usa NullStorage
-        $this->storage->set('banned:1.2.3.4', '1', 86400);
-
-        // WAF controlla se IP è bannato
-        $isBanned = $this->storage->get('banned:1.2.3.4') === '1';
-
-        // Con NullStorage, nessun IP è bannato
-        $this->assertFalse($isBanned);
-    }
-
-    public function testNullStorageForRateLimiting(): void
-    {
-        // Simula rate limiting con NullStorage
-        $ip = '1.2.3.4';
-        $window = 60;
-        $limit = 100;
-
-        // Simula 150 richieste
-        for ($i = 0; $i < 150; $i++) {
-            $count = $this->storage->incrementRequestCount($ip, $window);
-
-            // Con NullStorage, rate limiting è sempre permesso
-            $this->assertLessThan($limit, $count);
-        }
-    }
-
-    public function testNullStorageForCaching(): void
-    {
-        // Simula caching con NullStorage
-        $cacheKey = 'bot_verify:66.249.66.1';
-
-        // Tenta di leggere dalla cache
-        $cached = $this->storage->get($cacheKey);
-
-        // Cache miss (sempre con NullStorage)
-        $this->assertNull($cached);
-
-        // Esegui verifica (simulata)
-        $result = true;
-
-        // Salva in cache
-        $this->storage->set($cacheKey, (string)$result, 3600);
-
-        // Prossima lettura da cache (sempre miss)
-        $cached = $this->storage->get($cacheKey);
-        $this->assertNull($cached);
+        $this->assertArrayHasKey('cache', $data);
+        $this->assertArrayHasKey('scores', $data);
+        $this->assertArrayHasKey('bans', $data);
+        $this->assertArrayHasKey('bot_cache', $data);
+        $this->assertArrayHasKey('events', $data);
+        $this->assertArrayHasKey('rate_limits', $data);
     }
 
     // ==================== CONTRACT COMPLIANCE ====================
@@ -368,49 +266,5 @@ final class NullStorageTest extends TestCase
             \Senza1dio\SecurityShield\Contracts\StorageInterface::class,
             $this->storage
         );
-    }
-
-    public function testHasGetMethod(): void
-    {
-        $this->assertTrue(method_exists($this->storage, 'get'));
-    }
-
-    public function testHasSetMethod(): void
-    {
-        $this->assertTrue(method_exists($this->storage, 'set'));
-    }
-
-    public function testHasDeleteMethod(): void
-    {
-        $this->assertTrue(method_exists($this->storage, 'delete'));
-    }
-
-    public function testHasIncrementRequestCountMethod(): void
-    {
-        $this->assertTrue(method_exists($this->storage, 'incrementRequestCount'));
-    }
-
-    public function testHasGetRequestCountMethod(): void
-    {
-        $this->assertTrue(method_exists($this->storage, 'getRequestCount'));
-    }
-
-    // ==================== THREAD SAFETY ====================
-
-    public function testConcurrentAccessIsSafe(): void
-    {
-        // NullStorage non mantiene stato, quindi è thread-safe per design
-
-        // Simula accessi concorrenti
-        $results = [];
-        for ($i = 0; $i < 100; $i++) {
-            $this->storage->set("key{$i}", "value{$i}", 60);
-            $results[] = $this->storage->get("key{$i}");
-        }
-
-        // Tutti i risultati dovrebbero essere null
-        foreach ($results as $result) {
-            $this->assertNull($result);
-        }
     }
 }

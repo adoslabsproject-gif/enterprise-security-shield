@@ -20,14 +20,14 @@ class CircuitBreakerTest extends TestCase
 
     public function testStartsInClosedState(): void
     {
-        $breaker = new CircuitBreaker($this->storage, 'test');
+        $breaker = new CircuitBreaker('test', $this->storage);
 
         $this->assertSame('closed', $breaker->getState());
     }
 
     public function testSuccessfulCallKeepsCircuitClosed(): void
     {
-        $breaker = new CircuitBreaker($this->storage, 'test');
+        $breaker = new CircuitBreaker('test', $this->storage);
 
         $result = $breaker->call(fn() => 'success');
 
@@ -37,7 +37,7 @@ class CircuitBreakerTest extends TestCase
 
     public function testOpensAfterFailureThreshold(): void
     {
-        $breaker = new CircuitBreaker($this->storage, 'test', failureThreshold: 3);
+        $breaker = new CircuitBreaker('test', $this->storage, ['failure_threshold' => 3]);
 
         // First 2 failures - still closed
         for ($i = 0; $i < 2; $i++) {
@@ -62,7 +62,7 @@ class CircuitBreakerTest extends TestCase
 
     public function testOpenCircuitThrowsException(): void
     {
-        $breaker = new CircuitBreaker($this->storage, 'test', failureThreshold: 1);
+        $breaker = new CircuitBreaker('test', $this->storage, ['failure_threshold' => 1]);
 
         // Trip the breaker
         try {
@@ -77,7 +77,7 @@ class CircuitBreakerTest extends TestCase
 
     public function testOpenCircuitUsesFallback(): void
     {
-        $breaker = new CircuitBreaker($this->storage, 'test', failureThreshold: 1);
+        $breaker = new CircuitBreaker('test', $this->storage, ['failure_threshold' => 1]);
 
         // Trip the breaker
         try {
@@ -97,10 +97,9 @@ class CircuitBreakerTest extends TestCase
     public function testTransitionsToHalfOpenAfterRecoveryTimeout(): void
     {
         $breaker = new CircuitBreaker(
-            $this->storage,
             'test',
-            failureThreshold: 1,
-            recoveryTimeout: 1
+            $this->storage,
+            ['failure_threshold' => 1, 'recovery_timeout' => 1]
         );
 
         // Trip the breaker
@@ -125,10 +124,9 @@ class CircuitBreakerTest extends TestCase
     public function testHalfOpenReopensOnFailure(): void
     {
         $breaker = new CircuitBreaker(
-            $this->storage,
             'test',
-            failureThreshold: 1,
-            recoveryTimeout: 1
+            $this->storage,
+            ['failure_threshold' => 1, 'recovery_timeout' => 1]
         );
 
         // Trip and wait
@@ -152,7 +150,7 @@ class CircuitBreakerTest extends TestCase
 
     public function testForceOpen(): void
     {
-        $breaker = new CircuitBreaker($this->storage, 'test');
+        $breaker = new CircuitBreaker('test', $this->storage);
 
         $breaker->forceOpen();
 
@@ -161,7 +159,7 @@ class CircuitBreakerTest extends TestCase
 
     public function testForceClose(): void
     {
-        $breaker = new CircuitBreaker($this->storage, 'test', failureThreshold: 1);
+        $breaker = new CircuitBreaker('test', $this->storage, ['failure_threshold' => 1]);
 
         // Trip the breaker
         try {
@@ -177,7 +175,7 @@ class CircuitBreakerTest extends TestCase
 
     public function testReset(): void
     {
-        $breaker = new CircuitBreaker($this->storage, 'test', failureThreshold: 1);
+        $breaker = new CircuitBreaker('test', $this->storage, ['failure_threshold' => 1]);
 
         // Trip the breaker
         try {
@@ -186,15 +184,15 @@ class CircuitBreakerTest extends TestCase
             // Expected
         }
 
-        $breaker->reset();
+        $breaker->forceClose();
 
         $this->assertSame('closed', $breaker->getState());
         $this->assertSame(0, $breaker->getFailureCount());
     }
 
-    public function testGetStats(): void
+    public function testGetStatistics(): void
     {
-        $breaker = new CircuitBreaker($this->storage, 'test', failureThreshold: 5);
+        $breaker = new CircuitBreaker('test', $this->storage, ['failure_threshold' => 5]);
 
         // Some successes
         $breaker->call(fn() => 'ok');
@@ -207,7 +205,7 @@ class CircuitBreakerTest extends TestCase
             // Expected
         }
 
-        $stats = $breaker->getStats();
+        $stats = $breaker->getStatistics();
 
         $this->assertSame('closed', $stats['state']);
         $this->assertSame(1, $stats['failure_count']);

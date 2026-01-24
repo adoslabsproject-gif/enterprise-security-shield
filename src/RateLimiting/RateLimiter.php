@@ -201,6 +201,19 @@ class RateLimiter
     }
 
     /**
+     * Check if request would be allowed without consuming token
+     *
+     * Useful for rate limit preview or conditional processing.
+     *
+     * @param string $identifier Unique identifier
+     * @return RateLimitResult Result with allowed status (no token consumed)
+     */
+    public function check(string $identifier): RateLimitResult
+    {
+        return $this->attempt($identifier, 0);
+    }
+
+    /**
      * Check remaining tokens without consuming
      *
      * @param string $identifier Unique identifier
@@ -223,6 +236,7 @@ class RateLimiter
         $this->storage->delete($key);
         $this->storage->delete($key . ':timestamp');
         $this->storage->delete($key . ':tokens');
+        $this->storage->delete($key . ':requests'); // Sliding window storage
     }
 
     /**

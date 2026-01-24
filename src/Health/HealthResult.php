@@ -30,6 +30,22 @@ final class HealthResult
     }
 
     /**
+     * Check if system is unhealthy
+     */
+    public function isUnhealthy(): bool
+    {
+        return $this->status === HealthStatus::UNHEALTHY;
+    }
+
+    /**
+     * Check if system is degraded
+     */
+    public function isDegraded(): bool
+    {
+        return $this->status === HealthStatus::DEGRADED;
+    }
+
+    /**
      * Check if system is available (healthy or degraded)
      */
     public function isAvailable(): bool
