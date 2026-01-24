@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Senza1dio\SecurityShield\Services;
 
-use Senza1dio\SecurityShield\Contracts\StorageInterface;
 use Senza1dio\SecurityShield\Contracts\LoggerInterface;
+use Senza1dio\SecurityShield\Contracts\StorageInterface;
 
 /**
- * Bot Verification Service
+ * Bot Verification Service.
  *
  * Verifies legitimate search engine and crawler bots using DNS reverse lookup
  * and IP range verification. Prevents bot spoofing attacks by validating that
@@ -60,30 +60,31 @@ use Senza1dio\SecurityShield\Contracts\LoggerInterface;
  * echo "DNS lookups saved: {$stats['dns_lookups_saved']}\n";
  * ```
  *
- * @package Senza1dio\SecurityShield\Services
  * @version 2.0.0
+ *
  * @author Senza1dio Security Team
  * @license MIT
  */
 class BotVerifier
 {
     /**
-     * Default cache TTL for bot verification results (24 hours)
+     * Default cache TTL for bot verification results (24 hours).
      */
     private const DEFAULT_CACHE_TTL = 86400;
 
     /**
-     * Configurable cache TTL
+     * Configurable cache TTL.
      */
     private int $cacheTTL;
 
     /**
-     * OpenAI bot User-Agent identifiers (IP verification)
+     * OpenAI bot User-Agent identifiers (IP verification).
      */
     private const OPENAI_BOTS = ['chatgpt-user', 'gptbot', 'oai-searchbot'];
 
     /**
-     * Statistics counters
+     * Statistics counters.
+     *
      * @var array<string, int>
      */
     private array $stats = [
@@ -98,17 +99,17 @@ class BotVerifier
     ];
 
     /**
-     * Storage backend for caching verification results
+     * Storage backend for caching verification results.
      */
     private StorageInterface $storage;
 
     /**
-     * Logger for security events
+     * Logger for security events.
      */
     private LoggerInterface $logger;
 
     /**
-     * Constructor
+     * Constructor.
      *
      * @param StorageInterface $storage Storage backend (Redis recommended)
      * @param LoggerInterface $logger Logger for security events
@@ -122,19 +123,21 @@ class BotVerifier
     }
 
     /**
-     * Set cache TTL for bot verification results
+     * Set cache TTL for bot verification results.
      *
      * @param int $ttl TTL in seconds
+     *
      * @return self
      */
     public function setCacheTTL(int $ttl): self
     {
         $this->cacheTTL = $ttl;
+
         return $this;
     }
 
     /**
-     * Verify bot legitimacy using cache, DNS, or IP range verification
+     * Verify bot legitimacy using cache, DNS, or IP range verification.
      *
      * WORKFLOW:
      * 1. Check cache for previous verification (24h TTL)
@@ -146,6 +149,7 @@ class BotVerifier
      *
      * @param string $ip Client IP address
      * @param string $userAgent User-Agent header
+     *
      * @return bool True if bot is verified legitimate
      */
     public function verifyBot(string $ip, string $userAgent): bool
@@ -212,7 +216,7 @@ class BotVerifier
                 'verification_method' => $verificationMethod,
                 'timestamp' => time(),
             ],
-            $this->cacheTTL
+            $this->cacheTTL,
         );
 
         // STEP 5: Log verification result
@@ -236,7 +240,7 @@ class BotVerifier
     }
 
     /**
-     * Verify bot using DNS reverse lookup (anti-spoofing)
+     * Verify bot using DNS reverse lookup (anti-spoofing).
      *
      * PROCESS:
      * 1. Reverse DNS: IP → hostname (e.g., 66.249.66.1 → crawl-66-249-66-1.googlebot.com)
@@ -257,6 +261,7 @@ class BotVerifier
      *
      * @param string $ip Client IP address
      * @param string $botName Bot identifier (e.g., 'googlebot', 'bingbot')
+     *
      * @return bool True if DNS verification passes
      */
     public function verifyWithDNS(string $ip, string $botName): bool
@@ -269,6 +274,7 @@ class BotVerifier
                     'ip' => $ip,
                     'bot_name' => $botName,
                 ]);
+
                 return false;
             }
 
@@ -282,6 +288,7 @@ class BotVerifier
                     'ip' => $ip,
                     'bot_name' => $botName,
                 ]);
+
                 return false;
             }
 
@@ -303,6 +310,7 @@ class BotVerifier
                     'hostname' => $hostname,
                     'allowed_suffixes' => $allowedSuffixes,
                 ]);
+
                 return false;
             }
 
@@ -318,6 +326,7 @@ class BotVerifier
                     'hostname' => $hostname,
                     'resolved_ip' => $resolvedIP,
                 ]);
+
                 return false;
             }
 
@@ -343,9 +352,10 @@ class BotVerifier
     }
 
     /**
-     * Get cached bot verification result
+     * Get cached bot verification result.
      *
      * @param string $ip Bot IP address
+     *
      * @return bool|null True/False if cached, null if not cached
      */
     public function getCachedVerification(string $ip): ?bool
@@ -357,11 +367,12 @@ class BotVerifier
         }
 
         $verified = $cached['verified'] ?? null;
+
         return is_bool($verified) ? $verified : null;
     }
 
     /**
-     * Verify OpenAI bot by IP range (no reverse DNS available)
+     * Verify OpenAI bot by IP range (no reverse DNS available).
      *
      * OpenAI crawlers (ChatGPT-User, GPTBot, OAI-SearchBot) run on Azure infrastructure
      * without reverse DNS. We verify by checking if the IP is within official OpenAI ranges.
@@ -373,6 +384,7 @@ class BotVerifier
      *
      * @param string $ip Client IP address (IPv4)
      * @param string $botName Bot identifier (for logging)
+     *
      * @return bool True if IP is within official OpenAI ranges
      */
     private function verifyOpenAIBot(string $ip, string $botName): bool
@@ -383,6 +395,7 @@ class BotVerifier
                     'ip' => $ip,
                     'bot_name' => $botName,
                 ]);
+
                 return true;
             }
 
@@ -405,12 +418,13 @@ class BotVerifier
     }
 
     /**
-     * Identify bot name from User-Agent string
+     * Identify bot name from User-Agent string.
      *
      * Matches User-Agent against legitimate bot patterns and returns the bot name
      * for DNS/IP verification.
      *
      * @param string $userAgent User-Agent header
+     *
      * @return string|null Bot name (e.g., 'googlebot', 'bingbot') or null if not a bot
      */
     private function identifyBotFromUserAgent(string $userAgent): ?string
@@ -493,9 +507,10 @@ class BotVerifier
     }
 
     /**
-     * Check if bot name is OpenAI bot (uses IP verification instead of DNS)
+     * Check if bot name is OpenAI bot (uses IP verification instead of DNS).
      *
      * @param string $botName Bot identifier
+     *
      * @return bool True if OpenAI bot
      */
     private function isOpenAIBot(string $botName): bool
@@ -504,7 +519,7 @@ class BotVerifier
     }
 
     /**
-     * Get verification statistics
+     * Get verification statistics.
      *
      * Provides insights into performance and effectiveness:
      * - Cache hit rate: Higher is better (fewer DNS lookups)
@@ -559,7 +574,7 @@ class BotVerifier
     }
 
     /**
-     * Reset statistics (for testing/monitoring)
+     * Reset statistics (for testing/monitoring).
      *
      * @return void
      */

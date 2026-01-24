@@ -9,7 +9,7 @@ use Senza1dio\SecurityShield\Anomaly\AnomalyType;
 use Senza1dio\SecurityShield\Anomaly\DetectorInterface;
 
 /**
- * Pattern Anomaly Detector
+ * Pattern Anomaly Detector.
  *
  * Detects unusual request patterns (endpoints, methods, sequences).
  *
@@ -30,8 +30,6 @@ use Senza1dio\SecurityShield\Anomaly\DetectorInterface;
  *     'user_agent' => 'curl/7.64.1',
  * ]);
  * ```
- *
- * @package Senza1dio\SecurityShield\Anomaly\Detectors
  */
 class PatternDetector implements DetectorInterface
 {
@@ -45,6 +43,7 @@ class PatternDetector implements DetectorInterface
     private array $userAgentCounts = [];
 
     private int $totalSamples = 0;
+
     private bool $trained = false;
 
     private float $rarityThreshold;
@@ -84,7 +83,7 @@ class PatternDetector implements DetectorInterface
                         'pattern_type' => 'http_method',
                         'method' => $method,
                         'rarity_score' => round($methodRarity, 2),
-                    ]
+                    ],
                 );
             }
         }
@@ -104,7 +103,7 @@ class PatternDetector implements DetectorInterface
                         'path' => $data['path'],
                         'path_prefix' => $pathPrefix,
                         'rarity_score' => round($pathRarity, 2),
-                    ]
+                    ],
                 );
             }
         }
@@ -124,7 +123,7 @@ class PatternDetector implements DetectorInterface
                         'user_agent' => $data['user_agent'],
                         'category' => $uaCategory,
                         'rarity_score' => round($uaRarity, 2),
-                    ]
+                    ],
                 );
             }
         }
@@ -169,7 +168,7 @@ class PatternDetector implements DetectorInterface
     }
 
     /**
-     * Calculate how rare a value is (0 = common, 1 = never seen)
+     * Calculate how rare a value is (0 = common, 1 = never seen).
      *
      * @param string $value
      * @param array<string, int> $counts
@@ -196,7 +195,7 @@ class PatternDetector implements DetectorInterface
     }
 
     /**
-     * Extract path prefix for pattern matching
+     * Extract path prefix for pattern matching.
      */
     private function extractPathPrefix(string $path): string
     {
@@ -210,7 +209,7 @@ class PatternDetector implements DetectorInterface
         $path = ($pathWithoutQuery !== false && $pathWithoutQuery !== '') ? $pathWithoutQuery : '/';
 
         // Get first 2 path segments
-        $segments = array_filter(explode('/', $path), fn($s) => $s !== '');
+        $segments = array_filter(explode('/', $path), fn ($s) => $s !== '');
 
         if (empty($segments)) {
             return '/';
@@ -222,7 +221,7 @@ class PatternDetector implements DetectorInterface
     }
 
     /**
-     * Categorize user agent into groups
+     * Categorize user agent into groups.
      */
     private function categorizeUserAgent(string $userAgent): string
     {
@@ -279,9 +278,10 @@ class PatternDetector implements DetectorInterface
     }
 
     /**
-     * Check for suspicious patterns
+     * Check for suspicious patterns.
      *
      * @param array<string, mixed> $data
+     *
      * @return array<int, Anomaly>
      */
     private function checkSuspiciousPatterns(array $data): array
@@ -294,11 +294,11 @@ class PatternDetector implements DetectorInterface
             $anomalies[] = new Anomaly(
                 AnomalyType::PATTERN_ANOMALY,
                 0.9,
-                "Directory traversal pattern detected in path",
+                'Directory traversal pattern detected in path',
                 [
                     'pattern_type' => 'directory_traversal',
                     'path' => $path,
-                ]
+                ],
             );
         }
 
@@ -307,11 +307,11 @@ class PatternDetector implements DetectorInterface
             $anomalies[] = new Anomaly(
                 AnomalyType::PATTERN_ANOMALY,
                 0.95,
-                "Null byte injection pattern detected",
+                'Null byte injection pattern detected',
                 [
                     'pattern_type' => 'null_byte',
                     'path' => $path,
-                ]
+                ],
             );
         }
 
@@ -331,11 +331,11 @@ class PatternDetector implements DetectorInterface
                 $anomalies[] = new Anomaly(
                     AnomalyType::PATTERN_ANOMALY,
                     0.85,
-                    "Sensitive file access attempt detected",
+                    'Sensitive file access attempt detected',
                     [
                         'pattern_type' => 'sensitive_file',
                         'path' => $path,
-                    ]
+                    ],
                 );
                 break;
             }

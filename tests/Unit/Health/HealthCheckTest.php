@@ -6,12 +6,11 @@ namespace Senza1dio\SecurityShield\Tests\Unit\Health;
 
 use PHPUnit\Framework\TestCase;
 use Senza1dio\SecurityShield\Health\CallableHealthCheck;
-use Senza1dio\SecurityShield\Health\CheckResult;
 use Senza1dio\SecurityShield\Health\HealthCheck;
 use Senza1dio\SecurityShield\Health\HealthStatus;
 
 /**
- * Test Suite for HealthCheck
+ * Test Suite for HealthCheck.
  *
  * NOTE: CallableHealthCheck expects a callable that returns bool (true=healthy).
  * For more complex scenarios (degraded status, custom messages), implement
@@ -24,8 +23,8 @@ class HealthCheckTest extends TestCase
         $healthCheck = new HealthCheck();
 
         // CallableHealthCheck expects bool return, true = healthy
-        $healthCheck->addCheck('database', new CallableHealthCheck(fn() => true));
-        $healthCheck->addCheck('cache', new CallableHealthCheck(fn() => true));
+        $healthCheck->addCheck('database', new CallableHealthCheck(fn () => true));
+        $healthCheck->addCheck('cache', new CallableHealthCheck(fn () => true));
 
         $result = $healthCheck->readiness();
 
@@ -38,8 +37,8 @@ class HealthCheckTest extends TestCase
         $healthCheck = new HealthCheck();
 
         // false = unhealthy
-        $healthCheck->addCheck('database', new CallableHealthCheck(fn() => false));
-        $healthCheck->addCheck('cache', new CallableHealthCheck(fn() => true));
+        $healthCheck->addCheck('database', new CallableHealthCheck(fn () => false));
+        $healthCheck->addCheck('cache', new CallableHealthCheck(fn () => true));
 
         $result = $healthCheck->readiness();
 
@@ -60,7 +59,7 @@ class HealthCheckTest extends TestCase
     public function testComponentHealthIncluded(): void
     {
         $healthCheck = new HealthCheck();
-        $healthCheck->addCheck('database', new CallableHealthCheck(fn() => true));
+        $healthCheck->addCheck('database', new CallableHealthCheck(fn () => true));
 
         $result = $healthCheck->readiness();
 
@@ -72,7 +71,7 @@ class HealthCheckTest extends TestCase
     {
         $healthCheck = new HealthCheck();
         $healthCheck->addCheck('unstable', new CallableHealthCheck(
-            fn() => throw new \RuntimeException('Connection failed')
+            fn () => throw new \RuntimeException('Connection failed'),
         ));
 
         $result = $healthCheck->readiness();
@@ -84,7 +83,7 @@ class HealthCheckTest extends TestCase
     public function testResultToArray(): void
     {
         $healthCheck = new HealthCheck();
-        $healthCheck->addCheck('test', new CallableHealthCheck(fn() => true));
+        $healthCheck->addCheck('test', new CallableHealthCheck(fn () => true));
 
         $result = $healthCheck->readiness();
         $array = $result->toArray();
@@ -98,7 +97,7 @@ class HealthCheckTest extends TestCase
     public function testToJson(): void
     {
         $healthCheck = new HealthCheck();
-        $healthCheck->addCheck('test', new CallableHealthCheck(fn() => true));
+        $healthCheck->addCheck('test', new CallableHealthCheck(fn () => true));
 
         $result = $healthCheck->readiness();
         $json = $result->toJson();
@@ -111,7 +110,7 @@ class HealthCheckTest extends TestCase
     public function testAddSimpleCheck(): void
     {
         $healthCheck = new HealthCheck();
-        $healthCheck->addSimpleCheck('simple', fn() => true);
+        $healthCheck->addSimpleCheck('simple', fn () => true);
 
         $result = $healthCheck->readiness();
 
@@ -123,8 +122,9 @@ class HealthCheckTest extends TestCase
         $callCount = 0;
         $healthCheck = new HealthCheck();
         $healthCheck->enableCache(10); // 10 second cache
-        $healthCheck->addSimpleCheck('counted', function() use (&$callCount) {
+        $healthCheck->addSimpleCheck('counted', function () use (&$callCount) {
             $callCount++;
+
             return true;
         });
 
@@ -146,10 +146,10 @@ class HealthCheckTest extends TestCase
         $healthCheck = new HealthCheck();
 
         // Critical check fails - should make overall unhealthy
-        $healthCheck->addCheck('critical', new CallableHealthCheck(fn() => false), critical: true);
+        $healthCheck->addCheck('critical', new CallableHealthCheck(fn () => false), critical: true);
 
         // Non-critical check passes
-        $healthCheck->addCheck('optional', new CallableHealthCheck(fn() => true), critical: false);
+        $healthCheck->addCheck('optional', new CallableHealthCheck(fn () => true), critical: false);
 
         $result = $healthCheck->readiness();
 
@@ -159,8 +159,8 @@ class HealthCheckTest extends TestCase
     public function testGetCheckNames(): void
     {
         $healthCheck = new HealthCheck();
-        $healthCheck->addCheck('db', new CallableHealthCheck(fn() => true));
-        $healthCheck->addCheck('cache', new CallableHealthCheck(fn() => true));
+        $healthCheck->addCheck('db', new CallableHealthCheck(fn () => true));
+        $healthCheck->addCheck('cache', new CallableHealthCheck(fn () => true));
 
         $names = $healthCheck->getCheckNames();
 
@@ -173,8 +173,9 @@ class HealthCheckTest extends TestCase
         $callCount = 0;
         $healthCheck = new HealthCheck();
         $healthCheck->enableCache(10);
-        $healthCheck->addSimpleCheck('counted', function() use (&$callCount) {
+        $healthCheck->addSimpleCheck('counted', function () use (&$callCount) {
             $callCount++;
+
             return true;
         });
 

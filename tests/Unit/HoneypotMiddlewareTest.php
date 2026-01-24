@@ -10,11 +10,12 @@ use Senza1dio\SecurityShield\Middleware\HoneypotMiddleware;
 use Senza1dio\SecurityShield\Tests\Fixtures\InMemoryStorage;
 
 /**
- * Test Suite for HoneypotMiddleware
+ * Test Suite for HoneypotMiddleware.
  */
 final class HoneypotMiddlewareTest extends TestCase
 {
     private SecurityConfig $config;
+
     private InMemoryStorage $storage;
 
     protected function setUp(): void
@@ -172,5 +173,4 @@ final class HoneypotMiddlewareTest extends TestCase
         // Should handle URL encoded paths
         $this->assertTrue($honeypot->isHoneypotPath('/%2Eenv'));
     }
-
 }

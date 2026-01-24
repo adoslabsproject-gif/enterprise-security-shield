@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Senza1dio\SecurityShield\Health;
 
 /**
- * Wrapper for callable health checks
+ * Wrapper for callable health checks.
  */
 class CallableHealthCheck implements HealthCheckInterface
 {
@@ -24,6 +24,7 @@ class CallableHealthCheck implements HealthCheckInterface
     {
         try {
             $result = ($this->callable)();
+
             return $result ? CheckResult::healthy() : CheckResult::unhealthy('Check returned false');
         } catch (\Throwable $e) {
             return CheckResult::unhealthy($e->getMessage());

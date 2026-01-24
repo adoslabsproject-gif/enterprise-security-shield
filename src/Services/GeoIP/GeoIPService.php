@@ -1,12 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Senza1dio\SecurityShield\Services\GeoIP;
 
 use Senza1dio\SecurityShield\Contracts\StorageInterface;
 use Senza1dio\SecurityShield\Utils\IPUtils;
 
 /**
- * GeoIP Service - Multi-Provider with Redis Caching
+ * GeoIP Service - Multi-Provider with Redis Caching.
  *
  * ARCHITECTURE:
  * - Multi-provider fallback (primary → secondary → tertiary)
@@ -28,8 +30,6 @@ use Senza1dio\SecurityShield\Utils\IPUtils;
  * $data = $geoip->lookup('203.0.113.50');
  * // ['country' => 'US', 'city' => 'New York', ...]
  * ```
- *
- * @package Senza1dio\SecurityShield\Services\GeoIP
  */
 class GeoIPService
 {
@@ -51,24 +51,27 @@ class GeoIPService
     }
 
     /**
-     * Add GeoIP provider (order matters - first added = first tried)
+     * Add GeoIP provider (order matters - first added = first tried).
      *
      * @param GeoIPInterface $provider
+     *
      * @return self
      */
     public function addProvider(GeoIPInterface $provider): self
     {
         $this->providers[] = $provider;
+
         return $this;
     }
 
     /**
-     * Set cache TTL in seconds
+     * Set cache TTL in seconds.
      *
      * DEFAULT: 86400 (24 hours)
      * RECOMMENDED: 43200-86400 (12-24h) to respect API rate limits
      *
      * @param int $seconds Cache TTL (3600-604800, 1h-7days)
+     *
      * @return self
      */
     public function setCacheTTL(int $seconds): self
@@ -78,11 +81,12 @@ class GeoIPService
         }
 
         $this->cacheTTL = $seconds;
+
         return $this;
     }
 
     /**
-     * Lookup IP address with caching and fallback
+     * Lookup IP address with caching and fallback.
      *
      * FLOW:
      * 1. Check Redis cache (24h TTL)
@@ -92,6 +96,7 @@ class GeoIPService
      * 5. Return data or null
      *
      * @param string $ip IPv4 or IPv6 address
+     *
      * @return array<string, mixed>|null Geographic data or null on failure
      */
     public function lookup(string $ip): ?array
@@ -130,6 +135,7 @@ class GeoIPService
                 if ($data !== null) {
                     // Success - cache and return
                     $this->cacheData($cacheKey, $data);
+
                     return $data;
                 }
             } catch (\Throwable $e) {
@@ -140,27 +146,31 @@ class GeoIPService
 
         // All providers failed - cache null to avoid repeated lookups
         $this->cacheData($cacheKey, null);
+
         return null;
     }
 
     /**
-     * Get country code only (lightweight)
+     * Get country code only (lightweight).
      *
      * @param string $ip
+     *
      * @return string|null ISO 3166-1 alpha-2 code or null
      */
     public function getCountry(string $ip): ?string
     {
         $data = $this->lookup($ip);
         $country = $data['country'] ?? null;
+
         return is_string($country) ? $country : null;
     }
 
     /**
-     * Check if IP is from specific country
+     * Check if IP is from specific country.
      *
      * @param string $ip
      * @param string $countryCode ISO 3166-1 alpha-2 (e.g., 'US', 'IT')
+     *
      * @return bool
      */
     public function isCountry(string $ip, string $countryCode): bool
@@ -168,7 +178,7 @@ class GeoIPService
         // Validate ISO 3166-1 alpha-2 country code format
         if (!preg_match('/^[A-Za-z]{2}$/', $countryCode)) {
             throw new \InvalidArgumentException(
-                "Country code must be 2 letters (ISO 3166-1 alpha-2), got: {$countryCode}"
+                "Country code must be 2 letters (ISO 3166-1 alpha-2), got: {$countryCode}",
             );
         }
 
@@ -176,38 +186,43 @@ class GeoIPService
     }
 
     /**
-     * Check if IP is proxy/VPN
+     * Check if IP is proxy/VPN.
      *
      * @param string $ip
+     *
      * @return bool
      */
     public function isProxy(string $ip): bool
     {
         $data = $this->lookup($ip);
         $isProxy = $data['is_proxy'] ?? false;
+
         return is_bool($isProxy) ? $isProxy : false;
     }
 
     /**
-     * Check if IP is datacenter/hosting
+     * Check if IP is datacenter/hosting.
      *
      * @param string $ip
+     *
      * @return bool
      */
     public function isDatacenter(string $ip): bool
     {
         $data = $this->lookup($ip);
         $isDatacenter = $data['is_datacenter'] ?? false;
+
         return is_bool($isDatacenter) ? $isDatacenter : false;
     }
 
     /**
-     * Calculate distance between two locations (haversine formula)
+     * Calculate distance between two locations (haversine formula).
      *
      * @param float $lat1 Latitude of first location
      * @param float $lon1 Longitude of first location
      * @param float $lat2 Latitude of second location
      * @param float $lon2 Longitude of second location
+     *
      * @return float Distance in kilometers
      */
     public function calculateDistance(float $lat1, float $lon1, float $lat2, float $lon2): float
@@ -227,11 +242,12 @@ class GeoIPService
     }
 
     /**
-     * Check if IP is private/reserved (RFC 1918, RFC 4193)
+     * Check if IP is private/reserved (RFC 1918, RFC 4193).
      *
      * Delegates to IPUtils for centralized private IP detection.
      *
      * @param string $ip
+     *
      * @return bool
      */
     private function isPrivateIP(string $ip): bool
@@ -240,13 +256,14 @@ class GeoIPService
     }
 
     /**
-     * Get cached GeoIP data
+     * Get cached GeoIP data.
      *
      * NOTE: StorageInterface now includes get()/set() methods.
      * The method_exists check is kept for backward compatibility with
      * custom storage implementations that may not have these methods.
      *
      * @param string $key
+     *
      * @return array<string, mixed>|null
      */
     private function getCachedData(string $key): ?array
@@ -265,10 +282,11 @@ class GeoIPService
     }
 
     /**
-     * Cache GeoIP data
+     * Cache GeoIP data.
      *
      * @param string $key
      * @param array<string, mixed>|null $data
+     *
      * @return void
      */
     private function cacheData(string $key, ?array $data): void
@@ -280,7 +298,7 @@ class GeoIPService
     }
 
     /**
-     * Get all configured providers
+     * Get all configured providers.
      *
      * @return array<int, GeoIPInterface>
      */

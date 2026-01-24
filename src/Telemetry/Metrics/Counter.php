@@ -5,17 +5,17 @@ declare(strict_types=1);
 namespace Senza1dio\SecurityShield\Telemetry\Metrics;
 
 /**
- * Counter Metric
+ * Counter Metric.
  *
  * A monotonically increasing value.
  * Use for counting events like requests, errors, etc.
- *
- * @package Senza1dio\SecurityShield\Telemetry\Metrics
  */
 class Counter
 {
     private string $name;
+
     private string $description;
+
     private string $unit;
 
     /** @var array<string, float> */
@@ -24,7 +24,7 @@ class Counter
     public function __construct(
         string $name,
         string $description = '',
-        string $unit = ''
+        string $unit = '',
     ) {
         $this->name = $name;
         $this->description = $description;
@@ -32,7 +32,7 @@ class Counter
     }
 
     /**
-     * Add value to counter
+     * Add value to counter.
      *
      * @param float $value Value to add (must be non-negative)
      * @param array<string, string> $labels Metric labels
@@ -53,7 +53,7 @@ class Counter
     }
 
     /**
-     * Increment counter by 1
+     * Increment counter by 1.
      *
      * @param array<string, string> $labels Metric labels
      */
@@ -63,18 +63,19 @@ class Counter
     }
 
     /**
-     * Get current value
+     * Get current value.
      *
      * @param array<string, string> $labels Metric labels
      */
     public function getValue(array $labels = []): float
     {
         $key = $this->labelsToKey($labels);
+
         return $this->values[$key] ?? 0.0;
     }
 
     /**
-     * Get all values with labels
+     * Get all values with labels.
      *
      * @return array<string, float>
      */
@@ -84,7 +85,7 @@ class Counter
     }
 
     /**
-     * Reset counter
+     * Reset counter.
      */
     public function reset(): void
     {
@@ -92,7 +93,7 @@ class Counter
     }
 
     /**
-     * Export to array
+     * Export to array.
      *
      * @return array<string, mixed>
      */
@@ -121,7 +122,7 @@ class Counter
     }
 
     /**
-     * Export to Prometheus format
+     * Export to Prometheus format.
      */
     public function toPrometheusFormat(): string
     {
@@ -142,7 +143,7 @@ class Counter
     }
 
     /**
-     * Convert labels to unique key
+     * Convert labels to unique key.
      *
      * @param array<string, string> $labels
      */
@@ -153,13 +154,15 @@ class Counter
         }
 
         ksort($labels);
+
         return json_encode($labels) ?: '';
     }
 
     /**
-     * Convert key back to label array format
+     * Convert key back to label array format.
      *
      * @param string $key
+     *
      * @return array<int, array{key: string, value: array{string_value: string}}>
      */
     private function keyToLabels(string $key): array
@@ -182,7 +185,7 @@ class Counter
     }
 
     /**
-     * Format labels for Prometheus
+     * Format labels for Prometheus.
      */
     private function formatPrometheusLabels(string $key): string
     {

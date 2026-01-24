@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Senza1dio\SecurityShield\RateLimiting;
 
 /**
- * Rate Limit Result
+ * Rate Limit Result.
  *
  * Contains the result of a rate limit check with metadata for HTTP headers.
  *
@@ -14,8 +14,6 @@ namespace Senza1dio\SecurityShield\RateLimiting;
  * - X-RateLimit-Remaining: Remaining requests in window
  * - X-RateLimit-Reset: Unix timestamp when limit resets
  * - Retry-After: Seconds until retry is allowed (when blocked)
- *
- * @package Senza1dio\SecurityShield\RateLimiting
  */
 final class RateLimitResult
 {
@@ -31,12 +29,12 @@ final class RateLimitResult
         public readonly int $remaining,
         public readonly int $limit,
         public readonly int $resetAt,
-        public readonly int $retryAfter = 0
+        public readonly int $retryAfter = 0,
     ) {
     }
 
     /**
-     * Get HTTP headers for rate limit response
+     * Get HTTP headers for rate limit response.
      *
      * @return array<string, string>
      */
@@ -56,19 +54,21 @@ final class RateLimitResult
     }
 
     /**
-     * Get RateLimit-Policy header value (draft spec)
+     * Get RateLimit-Policy header value (draft spec).
      *
      * @param string $name Policy name
+     *
      * @return string
      */
     public function getPolicyHeader(string $name = 'default'): string
     {
         $windowSeconds = $this->resetAt - time();
+
         return "{$this->limit};w={$windowSeconds};name=\"{$name}\"";
     }
 
     /**
-     * Check if request was blocked
+     * Check if request was blocked.
      */
     public function isBlocked(): bool
     {
@@ -76,16 +76,17 @@ final class RateLimitResult
     }
 
     /**
-     * Get utilization percentage
+     * Get utilization percentage.
      */
     public function getUtilization(): float
     {
         $used = $this->limit - $this->remaining;
+
         return ($used / $this->limit) * 100;
     }
 
     /**
-     * Convert to array for logging/debugging
+     * Convert to array for logging/debugging.
      *
      * @return array{
      *     allowed: bool,

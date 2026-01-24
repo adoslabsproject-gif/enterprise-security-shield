@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Senza1dio\SecurityShield\Notifications;
 
 /**
- * Telegram Notifier
+ * Telegram Notifier.
  *
  * Sends notifications via Telegram Bot API.
  *
@@ -30,17 +30,19 @@ namespace Senza1dio\SecurityShield\Notifications;
  *     'score' => 100,
  * ]);
  * ```
- *
- * @package Senza1dio\SecurityShield\Notifications
  */
 class TelegramNotifier implements NotifierInterface
 {
     private const API_BASE = 'https://api.telegram.org/bot';
 
     private string $botToken;
+
     private string $chatId;
+
     private int $timeout;
+
     private bool $disableNotification;
+
     private ?string $parseMode;
 
     /**
@@ -55,7 +57,7 @@ class TelegramNotifier implements NotifierInterface
         string $chatId,
         int $timeout = 10,
         bool $disableNotification = false,
-        ?string $parseMode = 'HTML'
+        ?string $parseMode = 'HTML',
     ) {
         $this->botToken = $botToken;
         $this->chatId = $chatId;
@@ -101,16 +103,17 @@ class TelegramNotifier implements NotifierInterface
             $fullMessage .= "\n\n" . $this->formatContext($context);
         }
 
-        $fullMessage .= "\n\n<i>" . date('Y-m-d H:i:s T') . "</i>";
+        $fullMessage .= "\n\n<i>" . date('Y-m-d H:i:s T') . '</i>';
 
         return $this->sendMessage($fullMessage);
     }
 
     /**
-     * Send a message with inline keyboard buttons
+     * Send a message with inline keyboard buttons.
      *
      * @param string $message Message text
      * @param array<int, array<int, array{text: string, url?: string, callback_data?: string}>> $buttons Button rows
+     *
      * @return bool
      */
     public function sendWithButtons(string $message, array $buttons): bool
@@ -125,10 +128,11 @@ class TelegramNotifier implements NotifierInterface
     }
 
     /**
-     * Send a document/file
+     * Send a document/file.
      *
      * @param string $filePath Path to file or URL
      * @param string|null $caption Optional caption
+     *
      * @return bool
      */
     public function sendDocument(string $filePath, ?string $caption = null): bool
@@ -151,6 +155,7 @@ class TelegramNotifier implements NotifierInterface
         // Check if it's a URL or file path
         if (filter_var($filePath, FILTER_VALIDATE_URL)) {
             $data['document'] = $filePath;
+
             return $this->request($url, $data);
         }
 
@@ -165,10 +170,11 @@ class TelegramNotifier implements NotifierInterface
     }
 
     /**
-     * Send location
+     * Send location.
      *
      * @param float $latitude Latitude
      * @param float $longitude Longitude
+     *
      * @return bool
      */
     public function sendLocation(float $latitude, float $longitude): bool
@@ -188,10 +194,11 @@ class TelegramNotifier implements NotifierInterface
     }
 
     /**
-     * Send message via Telegram API
+     * Send message via Telegram API.
      *
      * @param string $text Message text
      * @param array<string, mixed>|null $replyMarkup Optional reply markup (keyboard)
+     *
      * @return bool
      */
     private function sendMessage(string $text, ?array $replyMarkup = null): bool
@@ -216,10 +223,11 @@ class TelegramNotifier implements NotifierInterface
     }
 
     /**
-     * Make HTTP request to Telegram API
+     * Make HTTP request to Telegram API.
      *
      * @param string $url API endpoint
      * @param array<string, mixed> $data Request data
+     *
      * @return bool
      */
     private function request(string $url, array $data): bool
@@ -256,10 +264,11 @@ class TelegramNotifier implements NotifierInterface
     }
 
     /**
-     * Make multipart HTTP request (for file uploads)
+     * Make multipart HTTP request (for file uploads).
      *
      * @param string $url API endpoint
      * @param array<string, mixed> $data Request data
+     *
      * @return bool
      */
     private function requestMultipart(string $url, array $data): bool
@@ -293,9 +302,10 @@ class TelegramNotifier implements NotifierInterface
     }
 
     /**
-     * Format context data for display
+     * Format context data for display.
      *
      * @param array<string, mixed> $context
+     *
      * @return string
      */
     private function formatContext(array $context): string
@@ -312,9 +322,10 @@ class TelegramNotifier implements NotifierInterface
     }
 
     /**
-     * Escape HTML entities for Telegram HTML parse mode
+     * Escape HTML entities for Telegram HTML parse mode.
      *
      * @param string $text
+     *
      * @return string
      */
     private function escapeHtml(string $text): string

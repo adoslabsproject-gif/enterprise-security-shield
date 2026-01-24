@@ -8,7 +8,7 @@ use PHPUnit\Framework\TestCase;
 use Senza1dio\SecurityShield\Services\GeoIP\IPApiProvider;
 
 /**
- * IP-API Provider Test Suite
+ * IP-API Provider Test Suite.
  *
  * @covers \Senza1dio\SecurityShield\Services\GeoIP\IPApiProvider
  */
@@ -49,7 +49,8 @@ class IPApiProviderTest extends TestCase
     }
 
     /**
-     * Integration test - requires internet connection
+     * Integration test - requires internet connection.
+     *
      * @group integration
      */
     public function testLookupRealIP(): void
@@ -67,7 +68,8 @@ class IPApiProviderTest extends TestCase
     }
 
     /**
-     * Integration test - datacenter detection
+     * Integration test - datacenter detection.
+     *
      * @group integration
      */
     public function testLookupDetectsDatacenter(): void

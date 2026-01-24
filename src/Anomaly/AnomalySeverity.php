@@ -5,34 +5,32 @@ declare(strict_types=1);
 namespace Senza1dio\SecurityShield\Anomaly;
 
 /**
- * Anomaly Severity Levels
- *
- * @package Senza1dio\SecurityShield\Anomaly
+ * Anomaly Severity Levels.
  */
 enum AnomalySeverity: string
 {
     /**
-     * Low severity - monitor but don't alert
+     * Low severity - monitor but don't alert.
      */
     case LOW = 'low';
 
     /**
-     * Medium severity - log and potentially alert
+     * Medium severity - log and potentially alert.
      */
     case MEDIUM = 'medium';
 
     /**
-     * High severity - immediate alert
+     * High severity - immediate alert.
      */
     case HIGH = 'high';
 
     /**
-     * Critical severity - immediate action required
+     * Critical severity - immediate action required.
      */
     case CRITICAL = 'critical';
 
     /**
-     * Get numeric severity score (1-4)
+     * Get numeric severity score (1-4).
      */
     public function score(): int
     {
@@ -45,7 +43,7 @@ enum AnomalySeverity: string
     }
 
     /**
-     * Create from score
+     * Create from score.
      */
     public static function fromScore(float $score): self
     {

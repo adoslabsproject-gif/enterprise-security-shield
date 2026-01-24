@@ -51,7 +51,7 @@ class PatternDetectorTest extends TestCase
 
         $patternAnomalies = array_filter(
             $anomalies,
-            fn($a) => $a->getContextValue('pattern_type') === 'http_method'
+            fn ($a) => $a->getContextValue('pattern_type') === 'http_method',
         );
 
         $this->assertNotEmpty($patternAnomalies);
@@ -69,7 +69,7 @@ class PatternDetectorTest extends TestCase
 
         $patternAnomalies = array_filter(
             $anomalies,
-            fn($a) => $a->getContextValue('pattern_type') === 'path'
+            fn ($a) => $a->getContextValue('pattern_type') === 'path',
         );
 
         $this->assertNotEmpty($patternAnomalies);
@@ -88,7 +88,7 @@ class PatternDetectorTest extends TestCase
 
         $uaAnomalies = array_filter(
             $anomalies,
-            fn($a) => $a->getType() === AnomalyType::USER_AGENT_ANOMALY
+            fn ($a) => $a->getType() === AnomalyType::USER_AGENT_ANOMALY,
         );
 
         $this->assertNotEmpty($uaAnomalies);
@@ -106,7 +106,7 @@ class PatternDetectorTest extends TestCase
 
         $traversalAnomalies = array_filter(
             $anomalies,
-            fn($a) => $a->getContextValue('pattern_type') === 'directory_traversal'
+            fn ($a) => $a->getContextValue('pattern_type') === 'directory_traversal',
         );
 
         $this->assertNotEmpty($traversalAnomalies);
@@ -125,7 +125,7 @@ class PatternDetectorTest extends TestCase
 
         $nullByteAnomalies = array_filter(
             $anomalies,
-            fn($a) => $a->getContextValue('pattern_type') === 'null_byte'
+            fn ($a) => $a->getContextValue('pattern_type') === 'null_byte',
         );
 
         $this->assertNotEmpty($nullByteAnomalies);
@@ -152,7 +152,7 @@ class PatternDetectorTest extends TestCase
 
             $sensitiveAnomalies = array_filter(
                 $anomalies,
-                fn($a) => $a->getContextValue('pattern_type') === 'sensitive_file'
+                fn ($a) => $a->getContextValue('pattern_type') === 'sensitive_file',
             );
 
             $this->assertNotEmpty($sensitiveAnomalies, "Should detect access to {$file}");
@@ -164,7 +164,7 @@ class PatternDetectorTest extends TestCase
         $detector = new PatternDetector();
         $data = array_merge(
             $this->getTrainingData(),
-            array_fill(0, 50, ['user_agent' => 'curl/7.64.1'])
+            array_fill(0, 50, ['user_agent' => 'curl/7.64.1']),
         );
         $detector->train($data);
 
@@ -175,7 +175,7 @@ class PatternDetectorTest extends TestCase
 
         $curlAnomalies = array_filter(
             $anomalies,
-            fn($a) => $a->getType() === AnomalyType::USER_AGENT_ANOMALY
+            fn ($a) => $a->getType() === AnomalyType::USER_AGENT_ANOMALY,
         );
 
         $this->assertEmpty($curlAnomalies);

@@ -5,17 +5,17 @@ declare(strict_types=1);
 namespace Senza1dio\SecurityShield\Telemetry\Metrics;
 
 /**
- * Histogram Metric
+ * Histogram Metric.
  *
  * Tracks distribution of values in configurable buckets.
  * Use for latencies, request sizes, etc.
- *
- * @package Senza1dio\SecurityShield\Telemetry\Metrics
  */
 class Histogram
 {
     private string $name;
+
     private string $description;
+
     private string $unit;
 
     /** @var array<int, float> */
@@ -25,17 +25,17 @@ class Histogram
     private array $values = [];
 
     /**
-     * Default HTTP latency boundaries in seconds
+     * Default HTTP latency boundaries in seconds.
      */
     public const HTTP_LATENCY_BOUNDARIES = [
-        0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0
+        0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0,
     ];
 
     /**
-     * Default size boundaries in bytes
+     * Default size boundaries in bytes.
      */
     public const SIZE_BOUNDARIES = [
-        100, 500, 1000, 5000, 10000, 50000, 100000, 500000, 1000000
+        100, 500, 1000, 5000, 10000, 50000, 100000, 500000, 1000000,
     ];
 
     /**
@@ -48,7 +48,7 @@ class Histogram
         string $name,
         string $description = '',
         string $unit = '',
-        array $boundaries = []
+        array $boundaries = [],
     ) {
         $this->name = $name;
         $this->description = $description;
@@ -60,7 +60,7 @@ class Histogram
     }
 
     /**
-     * Record a value
+     * Record a value.
      *
      * @param float $value Value to record
      * @param array<string, string> $labels Metric labels
@@ -98,11 +98,13 @@ class Histogram
     }
 
     /**
-     * Time a callable and record the duration
+     * Time a callable and record the duration.
      *
      * @template T
+     *
      * @param callable(): T $operation Operation to time
      * @param array<string, string> $labels Metric labels
+     *
      * @return T
      */
     public function time(callable $operation, array $labels = []): mixed
@@ -118,9 +120,10 @@ class Histogram
     }
 
     /**
-     * Get statistics for labels
+     * Get statistics for labels.
      *
      * @param array<string, string> $labels
+     *
      * @return array{count: int, sum: float, min: float, max: float, avg: float}|null
      */
     public function getStats(array $labels = []): ?array
@@ -143,7 +146,7 @@ class Histogram
     }
 
     /**
-     * Get all values
+     * Get all values.
      *
      * @return array<string, array{buckets: array<int, int>, sum: float, count: int, min: float, max: float}>
      */
@@ -153,7 +156,7 @@ class Histogram
     }
 
     /**
-     * Reset histogram
+     * Reset histogram.
      */
     public function reset(): void
     {
@@ -161,7 +164,7 @@ class Histogram
     }
 
     /**
-     * Export to array
+     * Export to array.
      *
      * @return array<string, mixed>
      */
@@ -201,7 +204,7 @@ class Histogram
     }
 
     /**
-     * Export to Prometheus format
+     * Export to Prometheus format.
      */
     public function toPrometheusFormat(): string
     {
@@ -240,7 +243,7 @@ class Histogram
     }
 
     /**
-     * Create empty bucket structure
+     * Create empty bucket structure.
      *
      * @return array{buckets: array<int, int>, sum: float, count: int, min: float, max: float}
      */
@@ -263,7 +266,7 @@ class Histogram
     }
 
     /**
-     * Convert labels to unique key
+     * Convert labels to unique key.
      *
      * @param array<string, string> $labels
      */
@@ -274,13 +277,15 @@ class Histogram
         }
 
         ksort($labels);
+
         return json_encode($labels) ?: '';
     }
 
     /**
-     * Convert key back to label array format
+     * Convert key back to label array format.
      *
      * @param string $key
+     *
      * @return array<int, array{key: string, value: array{string_value: string}}>
      */
     private function keyToLabels(string $key): array
@@ -303,7 +308,7 @@ class Histogram
     }
 
     /**
-     * Format labels for Prometheus
+     * Format labels for Prometheus.
      */
     private function formatPrometheusLabels(string $key): string
     {
@@ -315,7 +320,7 @@ class Histogram
     }
 
     /**
-     * Format label array for Prometheus
+     * Format label array for Prometheus.
      *
      * @param array<string, string> $labels
      */

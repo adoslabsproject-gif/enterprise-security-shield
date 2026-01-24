@@ -29,7 +29,7 @@ class CircuitBreakerTest extends TestCase
     {
         $breaker = new CircuitBreaker('test', $this->storage);
 
-        $result = $breaker->call(fn() => 'success');
+        $result = $breaker->call(fn () => 'success');
 
         $this->assertSame('success', $result);
         $this->assertSame('closed', $breaker->getState());
@@ -42,7 +42,7 @@ class CircuitBreakerTest extends TestCase
         // First 2 failures - still closed
         for ($i = 0; $i < 2; $i++) {
             try {
-                $breaker->call(fn() => throw new \RuntimeException('fail'));
+                $breaker->call(fn () => throw new \RuntimeException('fail'));
             } catch (\RuntimeException) {
                 // Expected
             }
@@ -52,7 +52,7 @@ class CircuitBreakerTest extends TestCase
 
         // Third failure - opens
         try {
-            $breaker->call(fn() => throw new \RuntimeException('fail'));
+            $breaker->call(fn () => throw new \RuntimeException('fail'));
         } catch (\RuntimeException) {
             // Expected
         }
@@ -66,13 +66,13 @@ class CircuitBreakerTest extends TestCase
 
         // Trip the breaker
         try {
-            $breaker->call(fn() => throw new \RuntimeException('fail'));
+            $breaker->call(fn () => throw new \RuntimeException('fail'));
         } catch (\RuntimeException) {
             // Expected
         }
 
         $this->expectException(CircuitOpenException::class);
-        $breaker->call(fn() => 'should not run');
+        $breaker->call(fn () => 'should not run');
     }
 
     public function testOpenCircuitUsesFallback(): void
@@ -81,14 +81,14 @@ class CircuitBreakerTest extends TestCase
 
         // Trip the breaker
         try {
-            $breaker->call(fn() => throw new \RuntimeException('fail'));
+            $breaker->call(fn () => throw new \RuntimeException('fail'));
         } catch (\RuntimeException) {
             // Expected
         }
 
         $result = $breaker->call(
-            fn() => 'should not run',
-            fn() => 'fallback value'
+            fn () => 'should not run',
+            fn () => 'fallback value',
         );
 
         $this->assertSame('fallback value', $result);
@@ -99,12 +99,12 @@ class CircuitBreakerTest extends TestCase
         $breaker = new CircuitBreaker(
             'test',
             $this->storage,
-            ['failure_threshold' => 1, 'recovery_timeout' => 1]
+            ['failure_threshold' => 1, 'recovery_timeout' => 1, 'success_threshold' => 1],
         );
 
         // Trip the breaker
         try {
-            $breaker->call(fn() => throw new \RuntimeException('fail'));
+            $breaker->call(fn () => throw new \RuntimeException('fail'));
         } catch (\RuntimeException) {
             // Expected
         }
@@ -115,7 +115,7 @@ class CircuitBreakerTest extends TestCase
         sleep(2);
 
         // Should transition to half-open on next call
-        $result = $breaker->call(fn() => 'recovered');
+        $result = $breaker->call(fn () => 'recovered');
 
         $this->assertSame('recovered', $result);
         $this->assertSame('closed', $breaker->getState());
@@ -126,12 +126,12 @@ class CircuitBreakerTest extends TestCase
         $breaker = new CircuitBreaker(
             'test',
             $this->storage,
-            ['failure_threshold' => 1, 'recovery_timeout' => 1]
+            ['failure_threshold' => 1, 'recovery_timeout' => 1],
         );
 
         // Trip and wait
         try {
-            $breaker->call(fn() => throw new \RuntimeException('fail'));
+            $breaker->call(fn () => throw new \RuntimeException('fail'));
         } catch (\RuntimeException) {
             // Expected
         }
@@ -140,7 +140,7 @@ class CircuitBreakerTest extends TestCase
 
         // Fail again in half-open state
         try {
-            $breaker->call(fn() => throw new \RuntimeException('still failing'));
+            $breaker->call(fn () => throw new \RuntimeException('still failing'));
         } catch (\RuntimeException) {
             // Expected
         }
@@ -163,7 +163,7 @@ class CircuitBreakerTest extends TestCase
 
         // Trip the breaker
         try {
-            $breaker->call(fn() => throw new \RuntimeException('fail'));
+            $breaker->call(fn () => throw new \RuntimeException('fail'));
         } catch (\RuntimeException) {
             // Expected
         }
@@ -179,7 +179,7 @@ class CircuitBreakerTest extends TestCase
 
         // Trip the breaker
         try {
-            $breaker->call(fn() => throw new \RuntimeException('fail'));
+            $breaker->call(fn () => throw new \RuntimeException('fail'));
         } catch (\RuntimeException) {
             // Expected
         }
@@ -195,12 +195,12 @@ class CircuitBreakerTest extends TestCase
         $breaker = new CircuitBreaker('test', $this->storage, ['failure_threshold' => 5]);
 
         // Some successes
-        $breaker->call(fn() => 'ok');
-        $breaker->call(fn() => 'ok');
+        $breaker->call(fn () => 'ok');
+        $breaker->call(fn () => 'ok');
 
         // Some failures
         try {
-            $breaker->call(fn() => throw new \RuntimeException('fail'));
+            $breaker->call(fn () => throw new \RuntimeException('fail'));
         } catch (\RuntimeException) {
             // Expected
         }

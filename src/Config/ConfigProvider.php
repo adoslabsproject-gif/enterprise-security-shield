@@ -7,7 +7,7 @@ namespace Senza1dio\SecurityShield\Config;
 use Senza1dio\SecurityShield\Contracts\StorageInterface;
 
 /**
- * Enterprise Configuration Provider
+ * Enterprise Configuration Provider.
  *
  * Multi-source configuration with hot-reload support.
  *
@@ -42,14 +42,15 @@ use Senza1dio\SecurityShield\Contracts\StorageInterface;
  * // Hot-reload: update in Redis, all instances pick it up
  * $config->setRemote('score_threshold', 100);
  * ```
- *
- * @package Senza1dio\SecurityShield\Config
  */
 class ConfigProvider
 {
     private ?StorageInterface $storage;
+
     private string $keyPrefix;
+
     private string $envPrefix;
+
     private int $cacheTTL;
 
     /** @var array<string, mixed> */
@@ -88,10 +89,11 @@ class ConfigProvider
     // ==================== GETTERS ====================
 
     /**
-     * Get configuration value
+     * Get configuration value.
      *
      * @param string $key Configuration key
      * @param mixed $default Default if not found
+     *
      * @return mixed Configuration value
      */
     public function get(string $key, mixed $default = null): mixed
@@ -122,25 +124,27 @@ class ConfigProvider
     }
 
     /**
-     * Get integer configuration value
+     * Get integer configuration value.
      */
     public function getInt(string $key, int $default = 0): int
     {
         $value = $this->get($key, $default);
+
         return is_numeric($value) ? (int) $value : $default;
     }
 
     /**
-     * Get float configuration value
+     * Get float configuration value.
      */
     public function getFloat(string $key, float $default = 0.0): float
     {
         $value = $this->get($key, $default);
+
         return is_numeric($value) ? (float) $value : $default;
     }
 
     /**
-     * Get boolean configuration value
+     * Get boolean configuration value.
      */
     public function getBool(string $key, bool $default = false): bool
     {
@@ -158,19 +162,21 @@ class ConfigProvider
     }
 
     /**
-     * Get string configuration value
+     * Get string configuration value.
      */
     public function getString(string $key, string $default = ''): string
     {
         $value = $this->get($key, $default);
+
         return is_string($value) ? $value : $default;
     }
 
     /**
-     * Get array configuration value
+     * Get array configuration value.
      *
      * @param string $key
      * @param array<mixed> $default
+     *
      * @return array<mixed>
      */
     public function getArray(string $key, array $default = []): array
@@ -183,6 +189,7 @@ class ConfigProvider
 
         if (is_string($value)) {
             $decoded = json_decode($value, true);
+
             return is_array($decoded) ? $decoded : $default;
         }
 
@@ -190,7 +197,7 @@ class ConfigProvider
     }
 
     /**
-     * Check if configuration key exists
+     * Check if configuration key exists.
      */
     public function has(string $key): bool
     {
@@ -200,7 +207,7 @@ class ConfigProvider
     // ==================== SETTERS ====================
 
     /**
-     * Set runtime override (highest priority)
+     * Set runtime override (highest priority).
      *
      * @param string $key Configuration key
      * @param mixed $value Configuration value
@@ -218,7 +225,7 @@ class ConfigProvider
     }
 
     /**
-     * Set remote configuration (hot-reloadable)
+     * Set remote configuration (hot-reloadable).
      *
      * @param string $key Configuration key
      * @param mixed $value Configuration value
@@ -246,27 +253,29 @@ class ConfigProvider
     }
 
     /**
-     * Set default values
+     * Set default values.
      *
      * @param array<string, mixed> $defaults
      */
     public function setDefaults(array $defaults): self
     {
         $this->defaults = array_merge($this->defaults, $defaults);
+
         return $this;
     }
 
     /**
-     * Remove runtime override
+     * Remove runtime override.
      */
     public function unset(string $key): self
     {
         unset($this->overrides[$key]);
+
         return $this;
     }
 
     /**
-     * Remove remote configuration
+     * Remove remote configuration.
      */
     public function deleteRemote(string $key): self
     {
@@ -275,13 +284,14 @@ class ConfigProvider
         }
 
         unset($this->cache[$key]);
+
         return $this;
     }
 
     // ==================== VALIDATION ====================
 
     /**
-     * Add validator for a configuration key
+     * Add validator for a configuration key.
      *
      * @param string $key Configuration key
      * @param ConfigValidator $validator Validator instance
@@ -289,14 +299,16 @@ class ConfigProvider
     public function addValidator(string $key, ConfigValidator $validator): self
     {
         $this->validators[$key] = $validator;
+
         return $this;
     }
 
     /**
-     * Validate a configuration value
+     * Validate a configuration value.
      *
      * @param string $key Configuration key
      * @param mixed $value Value to validate
+     *
      * @return ValidationResult Validation result
      */
     public function validate(string $key, mixed $value): ValidationResult
@@ -309,7 +321,7 @@ class ConfigProvider
     }
 
     /**
-     * Validate all current configuration
+     * Validate all current configuration.
      *
      * @return array<string, ValidationResult>
      */
@@ -328,7 +340,7 @@ class ConfigProvider
     // ==================== CHANGE LISTENERS ====================
 
     /**
-     * Register listener for configuration changes
+     * Register listener for configuration changes.
      *
      * @param string $key Configuration key (or '*' for all)
      * @param callable(string $key, mixed $oldValue, mixed $newValue): void $callback
@@ -336,34 +348,37 @@ class ConfigProvider
     public function onChange(string $key, callable $callback): self
     {
         $this->changeListeners[$key] = $callback;
+
         return $this;
     }
 
     // ==================== CACHE ====================
 
     /**
-     * Clear configuration cache
+     * Clear configuration cache.
      */
     public function clearCache(): self
     {
         $this->cache = [];
         $this->cacheLoadedAt = null;
+
         return $this;
     }
 
     /**
-     * Refresh configuration from remote
+     * Refresh configuration from remote.
      */
     public function refresh(): self
     {
         $this->clearCache();
+
         return $this;
     }
 
     // ==================== EXPORT/IMPORT ====================
 
     /**
-     * Export all configuration
+     * Export all configuration.
      *
      * @return array<string, mixed>
      */
@@ -395,7 +410,7 @@ class ConfigProvider
     }
 
     /**
-     * Import configuration from array
+     * Import configuration from array.
      *
      * @param array<string, mixed> $config Configuration to import
      * @param bool $remote If true, set as remote config

@@ -11,7 +11,7 @@ use Senza1dio\SecurityShield\Exceptions\HoneypotAccessException;
 use Senza1dio\SecurityShield\Utils\IPUtils;
 
 /**
- * Honeypot Middleware - Framework-Agnostic Trap System
+ * Honeypot Middleware - Framework-Agnostic Trap System.
  *
  * MISSION:
  * Detect and instantly ban attackers accessing honeypot endpoints.
@@ -66,8 +66,8 @@ use Senza1dio\SecurityShield\Utils\IPUtils;
  * - Redis ban check in parallel with path detection
  * - Zero impact on legitimate traffic
  *
- * @package Senza1dio\SecurityShield\Middleware
  * @version 2.0.0
+ *
  * @author  senza1dio
  * @license MIT
  */
@@ -96,7 +96,7 @@ class HoneypotMiddleware
 
     /**
      * Default honeypot paths (50+ traps)
-     * These are common paths attackers scan for vulnerabilities
+     * These are common paths attackers scan for vulnerabilities.
      */
     private const DEFAULT_HONEYPOT_PATHS = [
         // Environment & Config Files (CRITICAL)
@@ -185,7 +185,7 @@ class HoneypotMiddleware
     ];
 
     /**
-     * Constructor
+     * Constructor.
      *
      * @param SecurityConfig $config Security configuration
      * @param array<int, string> $honeypotPaths Custom honeypot paths (empty = use defaults)
@@ -218,12 +218,13 @@ class HoneypotMiddleware
     }
 
     /**
-     * Check if path matches honeypot endpoint
+     * Check if path matches honeypot endpoint.
      *
      * PERFORMANCE: O(n) linear search but n is small (~50 paths)
      * Could be optimized with hash table for 1000+ paths
      *
      * @param string $path Request path (from REQUEST_URI)
+     *
      * @return bool True if honeypot path detected
      */
     public function isHoneypotPath(string $path): bool
@@ -258,21 +259,23 @@ class HoneypotMiddleware
     }
 
     /**
-     * Set trusted proxies for IP extraction
+     * Set trusted proxies for IP extraction.
      *
      * Must be called before handle() for correct IP resolution behind proxies.
      *
      * @param array<string> $proxies List of trusted proxy IPs/CIDRs
+     *
      * @return self
      */
     public function setTrustedProxies(array $proxies): self
     {
         $this->trustedProxies = $proxies;
+
         return $this;
     }
 
     /**
-     * Handle honeypot access (ban + gather intelligence + fake response)
+     * Handle honeypot access (ban + gather intelligence + fake response).
      *
      * THROWS HoneypotAccessException with fake response content.
      * Caller must catch and output the response.
@@ -295,8 +298,10 @@ class HoneypotMiddleware
      * @param array<string, mixed> $server $_SERVER superglobal
      * @param array<string, mixed> $get $_GET superglobal (default: [])
      * @param array<string, mixed> $post $_POST superglobal (default: [])
-     * @return bool True if not a honeypot access (pass-through)
+     *
      * @throws HoneypotAccessException When honeypot path accessed
+     *
+     * @return bool True if not a honeypot access (pass-through)
      */
     public function handle(array $server, array $get = [], array $post = []): bool
     {
@@ -336,7 +341,7 @@ class HoneypotMiddleware
     }
 
     /**
-     * Get collected intelligence data
+     * Get collected intelligence data.
      *
      * Useful for testing and custom logging
      *
@@ -348,9 +353,10 @@ class HoneypotMiddleware
     }
 
     /**
-     * Generate fake response based on path type
+     * Generate fake response based on path type.
      *
      * @param string $path Honeypot path
+     *
      * @return string Response content
      */
     public function generateFakeResponse(string $path): string
@@ -383,9 +389,10 @@ class HoneypotMiddleware
             return $this->generateFakeDebugLog();
         } elseif (str_contains($pathLower, '.aws') || str_contains($pathLower, '.ssh')) {
             return $this->generateFakeCloudCredentials($path);
-        } else {
-            return $this->generateGeneric404();
         }
+
+        return $this->generateGeneric404();
+
     }
 
     /**
@@ -397,12 +404,13 @@ class HoneypotMiddleware
     }
 
     /**
-     * Normalize request path for matching
+     * Normalize request path for matching.
      *
      * NOTE: We keep trailing slashes to properly match directory honeypots.
      * Both /wp-admin and /wp-admin/ should be detected.
      *
      * @param string $path Raw request path
+     *
      * @return string Normalized path (lowercase, no query string)
      */
     private function normalizePath(string $path): string
@@ -452,10 +460,11 @@ class HoneypotMiddleware
     }
 
     /**
-     * Wildcard pattern matching (basic implementation)
+     * Wildcard pattern matching (basic implementation).
      *
      * @param string $pattern Pattern with * wildcards
      * @param string $subject String to match
+     *
      * @return bool True if matches
      */
     private function wildcardMatch(string $pattern, string $subject): bool
@@ -471,11 +480,12 @@ class HoneypotMiddleware
     }
 
     /**
-     * Gather intelligence about the attacker
+     * Gather intelligence about the attacker.
      *
      * @param array<string, mixed> $server $_SERVER data
      * @param string $path Request path
      * @param string $method HTTP method
+     *
      * @return array<string, mixed> Intelligence data
      */
     private function gatherIntelligence(array $server, string $path, string $method): array
@@ -519,10 +529,11 @@ class HoneypotMiddleware
     }
 
     /**
-     * Identify scanner type from User-Agent and path patterns
+     * Identify scanner type from User-Agent and path patterns.
      *
      * @param string $userAgent User-Agent header
      * @param string $path Request path
+     *
      * @return string Scanner type
      */
     private function identifyScannerType(string $userAgent, string $path): string
@@ -583,10 +594,11 @@ class HoneypotMiddleware
     }
 
     /**
-     * Ban attacker via Storage backend
+     * Ban attacker via Storage backend.
      *
      * @param string $ip Client IP
      * @param string $path Honeypot path
+     *
      * @return void
      */
     private function banAttacker(string $ip, string $path): void
@@ -613,11 +625,12 @@ class HoneypotMiddleware
     }
 
     /**
-     * Log honeypot access via Logger
+     * Log honeypot access via Logger.
      *
      * @param string $ip Client IP
      * @param string $path Honeypot path
      * @param string $userAgent User-Agent
+     *
      * @return void
      */
     private function logHoneypotAccess(string $ip, string $path, string $userAgent): void
@@ -652,7 +665,7 @@ class HoneypotMiddleware
     // ========================================
 
     /**
-     * Generate fake .env file with honeypot credentials
+     * Generate fake .env file with honeypot credentials.
      *
      * @return string Fake env file content
      */
@@ -692,46 +705,46 @@ class HoneypotMiddleware
         $selectedDb = $fakeDbTypes[array_rand($fakeDbTypes)];
 
         return <<<ENV
-# Production Environment Configuration
-APP_NAME=ProductionApp
-APP_ENV=production
-APP_KEY=base64:FAKE_KEY_aB3dEfGhIjKlMnOpQrStUvWxYz0123456789
-APP_DEBUG=false
-APP_URL=https://api.production.internal
+            # Production Environment Configuration
+            APP_NAME=ProductionApp
+            APP_ENV=production
+            APP_KEY=base64:FAKE_KEY_aB3dEfGhIjKlMnOpQrStUvWxYz0123456789
+            APP_DEBUG=false
+            APP_URL=https://api.production.internal
 
-# Database Configuration
-DB_CONNECTION={$selectedDb['connection']}
-DB_HOST=db-master.internal.cloud
-DB_PORT={$selectedDb['port']}
-DB_DATABASE={$selectedDb['database']}
-DB_USERNAME={$selectedDb['username']}
-DB_PASSWORD={$selectedDb['password']}
+            # Database Configuration
+            DB_CONNECTION={$selectedDb['connection']}
+            DB_HOST=db-master.internal.cloud
+            DB_PORT={$selectedDb['port']}
+            DB_DATABASE={$selectedDb['database']}
+            DB_USERNAME={$selectedDb['username']}
+            DB_PASSWORD={$selectedDb['password']}
 
-# Redis Configuration
-REDIS_HOST=redis-cluster.internal.cloud
-REDIS_PASSWORD=R3d1s!FakeP@ss789
-REDIS_PORT=6379
+            # Redis Configuration
+            REDIS_HOST=redis-cluster.internal.cloud
+            REDIS_PASSWORD=R3d1s!FakeP@ss789
+            REDIS_PORT=6379
 
-# AWS Credentials (FAKE)
-AWS_ACCESS_KEY_ID=AKIAFAKEACCESSKEY12345
-AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
-AWS_DEFAULT_REGION=us-east-1
-AWS_BUCKET=production-backups-fake
+            # AWS Credentials (FAKE)
+            AWS_ACCESS_KEY_ID=AKIAFAKEACCESSKEY12345
+            AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+            AWS_DEFAULT_REGION=us-east-1
+            AWS_BUCKET=production-backups-fake
 
-# API Keys (FAKE)
-STRIPE_SECRET=fake_stripe_key_51H4a8KBhX9zP2mQ7rYnW3fA0sLd6eUi
-TWILIO_AUTH_TOKEN=FAKE_twilio_auth_token_useless
-SENDGRID_API_KEY=SG.FakeKey123456789.AbCdEfGhIjKlMnOp
+            # API Keys (FAKE)
+            STRIPE_SECRET=fake_stripe_key_51H4a8KBhX9zP2mQ7rYnW3fA0sLd6eUi
+            TWILIO_AUTH_TOKEN=FAKE_twilio_auth_token_useless
+            SENDGRID_API_KEY=SG.FakeKey123456789.AbCdEfGhIjKlMnOp
 
-# Admin Credentials (FAKE)
-ADMIN_EMAIL=admin@production-internal.fake
-ADMIN_PASSWORD=Admin!P@ssw0rd123Fake
+            # Admin Credentials (FAKE)
+            ADMIN_EMAIL=admin@production-internal.fake
+            ADMIN_PASSWORD=Admin!P@ssw0rd123Fake
 
-ENV;
+            ENV;
     }
 
     /**
-     * Generate fake PHP info page
+     * Generate fake PHP info page.
      *
      * @return string Fake HTML page
      */
@@ -743,37 +756,37 @@ ENV;
         }
 
         return <<<HTML
-<!DOCTYPE html>
-<html>
-<head>
-    <title>phpinfo()</title>
-    <style>
-        body { font-family: sans-serif; margin: 20px; }
-        table { border-collapse: collapse; width: 100%; }
-        td { border: 1px solid #ccc; padding: 8px; }
-        .e { background: #ccf; font-weight: bold; }
-        .v { background: #fff; }
-    </style>
-</head>
-<body>
-<h1>PHP Version 7.4.33 (FAKE)</h1>
-<table>
-<tr><td class="e">System</td><td class="v">Linux prod-web-01 5.15.0-generic</td></tr>
-<tr><td class="e">Server API</td><td class="v">Apache 2.4.54 (Ubuntu)</td></tr>
-<tr><td class="e">Loaded Configuration File</td><td class="v">/etc/php/7.4/apache2/php.ini</td></tr>
-<tr><td class="e">register_globals</td><td class="v">On (INSECURE - FAKE)</td></tr>
-<tr><td class="e">allow_url_include</td><td class="v">On (INSECURE - FAKE)</td></tr>
-<tr><td class="e">display_errors</td><td class="v">On (INSECURE - FAKE)</td></tr>
-<tr><td class="e">mysqli.default_user</td><td class="v">root</td></tr>
-<tr><td class="e">mysqli.default_pw</td><td class="v">FakeP@ssword123!</td></tr>
-</table>
-</body>
-</html>
-HTML;
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>phpinfo()</title>
+                <style>
+                    body { font-family: sans-serif; margin: 20px; }
+                    table { border-collapse: collapse; width: 100%; }
+                    td { border: 1px solid #ccc; padding: 8px; }
+                    .e { background: #ccf; font-weight: bold; }
+                    .v { background: #fff; }
+                </style>
+            </head>
+            <body>
+            <h1>PHP Version 7.4.33 (FAKE)</h1>
+            <table>
+            <tr><td class="e">System</td><td class="v">Linux prod-web-01 5.15.0-generic</td></tr>
+            <tr><td class="e">Server API</td><td class="v">Apache 2.4.54 (Ubuntu)</td></tr>
+            <tr><td class="e">Loaded Configuration File</td><td class="v">/etc/php/7.4/apache2/php.ini</td></tr>
+            <tr><td class="e">register_globals</td><td class="v">On (INSECURE - FAKE)</td></tr>
+            <tr><td class="e">allow_url_include</td><td class="v">On (INSECURE - FAKE)</td></tr>
+            <tr><td class="e">display_errors</td><td class="v">On (INSECURE - FAKE)</td></tr>
+            <tr><td class="e">mysqli.default_user</td><td class="v">root</td></tr>
+            <tr><td class="e">mysqli.default_pw</td><td class="v">FakeP@ssword123!</td></tr>
+            </table>
+            </body>
+            </html>
+            HTML;
     }
 
     /**
-     * Generate fake WordPress login page
+     * Generate fake WordPress login page.
      *
      * @return string Fake HTML page
      */
@@ -785,39 +798,39 @@ HTML;
         }
 
         return <<<HTML
-<!DOCTYPE html>
-<html lang="en-US">
-<head>
-    <title>Log In &lsaquo; Enterprise Site &#8212; WordPress</title>
-    <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto; background: #f1f1f1; }
-        .login { max-width: 320px; margin: 100px auto; background: #fff; padding: 26px 24px; border: 1px solid #ddd; }
-        .login h1 { text-align: center; }
-        .login label { display: block; margin-bottom: 5px; }
-        .login input { width: 100%; padding: 8px; margin-bottom: 16px; border: 1px solid #ccc; }
-        .login .button { background: #2271b1; color: #fff; padding: 10px; border: none; cursor: pointer; width: 100%; }
-    </style>
-</head>
-<body class="login">
-    <div class="login">
-        <h1>Powered by WordPress</h1>
-        <form method="post" action="/wp-admin">
-            <label for="user_login">Username or Email Address</label>
-            <input type="text" name="log" id="user_login" required>
+            <!DOCTYPE html>
+            <html lang="en-US">
+            <head>
+                <title>Log In &lsaquo; Enterprise Site &#8212; WordPress</title>
+                <style>
+                    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto; background: #f1f1f1; }
+                    .login { max-width: 320px; margin: 100px auto; background: #fff; padding: 26px 24px; border: 1px solid #ddd; }
+                    .login h1 { text-align: center; }
+                    .login label { display: block; margin-bottom: 5px; }
+                    .login input { width: 100%; padding: 8px; margin-bottom: 16px; border: 1px solid #ccc; }
+                    .login .button { background: #2271b1; color: #fff; padding: 10px; border: none; cursor: pointer; width: 100%; }
+                </style>
+            </head>
+            <body class="login">
+                <div class="login">
+                    <h1>Powered by WordPress</h1>
+                    <form method="post" action="/wp-admin">
+                        <label for="user_login">Username or Email Address</label>
+                        <input type="text" name="log" id="user_login" required>
 
-            <label for="user_pass">Password</label>
-            <input type="password" name="pwd" id="user_pass" required>
+                        <label for="user_pass">Password</label>
+                        <input type="password" name="pwd" id="user_pass" required>
 
-            <button type="submit" class="button">Log In</button>
-        </form>
-    </div>
-</body>
-</html>
-HTML;
+                        <button type="submit" class="button">Log In</button>
+                    </form>
+                </div>
+            </body>
+            </html>
+            HTML;
     }
 
     /**
-     * Generate fake .git/config file
+     * Generate fake .git/config file.
      *
      * @return string Fake git config
      */
@@ -829,27 +842,27 @@ HTML;
         }
 
         return <<<GIT
-[core]
-	repositoryformatversion = 0
-	filemode = true
-	bare = false
-	logallrefupdates = true
-[remote "origin"]
-	url = https://github.com/enterprise-org/production-app.git
-	fetch = +refs/heads/*:refs/remotes/origin/*
-[branch "main"]
-	remote = origin
-	merge = refs/heads/main
-[user]
-	name = Production Deploy Bot
-	email = deploy-bot@enterprise-internal.fake
-[credential]
-	helper = store
-GIT;
+            [core]
+            	repositoryformatversion = 0
+            	filemode = true
+            	bare = false
+            	logallrefupdates = true
+            [remote "origin"]
+            	url = https://github.com/enterprise-org/production-app.git
+            	fetch = +refs/heads/*:refs/remotes/origin/*
+            [branch "main"]
+            	remote = origin
+            	merge = refs/heads/main
+            [user]
+            	name = Production Deploy Bot
+            	email = deploy-bot@enterprise-internal.fake
+            [credential]
+            	helper = store
+            GIT;
     }
 
     /**
-     * Generate fake GraphQL introspection response
+     * Generate fake GraphQL introspection response.
      *
      * @return string Fake JSON response
      */
@@ -893,7 +906,7 @@ GIT;
     }
 
     /**
-     * Generate fake Swagger/OpenAPI documentation
+     * Generate fake Swagger/OpenAPI documentation.
      *
      * @return string Fake JSON response
      */
@@ -950,9 +963,10 @@ GIT;
     }
 
     /**
-     * Generate fake API response
+     * Generate fake API response.
      *
      * @param string $path Request path
+     *
      * @return string Fake JSON response
      */
     private function generateFakeAPI(string $path): string
@@ -998,7 +1012,7 @@ GIT;
     }
 
     /**
-     * Generate fake SQL dump
+     * Generate fake SQL dump.
      *
      * @return string Fake SQL content
      */
@@ -1011,54 +1025,54 @@ GIT;
         }
 
         return <<<SQL
--- MySQL dump 10.19  Distrib 8.0.32
--- Host: db-master.internal.cloud
--- Database: production_app
+            -- MySQL dump 10.19  Distrib 8.0.32
+            -- Host: db-master.internal.cloud
+            -- Database: production_app
 
-SET NAMES utf8mb4;
-SET FOREIGN_KEY_CHECKS=0;
+            SET NAMES utf8mb4;
+            SET FOREIGN_KEY_CHECKS=0;
 
---
--- Table structure for table `users`
---
+            --
+            -- Table structure for table `users`
+            --
 
-DROP TABLE IF EXISTS `users`;
-CREATE TABLE `users` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `email` varchar(255) NOT NULL,
-  `password` varchar(255) NOT NULL,
-  `api_key` varchar(64) DEFAULT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+            DROP TABLE IF EXISTS `users`;
+            CREATE TABLE `users` (
+              `id` int NOT NULL AUTO_INCREMENT,
+              `email` varchar(255) NOT NULL,
+              `password` varchar(255) NOT NULL,
+              `api_key` varchar(64) DEFAULT NULL,
+              PRIMARY KEY (`id`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
---
--- Dumping data for table `users`
---
+            --
+            -- Dumping data for table `users`
+            --
 
-INSERT INTO `users` VALUES
-(1, 'admin@company.com', '\$2y\$10\$KV3JzZ8vL.Qn9YpX2wBqAeRhTm6sUyK1cDfGhJkLmNoPqRsTuVwX', 'sk_api_7f8a9b2c3d4e5f6g'),
-(2, 'dev@company.com', '\$2y\$10\$Xm4NpL7kQ9rS2tUvWxYz0A1bC3dE5fG6hI8jK0lM2nO4pQ6rS8t', 'sk_api_1a2b3c4d5e6f7g8h');
+            INSERT INTO `users` VALUES
+            (1, 'admin@company.com', '\$2y\$10\$KV3JzZ8vL.Qn9YpX2wBqAeRhTm6sUyK1cDfGhJkLmNoPqRsTuVwX', 'sk_api_7f8a9b2c3d4e5f6g'),
+            (2, 'dev@company.com', '\$2y\$10\$Xm4NpL7kQ9rS2tUvWxYz0A1bC3dE5fG6hI8jK0lM2nO4pQ6rS8t', 'sk_api_1a2b3c4d5e6f7g8h');
 
---
--- Table structure for table `api_credentials`
---
+            --
+            -- Table structure for table `api_credentials`
+            --
 
-CREATE TABLE `api_credentials` (
-  `service` varchar(50),
-  `api_key` varchar(128),
-  `secret` varchar(256)
-);
+            CREATE TABLE `api_credentials` (
+              `service` varchar(50),
+              `api_key` varchar(128),
+              `secret` varchar(256)
+            );
 
-INSERT INTO `api_credentials` VALUES
-('stripe', 'fake_stripe_51H4a8KBhX9zP2mQ7rYnW3fA0', 'whsec_1a2b3c4d5e6f7g8h9i0j'),
-('aws', 'AKIAIOSFODNN7EXAMPLE', 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY');
+            INSERT INTO `api_credentials` VALUES
+            ('stripe', 'fake_stripe_51H4a8KBhX9zP2mQ7rYnW3fA0', 'whsec_1a2b3c4d5e6f7g8h9i0j'),
+            ('aws', 'AKIAIOSFODNN7EXAMPLE', 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY');
 
-SET FOREIGN_KEY_CHECKS=1;
-SQL;
+            SET FOREIGN_KEY_CHECKS=1;
+            SQL;
     }
 
     /**
-     * Generate fake config file
+     * Generate fake config file.
      *
      * @return string Fake PHP config
      */
@@ -1070,37 +1084,37 @@ SQL;
         }
 
         return <<<CONFIG
-<?php
-/**
- * Production Configuration
- * Last updated: 2024-01-15
- */
+            <?php
+            /**
+             * Production Configuration
+             * Last updated: 2024-01-15
+             */
 
-define('DB_HOST', 'db-master.internal.cloud');
-define('DB_USER', 'app_production');
-define('DB_PASS', 'Pr0d#SecretDB!2024@Secure');
-define('DB_NAME', 'production_app');
+            define('DB_HOST', 'db-master.internal.cloud');
+            define('DB_USER', 'app_production');
+            define('DB_PASS', 'Pr0d#SecretDB!2024@Secure');
+            define('DB_NAME', 'production_app');
 
-define('REDIS_HOST', 'redis-cluster.internal.cloud');
-define('REDIS_PASS', 'R3d1s#C4che!Pr0d_Key');
+            define('REDIS_HOST', 'redis-cluster.internal.cloud');
+            define('REDIS_PASS', 'R3d1s#C4che!Pr0d_Key');
 
-define('ADMIN_USER', 'sysadmin');
-define('ADMIN_PASS', 'Adm1n!Str0ng#Pass2024');
+            define('ADMIN_USER', 'sysadmin');
+            define('ADMIN_PASS', 'Adm1n!Str0ng#Pass2024');
 
-define('API_SECRET', 'fake_api_key_9f8e7d6c5b4a3210fedcba98');
-define('JWT_SECRET', 'jwt_s3cr3t_k3y_pr0duct10n_2024');
+            define('API_SECRET', 'fake_api_key_9f8e7d6c5b4a3210fedcba98');
+            define('JWT_SECRET', 'jwt_s3cr3t_k3y_pr0duct10n_2024');
 
-// AWS Credentials
-define('AWS_KEY', 'AKIAIOSFODNN7EXAMPLE');
-define('AWS_SECRET', 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY');
+            // AWS Credentials
+            define('AWS_KEY', 'AKIAIOSFODNN7EXAMPLE');
+            define('AWS_SECRET', 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY');
 
-// Stripe
-define('STRIPE_SECRET', 'fake_stripe_key_51H4a8KBhX9zP2mQ7rYnW3fA0sLd6eUi');
-CONFIG;
+            // Stripe
+            define('STRIPE_SECRET', 'fake_stripe_key_51H4a8KBhX9zP2mQ7rYnW3fA0sLd6eUi');
+            CONFIG;
     }
 
     /**
-     * Generate fake debug/error log
+     * Generate fake debug/error log.
      *
      * @return string Fake log content
      */
@@ -1116,26 +1130,27 @@ CONFIG;
         $hourAgo = date('Y-m-d H:i:s', strtotime('-1 hour'));
 
         return <<<LOG
-[{$yesterday}] INFO: Application started - PID 12847
-[{$yesterday}] DEBUG: Database connected to db-master.internal.cloud:5432
-[{$yesterday}] DEBUG: Redis connection established (cluster mode)
-[{$yesterday}] INFO: Background jobs started (5 workers)
-[{$hourAgo}] DEBUG: SQL Query: SELECT * FROM users WHERE last_login > NOW() - INTERVAL '24 hours'
-[{$hourAgo}] DEBUG: Found 3,482 active users
-[{$hourAgo}] INFO: Cache warmup completed (hit ratio: 94.7%)
-[{$now}] DEBUG: AWS S3 sync: production-backups bucket
-[{$now}] DEBUG: S3 Access Key: AKIAIOSFODNN7EXAMPLE
-[{$now}] DEBUG: Stripe webhook received: invoice.paid
-[{$now}] INFO: Payment processed: $149.99 (customer: cus_L2b3K4m5N6o7P8q)
-[{$now}] DEBUG: Email sent to admin@company.com: Daily report
-[{$now}] INFO: Health check passed - all services operational
-LOG;
+            [{$yesterday}] INFO: Application started - PID 12847
+            [{$yesterday}] DEBUG: Database connected to db-master.internal.cloud:5432
+            [{$yesterday}] DEBUG: Redis connection established (cluster mode)
+            [{$yesterday}] INFO: Background jobs started (5 workers)
+            [{$hourAgo}] DEBUG: SQL Query: SELECT * FROM users WHERE last_login > NOW() - INTERVAL '24 hours'
+            [{$hourAgo}] DEBUG: Found 3,482 active users
+            [{$hourAgo}] INFO: Cache warmup completed (hit ratio: 94.7%)
+            [{$now}] DEBUG: AWS S3 sync: production-backups bucket
+            [{$now}] DEBUG: S3 Access Key: AKIAIOSFODNN7EXAMPLE
+            [{$now}] DEBUG: Stripe webhook received: invoice.paid
+            [{$now}] INFO: Payment processed: $149.99 (customer: cus_L2b3K4m5N6o7P8q)
+            [{$now}] DEBUG: Email sent to admin@company.com: Daily report
+            [{$now}] INFO: Health check passed - all services operational
+            LOG;
     }
 
     /**
-     * Generate fake cloud credentials (AWS, SSH keys)
+     * Generate fake cloud credentials (AWS, SSH keys).
      *
      * @param string $path Request path
+     *
      * @return string Fake credentials
      */
     private function generateFakeCloudCredentials(string $path): string
@@ -1147,36 +1162,36 @@ LOG;
 
         if (str_contains($path, '.aws')) {
             return <<<AWS
-[default]
-aws_access_key_id = AKIAIOSFODNN7EXAMPLE
-aws_secret_access_key = wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
-region = us-east-1
+                [default]
+                aws_access_key_id = AKIAIOSFODNN7EXAMPLE
+                aws_secret_access_key = wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+                region = us-east-1
 
-[production]
-aws_access_key_id = AKIAI44QH8DHBEXAMPLE
-aws_secret_access_key = je7MtGbClwBF/2Zp9Utk/h3yCo8nvbEXAMPLEKEY
-region = eu-west-1
-output = json
-AWS;
+                [production]
+                aws_access_key_id = AKIAI44QH8DHBEXAMPLE
+                aws_secret_access_key = je7MtGbClwBF/2Zp9Utk/h3yCo8nvbEXAMPLEKEY
+                region = eu-west-1
+                output = json
+                AWS;
         }
 
         if (str_contains($path, '.ssh') || str_contains($path, 'id_rsa')) {
             return <<<SSH
------BEGIN OPENSSH PRIVATE KEY-----
-b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW
-QyNTUxOQAAACBFKpHlIvR2p2Y2RBHxMGEL1ypGpXiTrH5YHk8m6WZvOQAAAJhJ8K3WSfCt
-1gAAAAtzc2gtZWQyNTUxOQAAACBFKpHlIvR2p2Y2RBHxMGEL1ypGpXiTrH5YHk8m6WZvOQ
-AAAEDmfR6qKMxpL1u3K4R4HyWRf2YKqwCbD9JFMW6vLRhg8UUqkeUi9HanZjZEEfEwYQvX
-KkaleMsflgeTybpZm84AAAAFZGVwbG95AQIDBAUGBwgJCg==
------END OPENSSH PRIVATE KEY-----
-SSH;
+                -----BEGIN OPENSSH PRIVATE KEY-----
+                b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW
+                QyNTUxOQAAACBFKpHlIvR2p2Y2RBHxMGEL1ypGpXiTrH5YHk8m6WZvOQAAAJhJ8K3WSfCt
+                1gAAAAtzc2gtZWQyNTUxOQAAACBFKpHlIvR2p2Y2RBHxMGEL1ypGpXiTrH5YHk8m6WZvOQ
+                AAAEDmfR6qKMxpL1u3K4R4HyWRf2YKqwCbD9JFMW6vLRhg8UUqkeUi9HanZjZEEfEwYQvX
+                KkaleMsflgeTybpZm84AAAAFZGVwbG95AQIDBAUGBwgJCg==
+                -----END OPENSSH PRIVATE KEY-----
+                SSH;
         }
 
-        return "Access Denied";
+        return 'Access Denied';
     }
 
     /**
-     * Generate generic 404 response
+     * Generate generic 404 response.
      *
      * @return string 404 response
      */
@@ -1187,6 +1202,6 @@ SSH;
             header('Content-Type: text/plain');
         }
 
-        return "404 Not Found";
+        return '404 Not Found';
     }
 }

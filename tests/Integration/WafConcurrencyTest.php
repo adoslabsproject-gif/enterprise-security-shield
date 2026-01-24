@@ -1,15 +1,17 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Senza1dio\SecurityShield\Tests\Integration;
 
 use PHPUnit\Framework\TestCase;
-use Senza1dio\SecurityShield\Middleware\WafMiddleware;
 use Senza1dio\SecurityShield\Config\SecurityConfig;
-use Senza1dio\SecurityShield\Storage\NullStorage;
+use Senza1dio\SecurityShield\Middleware\WafMiddleware;
 use Senza1dio\SecurityShield\Storage\NullLogger;
+use Senza1dio\SecurityShield\Storage\NullStorage;
 
 /**
- * WAF Concurrency & Proxy Tests
+ * WAF Concurrency & Proxy Tests.
  *
  * Tests real-world scenarios:
  * - Proxy/Load Balancer IP extraction (FIX #4)
@@ -20,6 +22,7 @@ use Senza1dio\SecurityShield\Storage\NullLogger;
 class WafConcurrencyTest extends TestCase
 {
     private SecurityConfig $config;
+
     private WafMiddleware $waf;
 
     protected function setUp(): void
@@ -32,7 +35,7 @@ class WafConcurrencyTest extends TestCase
     }
 
     /**
-     * TEST FIX #4: Cloudflare Proxy IP Extraction
+     * TEST FIX #4: Cloudflare Proxy IP Extraction.
      */
     public function test_cloudflare_proxy_ip_extraction()
     {
@@ -55,7 +58,7 @@ class WafConcurrencyTest extends TestCase
     }
 
     /**
-     * TEST FIX #4: Nginx X-Real-IP Header
+     * TEST FIX #4: Nginx X-Real-IP Header.
      */
     public function test_nginx_x_real_ip_header()
     {
@@ -75,7 +78,7 @@ class WafConcurrencyTest extends TestCase
     }
 
     /**
-     * TEST FIX #4: X-Forwarded-For with Multiple Proxies
+     * TEST FIX #4: X-Forwarded-For with Multiple Proxies.
      */
     public function test_x_forwarded_for_multiple_proxies()
     {
@@ -94,7 +97,7 @@ class WafConcurrencyTest extends TestCase
     }
 
     /**
-     * TEST FIX #4: IP Spoofing Protection (Untrusted Proxy)
+     * TEST FIX #4: IP Spoofing Protection (Untrusted Proxy).
      */
     public function test_ip_spoofing_protection()
     {
@@ -117,7 +120,7 @@ class WafConcurrencyTest extends TestCase
     }
 
     /**
-     * TEST FIX #4: CIDR Whitelist Support
+     * TEST FIX #4: CIDR Whitelist Support.
      */
     public function test_cidr_whitelist_support()
     {
@@ -134,7 +137,7 @@ class WafConcurrencyTest extends TestCase
     }
 
     /**
-     * TEST FIX #4: CIDR Blacklist Support
+     * TEST FIX #4: CIDR Blacklist Support.
      */
     public function test_cidr_blacklist_support()
     {
@@ -152,7 +155,7 @@ class WafConcurrencyTest extends TestCase
     }
 
     /**
-     * TEST FIX #5: Malformed URL Handling
+     * TEST FIX #5: Malformed URL Handling.
      */
     public function test_malformed_url_handling()
     {
@@ -167,7 +170,7 @@ class WafConcurrencyTest extends TestCase
     }
 
     /**
-     * TEST FIX #5: URL with Null Bytes
+     * TEST FIX #5: URL with Null Bytes.
      */
     public function test_url_with_null_bytes()
     {
@@ -182,7 +185,7 @@ class WafConcurrencyTest extends TestCase
     }
 
     /**
-     * TEST: Concurrent Requests Simulation (100 rapid requests)
+     * TEST: Concurrent Requests Simulation (100 rapid requests).
      */
     public function test_concurrent_requests_simulation()
     {
@@ -211,7 +214,7 @@ class WafConcurrencyTest extends TestCase
     }
 
     /**
-     * TEST: Rate Limiting with Rapid Requests
+     * TEST: Rate Limiting with Rapid Requests.
      */
     public function test_rate_limiting_rapid_requests()
     {
@@ -243,7 +246,7 @@ class WafConcurrencyTest extends TestCase
     }
 
     /**
-     * TEST: IPv6 Support
+     * TEST: IPv6 Support.
      */
     public function test_ipv6_support()
     {
@@ -258,7 +261,7 @@ class WafConcurrencyTest extends TestCase
     }
 
     /**
-     * TEST: Trusted Proxy Validation (Invalid IP)
+     * TEST: Trusted Proxy Validation (Invalid IP).
      */
     public function test_trusted_proxy_validation_invalid_ip()
     {
@@ -269,7 +272,7 @@ class WafConcurrencyTest extends TestCase
     }
 
     /**
-     * TEST: Trusted Proxy Validation (Invalid CIDR)
+     * TEST: Trusted Proxy Validation (Invalid CIDR).
      */
     public function test_trusted_proxy_validation_invalid_cidr()
     {
@@ -280,7 +283,7 @@ class WafConcurrencyTest extends TestCase
     }
 
     /**
-     * TEST: Configuration Validation (Score Threshold)
+     * TEST: Configuration Validation (Score Threshold).
      */
     public function test_configuration_validation_score_threshold()
     {
@@ -291,7 +294,7 @@ class WafConcurrencyTest extends TestCase
     }
 
     /**
-     * TEST: Configuration Validation (Ban Duration)
+     * TEST: Configuration Validation (Ban Duration).
      */
     public function test_configuration_validation_ban_duration()
     {

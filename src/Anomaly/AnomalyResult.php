@@ -5,11 +5,9 @@ declare(strict_types=1);
 namespace Senza1dio\SecurityShield\Anomaly;
 
 /**
- * Anomaly Detection Result
+ * Anomaly Detection Result.
  *
  * Contains all anomalies detected in a single analysis run.
- *
- * @package Senza1dio\SecurityShield\Anomaly
  */
 class AnomalyResult
 {
@@ -28,7 +26,7 @@ class AnomalyResult
     }
 
     /**
-     * Check if any anomalies were detected
+     * Check if any anomalies were detected.
      */
     public function hasAnomalies(): bool
     {
@@ -36,7 +34,7 @@ class AnomalyResult
     }
 
     /**
-     * Get all anomalies
+     * Get all anomalies.
      *
      * @return array<int, Anomaly>
      */
@@ -46,7 +44,7 @@ class AnomalyResult
     }
 
     /**
-     * Get anomaly count
+     * Get anomaly count.
      */
     public function count(): int
     {
@@ -54,7 +52,7 @@ class AnomalyResult
     }
 
     /**
-     * Get highest severity anomaly
+     * Get highest severity anomaly.
      */
     public function getHighestSeverity(): ?AnomalySeverity
     {
@@ -74,7 +72,7 @@ class AnomalyResult
     }
 
     /**
-     * Get highest score
+     * Get highest score.
      */
     public function getHighestScore(): float
     {
@@ -82,53 +80,56 @@ class AnomalyResult
             return 0.0;
         }
 
-        return max(array_map(fn($a) => $a->getScore(), $this->anomalies));
+        return max(array_map(fn ($a) => $a->getScore(), $this->anomalies));
     }
 
     /**
-     * Get anomalies by type
+     * Get anomalies by type.
      *
      * @param AnomalyType $type
+     *
      * @return array<int, Anomaly>
      */
     public function getByType(AnomalyType $type): array
     {
         return array_values(array_filter(
             $this->anomalies,
-            fn($a) => $a->getType() === $type
+            fn ($a) => $a->getType() === $type,
         ));
     }
 
     /**
-     * Get anomalies by minimum severity
+     * Get anomalies by minimum severity.
      *
      * @param AnomalySeverity $minSeverity
+     *
      * @return array<int, Anomaly>
      */
     public function getBySeverity(AnomalySeverity $minSeverity): array
     {
         return array_values(array_filter(
             $this->anomalies,
-            fn($a) => $a->isSeverityAtLeast($minSeverity)
+            fn ($a) => $a->isSeverityAtLeast($minSeverity),
         ));
     }
 
     /**
-     * Get anomalies by minimum score
+     * Get anomalies by minimum score.
      *
      * @param float $minScore
+     *
      * @return array<int, Anomaly>
      */
     public function getByScore(float $minScore): array
     {
         return array_values(array_filter(
             $this->anomalies,
-            fn($a) => $a->getScore() >= $minScore
+            fn ($a) => $a->getScore() >= $minScore,
         ));
     }
 
     /**
-     * Get critical anomalies
+     * Get critical anomalies.
      *
      * @return array<int, Anomaly>
      */
@@ -138,7 +139,7 @@ class AnomalyResult
     }
 
     /**
-     * Get high-severity anomalies
+     * Get high-severity anomalies.
      *
      * @return array<int, Anomaly>
      */
@@ -148,7 +149,7 @@ class AnomalyResult
     }
 
     /**
-     * Check if result contains critical anomalies
+     * Check if result contains critical anomalies.
      */
     public function hasCritical(): bool
     {
@@ -156,7 +157,7 @@ class AnomalyResult
     }
 
     /**
-     * Check if result contains high-severity anomalies
+     * Check if result contains high-severity anomalies.
      */
     public function hasHigh(): bool
     {
@@ -164,7 +165,7 @@ class AnomalyResult
     }
 
     /**
-     * Get timestamp
+     * Get timestamp.
      */
     public function getTimestamp(): float
     {
@@ -172,7 +173,7 @@ class AnomalyResult
     }
 
     /**
-     * Get summary statistics
+     * Get summary statistics.
      *
      * @return array{total: int, by_severity: array<string, int>, by_type: array<string, int>, highest_score: float}
      */
@@ -198,7 +199,7 @@ class AnomalyResult
     }
 
     /**
-     * Export to array
+     * Export to array.
      *
      * @return array<string, mixed>
      */
@@ -209,12 +210,12 @@ class AnomalyResult
             'has_anomalies' => $this->hasAnomalies(),
             'count' => $this->count(),
             'summary' => $this->getSummary(),
-            'anomalies' => array_map(fn($a) => $a->toArray(), $this->anomalies),
+            'anomalies' => array_map(fn ($a) => $a->toArray(), $this->anomalies),
         ];
     }
 
     /**
-     * Export to JSON
+     * Export to JSON.
      */
     public function toJson(): string
     {

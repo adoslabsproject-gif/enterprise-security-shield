@@ -9,7 +9,7 @@ use Senza1dio\SecurityShield\Anomaly\AnomalyType;
 use Senza1dio\SecurityShield\Anomaly\DetectorInterface;
 
 /**
- * Time-Based Anomaly Detector
+ * Time-Based Anomaly Detector.
  *
  * Detects unusual activity based on time patterns (off-hours, weekends, etc.).
  *
@@ -28,8 +28,6 @@ use Senza1dio\SecurityShield\Anomaly\DetectorInterface;
  *     'timestamp' => 1704157200, // Monday 3:00 AM
  * ]);
  * ```
- *
- * @package Senza1dio\SecurityShield\Anomaly\Detectors
  */
 class TimeBasedDetector implements DetectorInterface
 {
@@ -42,6 +40,7 @@ class TimeBasedDetector implements DetectorInterface
     private array $dayDistribution = [];
 
     private int $totalSamples = 0;
+
     private bool $trained = false;
 
     private float $offHoursThreshold;
@@ -52,7 +51,7 @@ class TimeBasedDetector implements DetectorInterface
      */
     public function __construct(
         string $timezone = 'UTC',
-        float $offHoursThreshold = 0.02
+        float $offHoursThreshold = 0.02,
     ) {
         $this->timezone = $timezone;
         $this->offHoursThreshold = $offHoursThreshold;
@@ -88,7 +87,7 @@ class TimeBasedDetector implements DetectorInterface
             $anomalies[] = new Anomaly(
                 AnomalyType::TIME_ANOMALY,
                 $score,
-                "Activity at unusual hour: " . $dateTime->format('H:i'),
+                'Activity at unusual hour: ' . $dateTime->format('H:i'),
                 [
                     'hour' => $hour,
                     'day_of_week' => $day,
@@ -96,7 +95,7 @@ class TimeBasedDetector implements DetectorInterface
                     'hour_ratio' => round($hourRatio, 4),
                     'timezone' => $this->timezone,
                     'local_time' => $dateTime->format('Y-m-d H:i:s'),
-                ]
+                ],
             );
         }
 
@@ -112,13 +111,13 @@ class TimeBasedDetector implements DetectorInterface
                 $anomalies[] = new Anomaly(
                     AnomalyType::TIME_ANOMALY,
                     $score,
-                    "Activity on unusual day: " . $dateTime->format('l'),
+                    'Activity on unusual day: ' . $dateTime->format('l'),
                     [
                         'day_of_week' => $day,
                         'day_name' => $dateTime->format('l'),
                         'day_ratio' => round($dayRatio, 4),
                         'timezone' => $this->timezone,
-                    ]
+                    ],
                 );
             }
         }
@@ -158,7 +157,7 @@ class TimeBasedDetector implements DetectorInterface
     }
 
     /**
-     * Set business hours manually
+     * Set business hours manually.
      *
      * @param int $startHour Start hour (0-23)
      * @param int $endHour End hour (0-23)
@@ -171,7 +170,7 @@ class TimeBasedDetector implements DetectorInterface
         int $endHour,
         array $workDays = [1, 2, 3, 4, 5],
         int $baseWeight = 100,
-        int $offHoursWeight = 1
+        int $offHoursWeight = 1,
     ): void {
         // Initialize with off-hours weight (not zero, to avoid false positives)
         $this->hourDistribution = array_fill(0, 24, $offHoursWeight);
@@ -205,7 +204,7 @@ class TimeBasedDetector implements DetectorInterface
     }
 
     /**
-     * Get hour distribution
+     * Get hour distribution.
      *
      * @return array<int, int>
      */
@@ -215,7 +214,7 @@ class TimeBasedDetector implements DetectorInterface
     }
 
     /**
-     * Get day distribution
+     * Get day distribution.
      *
      * @return array<int, int>
      */
@@ -225,7 +224,7 @@ class TimeBasedDetector implements DetectorInterface
     }
 
     /**
-     * Create DateTime from timestamp
+     * Create DateTime from timestamp.
      */
     private function createDateTime(int $timestamp): \DateTimeImmutable
     {
@@ -234,7 +233,7 @@ class TimeBasedDetector implements DetectorInterface
     }
 
     /**
-     * Calculate time anomaly score
+     * Calculate time anomaly score.
      */
     private function calculateTimeScore(float $ratio): float
     {

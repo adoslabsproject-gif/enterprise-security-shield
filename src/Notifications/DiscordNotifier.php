@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Senza1dio\SecurityShield\Notifications;
 
 /**
- * Discord Notifier
+ * Discord Notifier.
  *
  * Sends notifications via Discord Webhooks.
  *
@@ -27,14 +27,15 @@ namespace Senza1dio\SecurityShield\Notifications;
  *     'score' => 100,
  * ]);
  * ```
- *
- * @package Senza1dio\SecurityShield\Notifications
  */
 class DiscordNotifier implements NotifierInterface
 {
     private string $webhookUrl;
+
     private int $timeout;
+
     private ?string $username;
+
     private ?string $avatarUrl;
 
     /**
@@ -47,7 +48,7 @@ class DiscordNotifier implements NotifierInterface
         string $webhookUrl,
         int $timeout = 10,
         ?string $username = 'Security Shield',
-        ?string $avatarUrl = null
+        ?string $avatarUrl = null,
     ) {
         $this->webhookUrl = $webhookUrl;
         $this->timeout = $timeout;
@@ -98,7 +99,7 @@ class DiscordNotifier implements NotifierInterface
     }
 
     /**
-     * Send with custom embed
+     * Send with custom embed.
      *
      * @param string $title Embed title
      * @param string $description Embed description
@@ -106,6 +107,7 @@ class DiscordNotifier implements NotifierInterface
      * @param array<string, mixed> $fields Embed fields
      * @param string|null $thumbnailUrl Thumbnail image URL
      * @param string|null $imageUrl Main image URL
+     *
      * @return bool
      */
     public function sendEmbed(
@@ -114,7 +116,7 @@ class DiscordNotifier implements NotifierInterface
         int $color = 0x3498db,
         array $fields = [],
         ?string $thumbnailUrl = null,
-        ?string $imageUrl = null
+        ?string $imageUrl = null,
     ): bool {
         if (!$this->isConfigured()) {
             return false;
@@ -137,11 +139,12 @@ class DiscordNotifier implements NotifierInterface
     }
 
     /**
-     * Send success notification (green)
+     * Send success notification (green).
      *
      * @param string $title Title
      * @param string $message Message
      * @param array<string, mixed> $context Context
+     *
      * @return bool
      */
     public function success(string $title, string $message, array $context = []): bool
@@ -159,11 +162,12 @@ class DiscordNotifier implements NotifierInterface
     }
 
     /**
-     * Send warning notification (yellow)
+     * Send warning notification (yellow).
      *
      * @param string $title Title
      * @param string $message Message
      * @param array<string, mixed> $context Context
+     *
      * @return bool
      */
     public function warning(string $title, string $message, array $context = []): bool
@@ -181,9 +185,10 @@ class DiscordNotifier implements NotifierInterface
     }
 
     /**
-     * Build base payload
+     * Build base payload.
      *
      * @param string $content Message content
+     *
      * @return array<string, mixed>
      */
     private function buildPayload(string $content): array
@@ -206,12 +211,13 @@ class DiscordNotifier implements NotifierInterface
     }
 
     /**
-     * Build Discord embed
+     * Build Discord embed.
      *
      * @param string $title Embed title
      * @param string $description Embed description
      * @param array<string, mixed> $context Context for fields
      * @param int $color Embed color
+     *
      * @return array<string, mixed>
      */
     private function buildEmbed(string $title, string $description, array $context, int $color): array
@@ -237,9 +243,10 @@ class DiscordNotifier implements NotifierInterface
     }
 
     /**
-     * Build embed fields from context
+     * Build embed fields from context.
      *
      * @param array<string, mixed> $context
+     *
      * @return array<int, array{name: string, value: string, inline: bool}>
      */
     private function buildFields(array $context): array
@@ -262,9 +269,10 @@ class DiscordNotifier implements NotifierInterface
     }
 
     /**
-     * Make HTTP request to Discord
+     * Make HTTP request to Discord.
      *
      * @param array<string, mixed> $payload
+     *
      * @return bool
      */
     private function request(array $payload): bool

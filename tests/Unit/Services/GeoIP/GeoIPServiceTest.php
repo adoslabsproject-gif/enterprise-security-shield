@@ -5,18 +5,19 @@ declare(strict_types=1);
 namespace Senza1dio\SecurityShield\Tests\Unit\Services\GeoIP;
 
 use PHPUnit\Framework\TestCase;
-use Senza1dio\SecurityShield\Services\GeoIP\GeoIPService;
 use Senza1dio\SecurityShield\Services\GeoIP\GeoIPInterface;
+use Senza1dio\SecurityShield\Services\GeoIP\GeoIPService;
 use Senza1dio\SecurityShield\Storage\RedisStorage;
 
 /**
- * GeoIP Service Test Suite
+ * GeoIP Service Test Suite.
  *
  * @covers \Senza1dio\SecurityShield\Services\GeoIP\GeoIPService
  */
 class GeoIPServiceTest extends TestCase
 {
     private GeoIPService $service;
+
     private RedisStorage $storage;
 
     protected function setUp(): void

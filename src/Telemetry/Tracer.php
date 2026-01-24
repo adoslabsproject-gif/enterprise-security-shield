@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Senza1dio\SecurityShield\Telemetry;
 
 /**
- * OpenTelemetry-compatible Tracer
+ * OpenTelemetry-compatible Tracer.
  *
  * Creates and manages spans for distributed tracing.
  *
@@ -30,12 +30,11 @@ namespace Senza1dio\SecurityShield\Telemetry;
  * $span->end();
  * $tracer->flush();
  * ```
- *
- * @package Senza1dio\SecurityShield\Telemetry
  */
 class Tracer
 {
     private string $serviceName;
+
     private string $serviceVersion;
 
     /** @var array<string, mixed> */
@@ -54,7 +53,9 @@ class Tracer
     private array $activeSpansAll = [];
 
     private ?SamplerInterface $sampler = null;
+
     private int $maxQueueSize = 2048;
+
     private int $batchSize = 512;
 
     /**
@@ -65,7 +66,7 @@ class Tracer
     public function __construct(
         string $serviceName,
         string $serviceVersion = '1.0.0',
-        array $resourceAttributes = []
+        array $resourceAttributes = [],
     ) {
         $this->serviceName = $serviceName;
         $this->serviceVersion = $serviceVersion;
@@ -81,43 +82,47 @@ class Tracer
     // ==================== CONFIGURATION ====================
 
     /**
-     * Add a span exporter
+     * Add a span exporter.
      */
     public function addExporter(SpanExporterInterface $exporter): self
     {
         $this->exporters[] = $exporter;
+
         return $this;
     }
 
     /**
-     * Set sampler for trace sampling
+     * Set sampler for trace sampling.
      */
     public function setSampler(SamplerInterface $sampler): self
     {
         $this->sampler = $sampler;
+
         return $this;
     }
 
     /**
-     * Set maximum queue size before forced flush
+     * Set maximum queue size before forced flush.
      */
     public function setMaxQueueSize(int $size): self
     {
         $this->maxQueueSize = $size;
+
         return $this;
     }
 
     /**
-     * Set batch size for exports
+     * Set batch size for exports.
      */
     public function setBatchSize(int $size): self
     {
         $this->batchSize = $size;
+
         return $this;
     }
 
     /**
-     * Get resource attributes
+     * Get resource attributes.
      *
      * @return array<string, mixed>
      */
@@ -129,7 +134,7 @@ class Tracer
     // ==================== SPAN MANAGEMENT ====================
 
     /**
-     * Start a new span
+     * Start a new span.
      *
      * @param string $name Span name
      * @param SpanKind $kind Span kind
@@ -140,7 +145,7 @@ class Tracer
         string $name,
         SpanKind $kind = SpanKind::INTERNAL,
         array $attributes = [],
-        ?SpanInterface $parent = null
+        ?SpanInterface $parent = null,
     ): SpanInterface {
         // Determine parent
         $parentSpan = $parent ?? $this->getCurrentSpan();
@@ -153,6 +158,7 @@ class Tracer
                 // Return a no-op span that doesn't record
                 $noOp = new NoOpSpan($name);
                 $this->activeSpansAll[] = $noOp;
+
                 return $noOp;
             }
         }
@@ -167,16 +173,17 @@ class Tracer
     }
 
     /**
-     * Get current active span
+     * Get current active span.
      */
     public function getCurrentSpan(): ?SpanInterface
     {
         $count = count($this->activeSpansAll);
+
         return $count > 0 ? $this->activeSpansAll[$count - 1] : null;
     }
 
     /**
-     * End a span and queue for export
+     * End a span and queue for export.
      */
     public function endSpan(SpanInterface $span): void
     {
@@ -185,7 +192,7 @@ class Tracer
         // Remove from all active spans tracking
         $this->activeSpansAll = array_values(array_filter(
             $this->activeSpansAll,
-            fn($s) => $s->getSpanId() !== $span->getSpanId()
+            fn ($s) => $s->getSpanId() !== $span->getSpanId(),
         ));
 
         // Skip NoOpSpan - don't add to export queue
@@ -196,7 +203,7 @@ class Tracer
         // Remove from active spans (real spans only)
         $this->activeSpans = array_values(array_filter(
             $this->activeSpans,
-            fn($s) => $s->getSpanId() !== $span->getSpanId()
+            fn ($s) => $s->getSpanId() !== $span->getSpanId(),
         ));
 
         // Add to finished spans queue (only real Span instances)
@@ -211,29 +218,33 @@ class Tracer
     }
 
     /**
-     * Execute a callable within a span
+     * Execute a callable within a span.
      *
      * @template T
+     *
      * @param string $name Span name
      * @param callable(): T $operation Operation to execute
      * @param SpanKind $kind Span kind
      * @param array<string, mixed> $attributes Initial attributes
+     *
      * @return T Operation result
      */
     public function trace(
         string $name,
         callable $operation,
         SpanKind $kind = SpanKind::INTERNAL,
-        array $attributes = []
+        array $attributes = [],
     ): mixed {
         $span = $this->startSpan($name, $kind, $attributes);
 
         try {
             $result = $operation();
             $span->setStatus(SpanStatus::OK);
+
             return $result;
         } catch (\Throwable $e) {
             $span->recordException($e);
+
             throw $e;
         } finally {
             $this->endSpan($span);
@@ -243,9 +254,10 @@ class Tracer
     // ==================== CONTEXT PROPAGATION ====================
 
     /**
-     * Extract trace context from headers (W3C Trace Context format)
+     * Extract trace context from headers (W3C Trace Context format).
      *
      * @param array<string, string|array<string>> $headers Request headers
+     *
      * @return array{trace_id: string|null, span_id: string|null, trace_flags: int}
      */
     public function extractContext(array $headers): array
@@ -272,9 +284,10 @@ class Tracer
     }
 
     /**
-     * Inject trace context into headers (W3C Trace Context format)
+     * Inject trace context into headers (W3C Trace Context format).
      *
      * @param SpanInterface $span Span to inject context from
+     *
      * @return array<string, string> Headers to add to outgoing request
      */
     public function injectContext(SpanInterface $span): array
@@ -283,14 +296,14 @@ class Tracer
             'traceparent' => sprintf(
                 '00-%s-%s-01',
                 $span->getTraceId(),
-                $span->getSpanId()
+                $span->getSpanId(),
             ),
             'tracestate' => '',
         ];
     }
 
     /**
-     * Start a span with extracted context
+     * Start a span with extracted context.
      *
      * @param string $name Span name
      * @param array<string, string|array<string>> $headers Request headers
@@ -301,7 +314,7 @@ class Tracer
         string $name,
         array $headers,
         SpanKind $kind = SpanKind::SERVER,
-        array $attributes = []
+        array $attributes = [],
     ): Span {
         $context = $this->extractContext($headers);
 
@@ -309,7 +322,7 @@ class Tracer
             $name,
             $kind,
             $context['trace_id'],
-            $context['span_id']
+            $context['span_id'],
         );
 
         $span->setAttributes($attributes);
@@ -321,7 +334,7 @@ class Tracer
     // ==================== EXPORT ====================
 
     /**
-     * Flush finished spans to exporters
+     * Flush finished spans to exporters.
      *
      * @return int Number of spans flushed (even if no exporters configured)
      */
@@ -354,7 +367,7 @@ class Tracer
                             'name' => $this->serviceName,
                             'version' => $this->serviceVersion,
                         ],
-                        'spans' => array_map(fn($s) => $s->toArray(), $batch),
+                        'spans' => array_map(fn ($s) => $s->toArray(), $batch),
                     ],
                 ],
             ];
@@ -364,7 +377,7 @@ class Tracer
                     $exporter->export($exportData);
                 } catch (\Throwable $e) {
                     // Log but don't fail - telemetry should not break the app
-                    error_log("Telemetry export failed: " . $e->getMessage());
+                    error_log('Telemetry export failed: ' . $e->getMessage());
                 }
             }
 
@@ -375,7 +388,7 @@ class Tracer
     }
 
     /**
-     * Shutdown tracer and flush remaining spans
+     * Shutdown tracer and flush remaining spans.
      */
     public function shutdown(): void
     {
@@ -394,13 +407,13 @@ class Tracer
             try {
                 $exporter->shutdown();
             } catch (\Throwable $e) {
-                error_log("Exporter shutdown failed: " . $e->getMessage());
+                error_log('Exporter shutdown failed: ' . $e->getMessage());
             }
         }
     }
 
     /**
-     * Get number of pending spans
+     * Get number of pending spans.
      */
     public function getPendingSpanCount(): int
     {
@@ -408,7 +421,7 @@ class Tracer
     }
 
     /**
-     * Get number of active spans
+     * Get number of active spans.
      */
     public function getActiveSpanCount(): int
     {
@@ -418,7 +431,7 @@ class Tracer
     // ==================== PRIVATE METHODS ====================
 
     /**
-     * Get header value (case-insensitive)
+     * Get header value (case-insensitive).
      *
      * @param array<string, string|array<string>> $headers
      * @param string $name Header name
@@ -437,7 +450,7 @@ class Tracer
     }
 
     /**
-     * Format resource attributes for export
+     * Format resource attributes for export.
      *
      * @return array<int, array{key: string, value: array<string, mixed>}>
      */
@@ -456,9 +469,10 @@ class Tracer
     }
 
     /**
-     * Format a single attribute value
+     * Format a single attribute value.
      *
      * @param mixed $value
+     *
      * @return array<string, mixed>
      */
     private function formatAttributeValue(mixed $value): array

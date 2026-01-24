@@ -10,7 +10,7 @@ use Senza1dio\SecurityShield\Anomaly\DetectorInterface;
 use Senza1dio\SecurityShield\Contracts\StorageInterface;
 
 /**
- * Rate Anomaly Detector
+ * Rate Anomaly Detector.
  *
  * Detects unusual request rates (spikes or drops) using sliding window analysis.
  *
@@ -40,17 +40,19 @@ use Senza1dio\SecurityShield\Contracts\StorageInterface;
  *     'current_rate' => 150, // requests in current window
  * ]);
  * ```
- *
- * @package Senza1dio\SecurityShield\Anomaly\Detectors
  */
 class RateDetector implements DetectorInterface
 {
     private StorageInterface $storage;
+
     private string $keyPrefix;
 
     private int $windowSize;
+
     private int $historyWindows;
+
     private float $spikeThreshold;
+
     private float $dropThreshold;
 
     /**
@@ -67,7 +69,7 @@ class RateDetector implements DetectorInterface
         int $windowSize = 60,
         int $historyWindows = 10,
         float $spikeThreshold = 3.0,
-        float $dropThreshold = 0.2
+        float $dropThreshold = 0.2,
     ) {
         $this->storage = $storage;
         $this->keyPrefix = $keyPrefix;
@@ -83,7 +85,7 @@ class RateDetector implements DetectorInterface
     }
 
     /**
-     * Record an event for rate tracking
+     * Record an event for rate tracking.
      *
      * @param string $identifier Event identifier (e.g., IP, user ID)
      */
@@ -98,9 +100,10 @@ class RateDetector implements DetectorInterface
     }
 
     /**
-     * Get current rate for an identifier
+     * Get current rate for an identifier.
      *
      * @param string $identifier Event identifier
+     *
      * @return int Current window count
      */
     public function getCurrentRate(string $identifier): int
@@ -154,7 +157,7 @@ class RateDetector implements DetectorInterface
                     'baseline_stddev' => round($stddev, 2),
                     'ratio' => round($ratio, 2),
                     'type' => 'spike',
-                ]
+                ],
             );
         }
 
@@ -174,7 +177,7 @@ class RateDetector implements DetectorInterface
                     'baseline_stddev' => round($stddev, 2),
                     'ratio' => round($ratio, 2),
                     'type' => 'drop',
-                ]
+                ],
             );
         }
 
@@ -192,9 +195,10 @@ class RateDetector implements DetectorInterface
     }
 
     /**
-     * Get historical rates for an identifier
+     * Get historical rates for an identifier.
      *
      * @param string $identifier
+     *
      * @return array<int, int>
      */
     private function getHistoricalRates(string $identifier): array
@@ -216,7 +220,7 @@ class RateDetector implements DetectorInterface
     }
 
     /**
-     * Get current window number
+     * Get current window number.
      */
     private function getCurrentWindow(): int
     {
@@ -224,7 +228,7 @@ class RateDetector implements DetectorInterface
     }
 
     /**
-     * Get storage key
+     * Get storage key.
      */
     private function getKey(string $identifier, int $window): string
     {
@@ -232,7 +236,7 @@ class RateDetector implements DetectorInterface
     }
 
     /**
-     * Calculate standard deviation
+     * Calculate standard deviation.
      *
      * @param array<int, int|float> $values
      * @param float $mean

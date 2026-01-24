@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Senza1dio\SecurityShield\Health;
 
 /**
- * Health Status Enum
+ * Health Status Enum.
  */
 enum HealthStatus: string
 {
@@ -14,7 +14,7 @@ enum HealthStatus: string
     case UNHEALTHY = 'unhealthy';
 
     /**
-     * Get HTTP status code for this health status
+     * Get HTTP status code for this health status.
      */
     public function getHttpStatusCode(): int
     {
@@ -26,7 +26,7 @@ enum HealthStatus: string
     }
 
     /**
-     * Check if status indicates service is available
+     * Check if status indicates service is available.
      */
     public function isAvailable(): bool
     {

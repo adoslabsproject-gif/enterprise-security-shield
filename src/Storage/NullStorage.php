@@ -1,11 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Senza1dio\SecurityShield\Storage;
 
 use Senza1dio\SecurityShield\Contracts\StorageInterface;
 
 /**
- * Null Storage Backend - In-Memory (Development/Testing)
+ * Null Storage Backend - In-Memory (Development/Testing).
  *
  * Stores data in memory for testing and development.
  * Data is NOT persisted across requests.
@@ -33,14 +35,19 @@ class NullStorage implements StorageInterface
 {
     /** @var array<string, array{score: int, expires_at: int}> */
     private array $scores = [];
+
     /** @var array<string, array{ip: string, reason: string, banned_at: int, expires_at: int}> */
     private array $bans = [];
+
     /** @var array<string, array{verified: bool, metadata: array<string, mixed>, expires_at: int}> */
     private array $botCache = [];
+
     /** @var array<string, array<int, array<string, mixed>>> */
     private array $events = [];
+
     /** @var array<string, array{count: int, expires_at: int}> */
     private array $rateLimits = [];
+
     /** @var array<string, array{value: mixed, expires_at: int}> Generic cache */
     private array $cache = [];
 
@@ -53,6 +60,7 @@ class NullStorage implements StorageInterface
             'score' => $score,
             'expires_at' => time() + $ttl,
         ];
+
         return true;
     }
 
@@ -68,6 +76,7 @@ class NullStorage implements StorageInterface
         // Check expiration
         if (time() > $this->scores[$ip]['expires_at']) {
             unset($this->scores[$ip]);
+
             return null;
         }
 
@@ -82,6 +91,7 @@ class NullStorage implements StorageInterface
         $currentScore = $this->getScore($ip) ?? 0;
         $newScore = $currentScore + $points;
         $this->setScore($ip, $newScore, $ttl);
+
         return $newScore;
     }
 
@@ -97,6 +107,7 @@ class NullStorage implements StorageInterface
         // Check expiration
         if (time() > $this->bans[$ip]['expires_at']) {
             unset($this->bans[$ip]);
+
             return false;
         }
 
@@ -124,6 +135,7 @@ class NullStorage implements StorageInterface
             'banned_at' => time(),
             'expires_at' => time() + $duration,
         ];
+
         return true;
     }
 
@@ -134,8 +146,10 @@ class NullStorage implements StorageInterface
     {
         if (isset($this->bans[$ip])) {
             unset($this->bans[$ip]);
+
             return true;
         }
+
         return false;
     }
 
@@ -150,6 +164,7 @@ class NullStorage implements StorageInterface
             'cached_at' => time(),
             'expires_at' => time() + $ttl,
         ];
+
         return true;
     }
 
@@ -167,6 +182,7 @@ class NullStorage implements StorageInterface
         // Check expiration
         if (time() > $cached['expires_at']) {
             unset($this->botCache[$ip]);
+
             return null;
         }
 
@@ -220,9 +236,10 @@ class NullStorage implements StorageInterface
             }
 
             // Sort by timestamp (newest first)
-            usort($events, function($a, $b) {
+            usort($events, function ($a, $b) {
                 $aTimestamp = is_array($a) && isset($a['timestamp']) && is_int($a['timestamp']) ? $a['timestamp'] : 0;
                 $bTimestamp = is_array($b) && isset($b['timestamp']) && is_int($b['timestamp']) ? $b['timestamp'] : 0;
+
                 return $bTimestamp <=> $aTimestamp;
             });
 
@@ -247,6 +264,7 @@ class NullStorage implements StorageInterface
                 'count' => 1,
                 'expires_at' => $now + $window,
             ];
+
             return 1;
         }
 
@@ -256,11 +274,13 @@ class NullStorage implements StorageInterface
                 'count' => 1,
                 'expires_at' => $now + $window,
             ];
+
             return 1;
         }
 
         // Increment counter within window
         $this->rateLimits[$key]['count']++;
+
         return $this->rateLimits[$key]['count'];
     }
 
@@ -288,6 +308,7 @@ class NullStorage implements StorageInterface
         // Check expiration
         if (time() > $this->rateLimits[$key]['expires_at']) {
             unset($this->rateLimits[$key]);
+
             return 0;
         }
 
@@ -305,11 +326,12 @@ class NullStorage implements StorageInterface
         $this->events = [];
         $this->rateLimits = [];
         $this->cache = [];
+
         return true;
     }
 
     /**
-     * Get all data (for testing assertions)
+     * Get all data (for testing assertions).
      *
      * @return array<string, mixed>
      */
@@ -337,6 +359,7 @@ class NullStorage implements StorageInterface
         // Check expiration
         if (time() > $this->cache[$key]['expires_at']) {
             unset($this->cache[$key]);
+
             return null;
         }
 
@@ -352,6 +375,7 @@ class NullStorage implements StorageInterface
             'value' => $value,
             'expires_at' => time() + $ttl,
         ];
+
         return true;
     }
 
@@ -361,6 +385,7 @@ class NullStorage implements StorageInterface
     public function delete(string $key): bool
     {
         unset($this->cache[$key]);
+
         return true;
     }
 
@@ -376,6 +401,7 @@ class NullStorage implements StorageInterface
         // Check expiration
         if (time() > $this->cache[$key]['expires_at']) {
             unset($this->cache[$key]);
+
             return false;
         }
 

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Senza1dio\SecurityShield\Resilience;
 
 /**
- * Exception thrown when all providers in a fallback chain fail
+ * Exception thrown when all providers in a fallback chain fail.
  */
 class AllProvidersFailedException extends \Exception
 {
@@ -23,7 +23,7 @@ class AllProvidersFailedException extends \Exception
     }
 
     /**
-     * Get all provider errors
+     * Get all provider errors.
      *
      * @return array<string, \Throwable>
      */
@@ -33,7 +33,7 @@ class AllProvidersFailedException extends \Exception
     }
 
     /**
-     * Get error for specific provider
+     * Get error for specific provider.
      */
     public function getErrorForProvider(string $name): ?\Throwable
     {
@@ -41,7 +41,7 @@ class AllProvidersFailedException extends \Exception
     }
 
     /**
-     * Get all provider names that failed
+     * Get all provider names that failed.
      *
      * @return array<string>
      */
@@ -51,12 +51,12 @@ class AllProvidersFailedException extends \Exception
     }
 
     /**
-     * Get summary of all errors
+     * Get summary of all errors.
      *
      * @return array<string, string>
      */
     public function getErrorSummary(): array
     {
-        return array_map(fn($e) => $e->getMessage(), $this->providerErrors);
+        return array_map(fn ($e) => $e->getMessage(), $this->providerErrors);
     }
 }

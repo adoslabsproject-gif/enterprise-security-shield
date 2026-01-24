@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Senza1dio\SecurityShield\Resilience;
 
 /**
- * Fallback Chain Pattern Implementation
+ * Fallback Chain Pattern Implementation.
  *
  * Tries multiple providers/operations in sequence until one succeeds.
  *
@@ -31,8 +31,6 @@ namespace Senza1dio\SecurityShield\Resilience;
  *     ->addWithCircuitBreaker('database', $dbBreaker, fn() => $db->get($key))
  *     ->add('default', fn() => null);
  * ```
- *
- * @package Senza1dio\SecurityShield\Resilience
  */
 class FallbackChain
 {
@@ -40,6 +38,7 @@ class FallbackChain
     private array $providers = [];
 
     private ?string $usedProvider = null;
+
     private ?string $lastError = null;
 
     /** @var array<string, \Throwable> */
@@ -49,7 +48,7 @@ class FallbackChain
     private $onFallback = null;
 
     /**
-     * Add a provider to the chain
+     * Add a provider to the chain.
      *
      * @param string $name Provider identifier
      * @param callable(): mixed $operation Operation to execute
@@ -61,11 +60,12 @@ class FallbackChain
             'operation' => $operation,
             'circuit_breaker' => null,
         ];
+
         return $this;
     }
 
     /**
-     * Add a provider with circuit breaker protection
+     * Add a provider with circuit breaker protection.
      *
      * If circuit is open, provider is skipped without trying.
      *
@@ -76,33 +76,37 @@ class FallbackChain
     public function addWithCircuitBreaker(
         string $name,
         CircuitBreaker $circuitBreaker,
-        callable $operation
+        callable $operation,
     ): self {
         $this->providers[] = [
             'name' => $name,
             'operation' => $operation,
             'circuit_breaker' => $circuitBreaker,
         ];
+
         return $this;
     }
 
     /**
-     * Register callback for fallback events
+     * Register callback for fallback events.
      *
      * @param callable(string $failedProvider, string $nextProvider, \Throwable $error): void $callback
      */
     public function onFallback(callable $callback): self
     {
         $this->onFallback = $callback;
+
         return $this;
     }
 
     /**
-     * Execute the fallback chain
+     * Execute the fallback chain.
      *
      * @template T
-     * @return T|null Result from first successful provider, or null if all failed
+     *
      * @throws AllProvidersFailedException When all providers fail and no default provided
+     *
+     * @return T|null Result from first successful provider, or null if all failed
      */
     public function execute(): mixed
     {
@@ -120,7 +124,7 @@ class FallbackChain
                 if ($circuitBreaker !== null && !$circuitBreaker->isAvailable()) {
                     $this->errors[$name] = new CircuitOpenException(
                         "Circuit for '{$name}' is open",
-                        $name
+                        $name,
                     );
                     continue;
                 }
@@ -133,6 +137,7 @@ class FallbackChain
                 }
 
                 $this->usedProvider = $name;
+
                 return $result;
 
             } catch (\Throwable $e) {
@@ -150,15 +155,17 @@ class FallbackChain
         // All providers failed
         throw new AllProvidersFailedException(
             'All providers in fallback chain failed',
-            $this->errors
+            $this->errors,
         );
     }
 
     /**
-     * Execute with a final default value
+     * Execute with a final default value.
      *
      * @template T
+     *
      * @param T $default Value to return if all providers fail
+     *
      * @return T Result from successful provider or default
      */
     public function executeWithDefault(mixed $default): mixed
@@ -167,12 +174,13 @@ class FallbackChain
             return $this->execute();
         } catch (AllProvidersFailedException $e) {
             $this->usedProvider = 'default';
+
             return $default;
         }
     }
 
     /**
-     * Get the name of the provider that was used
+     * Get the name of the provider that was used.
      */
     public function getUsedProvider(): ?string
     {
@@ -180,7 +188,7 @@ class FallbackChain
     }
 
     /**
-     * Get the last error message
+     * Get the last error message.
      */
     public function getLastError(): ?string
     {
@@ -188,7 +196,7 @@ class FallbackChain
     }
 
     /**
-     * Get all errors that occurred
+     * Get all errors that occurred.
      *
      * @return array<string, \Throwable>
      */
@@ -198,7 +206,7 @@ class FallbackChain
     }
 
     /**
-     * Check if a fallback was used
+     * Check if a fallback was used.
      */
     public function didFallback(): bool
     {
@@ -215,7 +223,7 @@ class FallbackChain
     }
 
     /**
-     * Get chain statistics
+     * Get chain statistics.
      *
      * @return array{
      *     providers: array<string>,
@@ -230,12 +238,12 @@ class FallbackChain
             'providers' => array_column($this->providers, 'name'),
             'used_provider' => $this->usedProvider,
             'did_fallback' => $this->didFallback(),
-            'errors' => array_map(fn($e) => $e->getMessage(), $this->errors),
+            'errors' => array_map(fn ($e) => $e->getMessage(), $this->errors),
         ];
     }
 
     /**
-     * Clear the chain for reuse
+     * Clear the chain for reuse.
      */
     public function clear(): self
     {
@@ -243,6 +251,7 @@ class FallbackChain
         $this->usedProvider = null;
         $this->lastError = null;
         $this->errors = [];
+
         return $this;
     }
 }

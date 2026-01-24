@@ -8,7 +8,7 @@ use Senza1dio\SecurityShield\Telemetry\SamplerInterface;
 use Senza1dio\SecurityShield\Telemetry\SpanKind;
 
 /**
- * Ratio Based Sampler
+ * Ratio Based Sampler.
  *
  * Samples traces based on a configurable ratio (0.0 to 1.0).
  *
@@ -20,12 +20,11 @@ use Senza1dio\SecurityShield\Telemetry\SpanKind;
  * // Sample 50% of traces
  * $sampler = new RatioBasedSampler(0.5);
  * ```
- *
- * @package Senza1dio\SecurityShield\Telemetry\Samplers
  */
 class RatioBasedSampler implements SamplerInterface
 {
     private float $ratio;
+
     private int $threshold;
 
     /**
@@ -55,7 +54,7 @@ class RatioBasedSampler implements SamplerInterface
     }
 
     /**
-     * Get configured ratio
+     * Get configured ratio.
      */
     public function getRatio(): float
     {

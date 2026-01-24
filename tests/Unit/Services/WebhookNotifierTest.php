@@ -8,7 +8,7 @@ use PHPUnit\Framework\TestCase;
 use Senza1dio\SecurityShield\Services\WebhookNotifier;
 
 /**
- * Webhook Notifier Test Suite
+ * Webhook Notifier Test Suite.
  *
  * @covers \Senza1dio\SecurityShield\Services\WebhookNotifier
  */
@@ -82,7 +82,8 @@ class WebhookNotifierTest extends TestCase
     }
 
     /**
-     * Integration test - requires network
+     * Integration test - requires network.
+     *
      * @group integration
      */
     public function testNotifyRealWebhook(): void

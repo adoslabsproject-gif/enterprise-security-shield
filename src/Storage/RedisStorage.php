@@ -1,11 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Senza1dio\SecurityShield\Storage;
 
 use Senza1dio\SecurityShield\Contracts\StorageInterface;
 
 /**
- * Redis Storage Backend - High Performance
+ * Redis Storage Backend - High Performance.
  *
  * Recommended for production environments with high traffic.
  * Provides sub-millisecond read/write operations.
@@ -23,6 +25,7 @@ use Senza1dio\SecurityShield\Contracts\StorageInterface;
 class RedisStorage implements StorageInterface
 {
     private \Redis $redis;
+
     private string $keyPrefix;
 
     /**
@@ -114,15 +117,15 @@ class RedisStorage implements StorageInterface
         // Lua script: Atomic increment + conditional expire
         // Only sets TTL if key has no TTL (new key or expired)
         $lua = <<<'LUA'
-local key = KEYS[1]
-local points = tonumber(ARGV[1])
-local ttl = tonumber(ARGV[2])
-local newScore = redis.call('INCRBY', key, points)
-if redis.call('TTL', key) < 0 then
-    redis.call('EXPIRE', key, ttl)
-end
-return newScore
-LUA;
+            local key = KEYS[1]
+            local points = tonumber(ARGV[1])
+            local ttl = tonumber(ARGV[2])
+            local newScore = redis.call('INCRBY', key, points)
+            if redis.call('TTL', key) < 0 then
+                redis.call('EXPIRE', key, ttl)
+            end
+            return newScore
+            LUA;
 
         try {
             $result = $this->redis->eval($lua, [$key, $points, $ttl], 1);
@@ -184,6 +187,7 @@ LUA;
 
         try {
             $exists = $this->redis->exists($key);
+
             return is_int($exists) && $exists > 0;
         } catch (\RedisException $e) {
             // FAIL-OPEN: Assume not banned (availability over security)
@@ -210,6 +214,7 @@ LUA;
 
         try {
             $exists = $this->redis->exists($key);
+
             return is_int($exists) && $exists > 0;
         } catch (\RedisException $e) {
             // FAIL-OPEN: Assume not banned (availability over security)
@@ -247,11 +252,13 @@ LUA;
     {
         $key = $this->keyPrefix . 'ban:' . $ip;
         $deleted = $this->redis->del($key);
+
         return is_int($deleted) && $deleted > 0;
     }
 
     /**
      * {@inheritDoc}
+     *
      * @param array<string, mixed> $metadata
      */
     public function cacheBotVerification(string $ip, bool $isLegitimate, array $metadata, int $ttl): bool
@@ -268,6 +275,7 @@ LUA;
 
     /**
      * {@inheritDoc}
+     *
      * @return array<string, mixed>|null
      */
     public function getCachedBotVerification(string $ip): ?array
@@ -330,7 +338,7 @@ LUA;
             $this->redis->setex($dedupKey, 60, '1');
         } catch (\RedisException $e) {
             // Dedup failed - log warning but continue (better than losing events)
-            error_log("RedisStorage: Event dedup check failed - " . $e->getMessage());
+            error_log('RedisStorage: Event dedup check failed - ' . $e->getMessage());
         }
 
         $key = $this->keyPrefix . 'events:' . $type;
@@ -353,7 +361,8 @@ LUA;
             return true;
         } catch (\RedisException $e) {
             // Log but don't block - event logging shouldn't break security checks
-            error_log("RedisStorage: Event logging failed - " . $e->getMessage());
+            error_log('RedisStorage: Event logging failed - ' . $e->getMessage());
+
             return false;
         }
     }
@@ -400,7 +409,7 @@ LUA;
             }
 
             // Sort by timestamp (newest first)
-            usort($events, function($a, $b) {
+            usort($events, function ($a, $b) {
                 return ($b['timestamp'] ?? 0) <=> ($a['timestamp'] ?? 0);
             });
 
@@ -423,14 +432,14 @@ LUA;
 
         // Lua script: Atomic increment + conditional expire
         $lua = <<<'LUA'
-local key = KEYS[1]
-local window = tonumber(ARGV[1])
-local count = redis.call('INCR', key)
-if count == 1 then
-    redis.call('EXPIRE', key, window)
-end
-return count
-LUA;
+            local key = KEYS[1]
+            local window = tonumber(ARGV[1])
+            local count = redis.call('INCR', key)
+            if count == 1 then
+                redis.call('EXPIRE', key, window)
+            end
+            return count
+            LUA;
 
         try {
             $result = $this->redis->eval($lua, [$key, $window], 1);
@@ -490,7 +499,7 @@ LUA;
     }
 
     /**
-     * Scan Redis keys using cursor-based iteration (non-blocking)
+     * Scan Redis keys using cursor-based iteration (non-blocking).
      *
      * PERFORMANCE: Unlike KEYS command, SCAN doesn't block Redis.
      * Safe for production with millions of keys.
@@ -503,6 +512,7 @@ LUA;
      *
      * @param string $pattern Key pattern (e.g., "security_shield:*")
      * @param int $count Hint for number of keys to return per iteration
+     *
      * @return array<int, string> Matching keys
      */
     private function scanKeys(string $pattern, int $count = 1000): array
@@ -561,7 +571,7 @@ LUA;
     }
 
     /**
-     * Get Redis instance (for custom operations)
+     * Get Redis instance (for custom operations).
      *
      * @return \Redis
      */
@@ -571,7 +581,7 @@ LUA;
     }
 
     /**
-     * Get key prefix
+     * Get key prefix.
      *
      * @return string
      */
@@ -595,6 +605,7 @@ LUA;
             // SECURITY: Only JSON decode (NEVER unserialize - prevents PHP Object Injection)
             if (is_string($value) && (str_starts_with($value, '{') || str_starts_with($value, '['))) {
                 $decoded = json_decode($value, true);
+
                 return is_array($decoded) ? $decoded : $value;
             }
 
@@ -633,6 +644,7 @@ LUA;
     {
         try {
             $deleted = $this->redis->del($this->keyPrefix . $key);
+
             return $deleted !== false;
         } catch (\RedisException $e) {
             return false;
@@ -646,6 +658,7 @@ LUA;
     {
         try {
             $exists = $this->redis->exists($this->keyPrefix . $key);
+
             return is_int($exists) && $exists > 0;
         } catch (\RedisException $e) {
             return false;
@@ -664,15 +677,15 @@ LUA;
 
         // Lua script: Atomic increment + conditional expire
         $lua = <<<'LUA'
-local key = KEYS[1]
-local delta = tonumber(ARGV[1])
-local ttl = tonumber(ARGV[2])
-local newVal = redis.call('INCRBY', key, delta)
-if redis.call('TTL', key) < 0 then
-    redis.call('EXPIRE', key, ttl)
-end
-return newVal
-LUA;
+            local key = KEYS[1]
+            local delta = tonumber(ARGV[1])
+            local ttl = tonumber(ARGV[2])
+            local newVal = redis.call('INCRBY', key, delta)
+            if redis.call('TTL', key) < 0 then
+                redis.call('EXPIRE', key, ttl)
+            end
+            return newVal
+            LUA;
 
         try {
             $result = $this->redis->eval($lua, [$fullKey, $delta, $ttl], 1);

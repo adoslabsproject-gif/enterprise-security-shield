@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Senza1dio\SecurityShield\RateLimiting;
 
 /**
- * Composite Rate Limiter
+ * Composite Rate Limiter.
  *
  * Combines multiple rate limiters for multi-tier rate limiting.
  * All limiters must pass for request to be allowed.
@@ -25,8 +25,6 @@ namespace Senza1dio\SecurityShield\RateLimiting;
  *     'write' => RateLimiter::slidingWindow($storage, 10, 60),
  * ]);
  * ```
- *
- * @package Senza1dio\SecurityShield\RateLimiting
  */
 class CompositeRateLimiter
 {
@@ -44,7 +42,7 @@ class CompositeRateLimiter
     }
 
     /**
-     * Add a rate limiter to the composite
+     * Add a rate limiter to the composite.
      *
      * @param string $name Unique name for this limiter
      * @param RateLimiter $limiter The rate limiter
@@ -52,17 +50,19 @@ class CompositeRateLimiter
     public function add(string $name, RateLimiter $limiter): self
     {
         $this->limiters[$name] = $limiter;
+
         return $this;
     }
 
     /**
-     * Attempt to consume tokens from all limiters
+     * Attempt to consume tokens from all limiters.
      *
      * Request is allowed only if ALL limiters allow it.
      * If any limiter blocks, tokens are NOT consumed from any.
      *
      * @param string $identifier Unique identifier
      * @param int $cost Token cost
+     *
      * @return CompositeRateLimitResult Combined result
      */
     public function attempt(string $identifier, int $cost = 1): CompositeRateLimitResult
@@ -112,14 +112,15 @@ class CompositeRateLimiter
             resetAt: $earliestReset === PHP_INT_MAX ? time() : $earliestReset,
             retryAfter: $maxRetryAfter,
             tierResults: $results,
-            limitingTier: $limitingTier
+            limitingTier: $limitingTier,
         );
     }
 
     /**
-     * Check remaining tokens for all limiters
+     * Check remaining tokens for all limiters.
      *
      * @param string $identifier Unique identifier
+     *
      * @return array<string, int> Remaining tokens per limiter
      */
     public function remaining(string $identifier): array
@@ -134,7 +135,7 @@ class CompositeRateLimiter
     }
 
     /**
-     * Reset all limiters for an identifier
+     * Reset all limiters for an identifier.
      *
      * @param string $identifier Unique identifier
      */
@@ -146,7 +147,7 @@ class CompositeRateLimiter
     }
 
     /**
-     * Get all limiter configurations
+     * Get all limiter configurations.
      *
      * @return array<string, array<string, mixed>>
      */

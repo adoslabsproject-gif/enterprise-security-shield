@@ -5,11 +5,9 @@ declare(strict_types=1);
 namespace Senza1dio\SecurityShield\Telemetry;
 
 /**
- * OpenTelemetry Span Kind
+ * OpenTelemetry Span Kind.
  *
  * Defines the relationship between spans for distributed tracing.
- *
- * @package Senza1dio\SecurityShield\Telemetry
  */
 enum SpanKind: string
 {

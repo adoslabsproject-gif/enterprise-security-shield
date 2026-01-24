@@ -10,7 +10,6 @@ use Senza1dio\SecurityShield\Telemetry\Samplers\AlwaysOffSampler;
 use Senza1dio\SecurityShield\Telemetry\Samplers\AlwaysOnSampler;
 use Senza1dio\SecurityShield\Telemetry\Samplers\RatioBasedSampler;
 use Senza1dio\SecurityShield\Telemetry\SpanKind;
-use Senza1dio\SecurityShield\Telemetry\SpanStatus;
 use Senza1dio\SecurityShield\Telemetry\Tracer;
 
 class TracerTest extends TestCase

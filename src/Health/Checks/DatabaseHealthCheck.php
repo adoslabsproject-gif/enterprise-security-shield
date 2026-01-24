@@ -8,14 +8,16 @@ use Senza1dio\SecurityShield\Health\CheckResult;
 use Senza1dio\SecurityShield\Health\HealthCheckInterface;
 
 /**
- * Database Health Check
+ * Database Health Check.
  *
  * Verifies database connection and optionally checks connection pool.
  */
 class DatabaseHealthCheck implements HealthCheckInterface
 {
     private \PDO $pdo;
+
     private ?int $maxConnections;
+
     private ?float $connectionWarningThreshold;
 
     /**
@@ -26,7 +28,7 @@ class DatabaseHealthCheck implements HealthCheckInterface
     public function __construct(
         \PDO $pdo,
         ?int $maxConnections = null,
-        ?float $connectionWarningThreshold = 80.0
+        ?float $connectionWarningThreshold = 80.0,
     ) {
         $this->pdo = $pdo;
         $this->maxConnections = $maxConnections;
@@ -59,7 +61,7 @@ class DatabaseHealthCheck implements HealthCheckInterface
                 if ($this->connectionWarningThreshold !== null && $usage >= $this->connectionWarningThreshold) {
                     return CheckResult::degraded(
                         "Connection pool usage high: {$usage}%",
-                        $metadata
+                        $metadata,
                     );
                 }
             }

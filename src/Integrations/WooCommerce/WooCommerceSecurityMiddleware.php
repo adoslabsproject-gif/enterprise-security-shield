@@ -1,13 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Senza1dio\SecurityShield\Integrations\WooCommerce;
 
 use Senza1dio\SecurityShield\Middleware\SecurityMiddleware;
-use Senza1dio\SecurityShield\Config\SecurityConfig;
-use Senza1dio\SecurityShield\Contracts\StorageInterface;
 
 /**
- * WooCommerce Security Middleware
+ * WooCommerce Security Middleware.
  *
  * Specialized security layer for WooCommerce e-commerce sites.
  *
@@ -28,13 +28,11 @@ use Senza1dio\SecurityShield\Contracts\StorageInterface;
  * USAGE:
  * $wooSecurity = new WooCommerceSecurityMiddleware($storage, $config);
  * $wooSecurity->handle($_SERVER);
- *
- * @package Senza1dio\SecurityShield\Integrations\WooCommerce
  */
 class WooCommerceSecurityMiddleware extends SecurityMiddleware
 {
     /**
-     * WooCommerce-specific TRULY suspicious paths (block immediately)
+     * WooCommerce-specific TRULY suspicious paths (block immediately).
      *
      * These paths should NEVER be accessible by legitimate users.
      * They indicate scanning, hacking attempts, or misconfiguration.
@@ -60,7 +58,7 @@ class WooCommerceSecurityMiddleware extends SecurityMiddleware
     ];
 
     /**
-     * Rate limits for WooCommerce-specific actions
+     * Rate limits for WooCommerce-specific actions.
      *
      * Format: 'action' => ['max_requests' => N, 'window' => seconds]
      *
@@ -77,7 +75,7 @@ class WooCommerceSecurityMiddleware extends SecurityMiddleware
     ];
 
     /**
-     * Handle WooCommerce-specific security checks
+     * Handle WooCommerce-specific security checks.
      *
      * IMPORTANT: Whitelist is checked FIRST by parent::handle()
      * If IP is whitelisted, WooCommerce checks are SKIPPED.
@@ -85,6 +83,7 @@ class WooCommerceSecurityMiddleware extends SecurityMiddleware
      * @param array<string, mixed> $server $_SERVER superglobal
      * @param array<string, mixed> $get $_GET superglobal (optional)
      * @param array<string, mixed> $post $_POST superglobal (optional)
+     *
      * @return bool True if request is allowed, false if blocked
      */
     public function handle(array $server, array $get = [], array $post = []): bool
@@ -115,6 +114,7 @@ class WooCommerceSecurityMiddleware extends SecurityMiddleware
         // Check WooCommerce-specific suspicious paths
         if ($this->isWooCommerceSuspiciousPath($uri)) {
             $this->handleSuspiciousWooCommercePath($ip, $uri);
+
             return false;
         }
 
@@ -127,9 +127,10 @@ class WooCommerceSecurityMiddleware extends SecurityMiddleware
     }
 
     /**
-     * Check if path is WooCommerce-specific suspicious path
+     * Check if path is WooCommerce-specific suspicious path.
      *
      * @param string $uri Request URI
+     *
      * @return bool True if suspicious
      */
     private function isWooCommerceSuspiciousPath(string $uri): bool
@@ -144,10 +145,11 @@ class WooCommerceSecurityMiddleware extends SecurityMiddleware
     }
 
     /**
-     * Handle suspicious WooCommerce path access
+     * Handle suspicious WooCommerce path access.
      *
      * @param string $ip Client IP
      * @param string $uri Request URI
+     *
      * @return void
      */
     private function handleSuspiciousWooCommercePath(string $ip, string $uri): void
@@ -180,11 +182,12 @@ class WooCommerceSecurityMiddleware extends SecurityMiddleware
     }
 
     /**
-     * Check WooCommerce-specific rate limits
+     * Check WooCommerce-specific rate limits.
      *
      * @param string $ip Client IP
      * @param string $uri Request URI
      * @param string $method HTTP method
+     *
      * @return bool True if within limits, false if exceeded
      */
     private function checkWooCommerceRateLimits(string $ip, string $uri, string $method): bool
@@ -224,10 +227,11 @@ class WooCommerceSecurityMiddleware extends SecurityMiddleware
     }
 
     /**
-     * Detect WooCommerce action from URI and method
+     * Detect WooCommerce action from URI and method.
      *
      * @param string $uri Request URI
      * @param string $method HTTP method
+     *
      * @return string|null Action type or null if not WooCommerce
      */
     private function detectWooCommerceAction(string $uri, string $method): ?string
@@ -266,7 +270,7 @@ class WooCommerceSecurityMiddleware extends SecurityMiddleware
     }
 
     /**
-     * Get WooCommerce-specific security recommendations
+     * Get WooCommerce-specific security recommendations.
      *
      * @return array<string, string> Recommendations
      */

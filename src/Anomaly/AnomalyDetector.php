@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Senza1dio\SecurityShield\Anomaly;
 
 /**
- * Composite Anomaly Detector
+ * Composite Anomaly Detector.
  *
  * Combines multiple detection algorithms for comprehensive anomaly detection.
  *
@@ -43,8 +43,6 @@ namespace Senza1dio\SecurityShield\Anomaly;
  *     }
  * }
  * ```
- *
- * @package Senza1dio\SecurityShield\Anomaly
  */
 class AnomalyDetector
 {
@@ -55,7 +53,9 @@ class AnomalyDetector
     private array $alertHandlers = [];
 
     private AnomalySeverity $alertThreshold;
+
     private bool $deduplicateAlerts;
+
     private int $deduplicationWindow;
 
     /** @var array<string, float> */
@@ -69,7 +69,7 @@ class AnomalyDetector
     public function __construct(
         AnomalySeverity $alertThreshold = AnomalySeverity::MEDIUM,
         bool $deduplicateAlerts = true,
-        int $deduplicationWindow = 300
+        int $deduplicationWindow = 300,
     ) {
         $this->alertThreshold = $alertThreshold;
         $this->deduplicateAlerts = $deduplicateAlerts;
@@ -77,29 +77,31 @@ class AnomalyDetector
     }
 
     /**
-     * Add a detector
+     * Add a detector.
      *
      * @param DetectorInterface $detector
      * @param string|null $name Custom name (uses detector's name if null)
      */
     public function addDetector(DetectorInterface $detector, ?string $name = null): self
     {
-        $name = $name ?? $detector->getName();
+        $name ??= $detector->getName();
         $this->detectors[$name] = $detector;
+
         return $this;
     }
 
     /**
-     * Remove a detector
+     * Remove a detector.
      */
     public function removeDetector(string $name): self
     {
         unset($this->detectors[$name]);
+
         return $this;
     }
 
     /**
-     * Add alert handler
+     * Add alert handler.
      *
      * @param string $name Handler name
      * @param callable(Anomaly): void $handler Handler function
@@ -107,11 +109,12 @@ class AnomalyDetector
     public function addAlertHandler(string $name, callable $handler): self
     {
         $this->alertHandlers[$name] = $handler;
+
         return $this;
     }
 
     /**
-     * Train all detectors
+     * Train all detectors.
      *
      * @param array<int, array<string, mixed>> $historicalData
      */
@@ -123,7 +126,7 @@ class AnomalyDetector
     }
 
     /**
-     * Analyze data for anomalies
+     * Analyze data for anomalies.
      *
      * @param array<string, mixed> $data
      */
@@ -145,7 +148,7 @@ class AnomalyDetector
         }
 
         // Sort by score descending
-        usort($allAnomalies, fn($a, $b) => $b->getScore() <=> $a->getScore());
+        usort($allAnomalies, fn ($a, $b) => $b->getScore() <=> $a->getScore());
 
         // Trigger alerts
         foreach ($allAnomalies as $anomaly) {
@@ -158,7 +161,7 @@ class AnomalyDetector
     }
 
     /**
-     * Check if all detectors are ready
+     * Check if all detectors are ready.
      */
     public function isReady(): bool
     {
@@ -176,7 +179,7 @@ class AnomalyDetector
     }
 
     /**
-     * Get detector status
+     * Get detector status.
      *
      * @return array<string, bool>
      */
@@ -192,7 +195,7 @@ class AnomalyDetector
     }
 
     /**
-     * Get detector by name
+     * Get detector by name.
      */
     public function getDetector(string $name): ?DetectorInterface
     {
@@ -200,7 +203,7 @@ class AnomalyDetector
     }
 
     /**
-     * Trigger alert for anomaly
+     * Trigger alert for anomaly.
      */
     private function triggerAlert(Anomaly $anomaly): void
     {
@@ -212,7 +215,7 @@ class AnomalyDetector
             // Clean old alerts
             $this->recentAlerts = array_filter(
                 $this->recentAlerts,
-                fn($time) => ($now - $time) < $this->deduplicationWindow
+                fn ($time) => ($now - $time) < $this->deduplicationWindow,
             );
 
             // Skip if recently alerted
@@ -229,20 +232,20 @@ class AnomalyDetector
                 $handler($anomaly);
             } catch (\Throwable $e) {
                 // Don't let handler errors break detection
-                error_log("Anomaly alert handler failed: " . $e->getMessage());
+                error_log('Anomaly alert handler failed: ' . $e->getMessage());
             }
         }
     }
 
     /**
-     * Generate deduplication key for anomaly
+     * Generate deduplication key for anomaly.
      */
     private function getAlertKey(Anomaly $anomaly): string
     {
         return md5(
             $anomaly->getType()->value .
             ':' . $anomaly->getContextValue('identifier', '') .
-            ':' . $anomaly->getContextValue('pattern_type', '')
+            ':' . $anomaly->getContextValue('pattern_type', ''),
         );
     }
 }

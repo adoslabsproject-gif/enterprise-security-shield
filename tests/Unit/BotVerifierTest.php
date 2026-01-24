@@ -6,11 +6,11 @@ namespace Senza1dio\SecurityShield\Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
 use Senza1dio\SecurityShield\Services\BotVerifier;
-use Senza1dio\SecurityShield\Storage\NullStorage;
 use Senza1dio\SecurityShield\Storage\NullLogger;
+use Senza1dio\SecurityShield\Storage\NullStorage;
 
 /**
- * Test Suite for BotVerifier
+ * Test Suite for BotVerifier.
  *
  * Coverage:
  * - DNS verification (reverse + forward lookup)
@@ -19,13 +19,13 @@ use Senza1dio\SecurityShield\Storage\NullLogger;
  * - Statistics tracking
  * - Anti-spoofing protection
  * - Edge cases
- *
- * @package Senza1dio\SecurityShield\Tests\Unit
  */
 final class BotVerifierTest extends TestCase
 {
     private BotVerifier $verifier;
+
     private NullStorage $storage;
+
     private NullLogger $logger;
 
     protected function setUp(): void
@@ -228,7 +228,7 @@ final class BotVerifierTest extends TestCase
         // Total verifications dovrebbe aumentare
         $this->assertGreaterThan(
             $initialStats['total_verifications'],
-            $newStats['total_verifications']
+            $newStats['total_verifications'],
         );
     }
 

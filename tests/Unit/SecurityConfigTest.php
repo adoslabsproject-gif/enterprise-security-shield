@@ -8,7 +8,7 @@ use PHPUnit\Framework\TestCase;
 use Senza1dio\SecurityShield\Config\SecurityConfig;
 
 /**
- * Test Suite for SecurityConfig
+ * Test Suite for SecurityConfig.
  *
  * Tests the fluent builder API and configuration methods.
  */

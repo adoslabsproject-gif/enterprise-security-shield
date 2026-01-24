@@ -1,13 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Senza1dio\SecurityShield\Services;
 
 /**
- * Webhook Notifier
+ * Webhook Notifier.
  *
  * Sends real-time alerts to webhook endpoints (Slack, Discord, custom)
- *
- * @package Senza1dio\SecurityShield\Services
  */
 class WebhookNotifier
 {
@@ -15,13 +15,15 @@ class WebhookNotifier
     private array $webhooks = [];
 
     private int $timeout = 3; // 3 seconds
+
     private bool $async = true; // Send async to not block requests
 
     /**
-     * Add webhook endpoint
+     * Add webhook endpoint.
      *
      * @param string $name Webhook name (e.g., 'slack', 'discord', 'custom')
      * @param string $url Webhook URL
+     *
      * @return self
      */
     public function addWebhook(string $name, string $url): self
@@ -54,14 +56,16 @@ class WebhookNotifier
         }
 
         $this->webhooks[$name] = $url;
+
         return $this;
     }
 
     /**
-     * Send notification to all webhooks
+     * Send notification to all webhooks.
      *
      * @param string $event Event type (e.g., 'ip_banned', 'honeypot_access', 'critical_attack')
      * @param array<string, mixed> $data Event data
+     *
      * @return void
      */
     public function notify(string $event, array $data): void
@@ -72,11 +76,12 @@ class WebhookNotifier
     }
 
     /**
-     * Send to specific webhook
+     * Send to specific webhook.
      *
      * @param string $url Webhook URL
      * @param string $event Event type
      * @param array<string, mixed> $data Event data
+     *
      * @return void
      */
     private function send(string $url, string $event, array $data): void
@@ -103,7 +108,7 @@ class WebhookNotifier
     }
 
     /**
-     * Send webhook async (fire-and-forget, non-blocking)
+     * Send webhook async (fire-and-forget, non-blocking).
      *
      * IMPLEMENTATION NOTES:
      * This is NOT truly async (no promises/coroutines). It's "fire-and-forget":
@@ -126,6 +131,7 @@ class WebhookNotifier
      *
      * @param string $url
      * @param string $json
+     *
      * @return void
      */
     private function sendAsync(string $url, string $json): void
@@ -155,6 +161,7 @@ class WebhookNotifier
 
         if (!$fp) {
             error_log("WebhookNotifier: Async connection failed to {$host}:{$port} - {$errstr} ({$errno})");
+
             return;
         }
 
@@ -163,7 +170,8 @@ class WebhookNotifier
 
             // SECURITY: Prevent CRLF injection in Host header
             if (empty($hostHeader) || preg_match('/[\r\n]/', $hostHeader)) {
-                error_log("WebhookNotifier: Invalid host header detected");
+                error_log('WebhookNotifier: Invalid host header detected');
+
                 return;
             }
 
@@ -173,7 +181,7 @@ class WebhookNotifier
             $request = "POST {$safePath} HTTP/1.1\r\n";
             $request .= "Host: {$hostHeader}\r\n";
             $request .= "Content-Type: application/json\r\n";
-            $request .= "Content-Length: " . strlen($json) . "\r\n";
+            $request .= 'Content-Length: ' . strlen($json) . "\r\n";
             $request .= "Connection: Close\r\n\r\n";
             $request .= $json;
 
@@ -182,7 +190,7 @@ class WebhookNotifier
 
             $written = fwrite($fp, $request);
             if ($written === false) {
-                error_log("WebhookNotifier: Failed to write to socket");
+                error_log('WebhookNotifier: Failed to write to socket');
             }
         } finally {
             @fclose($fp);
@@ -190,10 +198,11 @@ class WebhookNotifier
     }
 
     /**
-     * Send webhook sync (blocking)
+     * Send webhook sync (blocking).
      *
      * @param string $url
      * @param string $json
+     *
      * @return void
      */
     private function sendSync(string $url, string $json): void
@@ -221,26 +230,30 @@ class WebhookNotifier
     }
 
     /**
-     * Set timeout for webhook requests
+     * Set timeout for webhook requests.
      *
      * @param int $seconds Timeout in seconds
+     *
      * @return self
      */
     public function setTimeout(int $seconds): self
     {
         $this->timeout = $seconds;
+
         return $this;
     }
 
     /**
-     * Enable/disable async mode
+     * Enable/disable async mode.
      *
      * @param bool $async
+     *
      * @return self
      */
     public function setAsync(bool $async): self
     {
         $this->async = $async;
+
         return $this;
     }
 }

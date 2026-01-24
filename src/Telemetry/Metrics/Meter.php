@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Senza1dio\SecurityShield\Telemetry\Metrics;
 
 /**
- * OpenTelemetry-compatible Meter
+ * OpenTelemetry-compatible Meter.
  *
  * Creates and manages metrics for monitoring.
  *
@@ -26,12 +26,11 @@ namespace Senza1dio\SecurityShield\Telemetry\Metrics;
  * $activeConnections = $meter->createGauge('active_connections', 'Active connections');
  * $activeConnections->set(42);
  * ```
- *
- * @package Senza1dio\SecurityShield\Telemetry\Metrics
  */
 class Meter
 {
     private string $name;
+
     private string $version;
 
     /** @var array<string, Counter> */
@@ -62,18 +61,19 @@ class Meter
     // ==================== CONFIGURATION ====================
 
     /**
-     * Add metric exporter
+     * Add metric exporter.
      */
     public function addExporter(MetricExporterInterface $exporter): self
     {
         $this->exporters[] = $exporter;
+
         return $this;
     }
 
     // ==================== METRIC CREATION ====================
 
     /**
-     * Create a counter (monotonically increasing)
+     * Create a counter (monotonically increasing).
      *
      * @param string $name Metric name
      * @param string $description Metric description
@@ -82,7 +82,7 @@ class Meter
     public function createCounter(
         string $name,
         string $description = '',
-        string $unit = ''
+        string $unit = '',
     ): Counter {
         if (!isset($this->counters[$name])) {
             $this->counters[$name] = new Counter($name, $description, $unit);
@@ -92,7 +92,7 @@ class Meter
     }
 
     /**
-     * Create an up-down counter (can increase or decrease)
+     * Create an up-down counter (can increase or decrease).
      *
      * @param string $name Metric name
      * @param string $description Metric description
@@ -101,7 +101,7 @@ class Meter
     public function createUpDownCounter(
         string $name,
         string $description = '',
-        string $unit = ''
+        string $unit = '',
     ): UpDownCounter {
         if (!isset($this->upDownCounters[$name])) {
             $this->upDownCounters[$name] = new UpDownCounter($name, $description, $unit);
@@ -111,7 +111,7 @@ class Meter
     }
 
     /**
-     * Create a gauge (point-in-time value)
+     * Create a gauge (point-in-time value).
      *
      * @param string $name Metric name
      * @param string $description Metric description
@@ -120,7 +120,7 @@ class Meter
     public function createGauge(
         string $name,
         string $description = '',
-        string $unit = ''
+        string $unit = '',
     ): Gauge {
         if (!isset($this->gauges[$name])) {
             $this->gauges[$name] = new Gauge($name, $description, $unit);
@@ -130,7 +130,7 @@ class Meter
     }
 
     /**
-     * Create a histogram (distribution of values)
+     * Create a histogram (distribution of values).
      *
      * @param string $name Metric name
      * @param string $description Metric description
@@ -141,7 +141,7 @@ class Meter
         string $name,
         string $description = '',
         string $unit = '',
-        array $boundaries = []
+        array $boundaries = [],
     ): Histogram {
         if (!isset($this->histograms[$name])) {
             $this->histograms[$name] = new Histogram($name, $description, $unit, $boundaries);
@@ -153,7 +153,7 @@ class Meter
     // ==================== EXPORT ====================
 
     /**
-     * Export all metrics
+     * Export all metrics.
      *
      * @return array<string, mixed> Export data
      */
@@ -200,7 +200,7 @@ class Meter
             try {
                 $exporter->export($exportData);
             } catch (\Throwable $e) {
-                error_log("Metric export failed: " . $e->getMessage());
+                error_log('Metric export failed: ' . $e->getMessage());
             }
         }
 
@@ -208,7 +208,7 @@ class Meter
     }
 
     /**
-     * Get all metrics in Prometheus format
+     * Get all metrics in Prometheus format.
      */
     public function toPrometheusFormat(): string
     {
@@ -234,7 +234,7 @@ class Meter
     }
 
     /**
-     * Reset all metrics
+     * Reset all metrics.
      */
     public function reset(): void
     {

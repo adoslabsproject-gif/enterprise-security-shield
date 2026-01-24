@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Senza1dio\SecurityShield\Notifications;
 
 /**
- * Notification Manager
+ * Notification Manager.
  *
  * Manages multiple notification channels and dispatches alerts.
  *
@@ -27,8 +27,6 @@ namespace Senza1dio\SecurityShield\Notifications;
  * // Send to specific channels
  * $manager->notify(['telegram', 'slack'], 'Alert', 'Message', $context);
  * ```
- *
- * @package Senza1dio\SecurityShield\Notifications
  */
 class NotificationManager
 {
@@ -41,10 +39,11 @@ class NotificationManager
     private bool $failSilently = true;
 
     /**
-     * Add notification channel
+     * Add notification channel.
      *
      * @param NotifierInterface $notifier Notifier instance
      * @param bool $enabled Enable channel by default
+     *
      * @return self
      */
     public function addChannel(NotifierInterface $notifier, bool $enabled = true): self
@@ -57,9 +56,10 @@ class NotificationManager
     }
 
     /**
-     * Remove notification channel
+     * Remove notification channel.
      *
      * @param string $name Channel name
+     *
      * @return self
      */
     public function removeChannel(string $name): self
@@ -71,9 +71,10 @@ class NotificationManager
     }
 
     /**
-     * Enable a channel
+     * Enable a channel.
      *
      * @param string $name Channel name
+     *
      * @return self
      */
     public function enable(string $name): self
@@ -86,9 +87,10 @@ class NotificationManager
     }
 
     /**
-     * Disable a channel
+     * Disable a channel.
      *
      * @param string $name Channel name
+     *
      * @return self
      */
     public function disable(string $name): self
@@ -101,9 +103,10 @@ class NotificationManager
     }
 
     /**
-     * Set whether to fail silently on errors
+     * Set whether to fail silently on errors.
      *
      * @param bool $failSilently
+     *
      * @return self
      */
     public function setFailSilently(bool $failSilently): self
@@ -114,11 +117,12 @@ class NotificationManager
     }
 
     /**
-     * Broadcast alert to all enabled channels
+     * Broadcast alert to all enabled channels.
      *
      * @param string $title Alert title
      * @param string $message Alert message
      * @param array<string, mixed> $context Additional context
+     *
      * @return NotificationResult
      */
     public function broadcast(string $title, string $message, array $context = []): NotificationResult
@@ -127,12 +131,13 @@ class NotificationManager
     }
 
     /**
-     * Send to specific channels
+     * Send to specific channels.
      *
      * @param array<string> $channelNames Channel names to notify
      * @param string $title Alert title
      * @param string $message Alert message
      * @param array<string, mixed> $context Additional context
+     *
      * @return NotificationResult
      */
     public function notify(array $channelNames, string $title, string $message, array $context = []): NotificationResult
@@ -174,11 +179,12 @@ class NotificationManager
     }
 
     /**
-     * Send simple message to specific channels
+     * Send simple message to specific channels.
      *
      * @param array<string> $channelNames Channel names
      * @param string $message Message
      * @param array<string, mixed> $context Additional context
+     *
      * @return NotificationResult
      */
     public function send(array $channelNames, string $message, array $context = []): NotificationResult
@@ -220,9 +226,10 @@ class NotificationManager
     }
 
     /**
-     * Get a specific channel
+     * Get a specific channel.
      *
      * @param string $name Channel name
+     *
      * @return NotifierInterface|null
      */
     public function getChannel(string $name): ?NotifierInterface
@@ -231,7 +238,7 @@ class NotificationManager
     }
 
     /**
-     * Get all channels
+     * Get all channels.
      *
      * @return array<string, NotifierInterface>
      */
@@ -241,7 +248,7 @@ class NotificationManager
     }
 
     /**
-     * Get enabled channels
+     * Get enabled channels.
      *
      * @return array<string, NotifierInterface>
      */
@@ -249,15 +256,16 @@ class NotificationManager
     {
         return array_filter(
             $this->channels,
-            fn($name) => $this->enabledChannels[$name] ?? false,
-            ARRAY_FILTER_USE_KEY
+            fn ($name) => $this->enabledChannels[$name] ?? false,
+            ARRAY_FILTER_USE_KEY,
         );
     }
 
     /**
-     * Check if channel exists and is enabled
+     * Check if channel exists and is enabled.
      *
      * @param string $name Channel name
+     *
      * @return bool
      */
     public function isEnabled(string $name): bool
@@ -266,7 +274,7 @@ class NotificationManager
     }
 
     /**
-     * Get channel status
+     * Get channel status.
      *
      * @return array<string, array{enabled: bool, configured: bool}>
      */

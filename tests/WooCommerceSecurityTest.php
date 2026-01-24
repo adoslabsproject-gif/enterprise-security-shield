@@ -1,21 +1,24 @@
 <?php
+
+declare(strict_types=1);
 /**
- * WooCommerce Security Middleware - SERIOUS TESTS
+ * WooCommerce Security Middleware - SERIOUS TESTS.
  *
  * Tests EVERY scenario to ensure no bugs before commit.
  */
 
 require __DIR__ . '/../vendor/autoload.php';
 
+use Senza1dio\SecurityShield\Config\SecurityConfig;
 use Senza1dio\SecurityShield\Integrations\WooCommerce\WooCommerceSecurityMiddleware;
 use Senza1dio\SecurityShield\Storage\NullStorage;
-use Senza1dio\SecurityShield\Config\SecurityConfig;
 
 // Test counter
 $tests_passed = 0;
 $tests_failed = 0;
 
-function test(string $name, callable $test): void {
+function test(string $name, callable $test): void
+{
     global $tests_passed, $tests_failed;
 
     try {
@@ -39,7 +42,7 @@ echo "=== WooCommerce Security Middleware Tests ===\n\n";
 // TEST 1: Whitelist Bypass
 // ============================================================================
 
-test("Whitelist IP bypasses ALL checks (including WooCommerce paths)", function() {
+test('Whitelist IP bypasses ALL checks (including WooCommerce paths)', function () {
     $storage = new NullStorage();
     $config = new SecurityConfig();
     $config->setScoreThreshold(50)
@@ -68,7 +71,7 @@ test("Whitelist IP bypasses ALL checks (including WooCommerce paths)", function(
 // TEST 2: Non-Whitelisted IP Gets Scored
 // ============================================================================
 
-test("Non-whitelisted IP accessing suspicious path gets scored", function() {
+test('Non-whitelisted IP accessing suspicious path gets scored', function () {
     $storage = new NullStorage();
     $config = new SecurityConfig();
     $config->setScoreThreshold(50)
@@ -97,7 +100,7 @@ test("Non-whitelisted IP accessing suspicious path gets scored", function() {
 // TEST 3: Legitimate Request is Allowed
 // ============================================================================
 
-test("Legitimate request (not suspicious path) is allowed", function() {
+test('Legitimate request (not suspicious path) is allowed', function () {
     $storage = new NullStorage();
     $config = new SecurityConfig();
     $config->setScoreThreshold(50)
@@ -124,7 +127,7 @@ test("Legitimate request (not suspicious path) is allowed", function() {
 // TEST 4: wp-config.php Access Gets High Score
 // ============================================================================
 
-test("wp-config.php access gets critical score (50 points = instant ban)", function() {
+test('wp-config.php access gets critical score (50 points = instant ban)', function () {
     $storage = new NullStorage();
     $config = new SecurityConfig();
     $config->setScoreThreshold(50) // Ban at 50 points
@@ -151,7 +154,7 @@ test("wp-config.php access gets critical score (50 points = instant ban)", funct
 // TEST 5: WooCommerce REST API Path Detection
 // ============================================================================
 
-test("WooCommerce REST API is rate-limited (not instantly blocked)", function() {
+test('WooCommerce REST API is rate-limited (not instantly blocked)', function () {
     $storage = new NullStorage();
     $config = new SecurityConfig();
     $config->setScoreThreshold(50)
@@ -181,7 +184,7 @@ test("WooCommerce REST API is rate-limited (not instantly blocked)", function() 
 // TEST 6: Parent WAF Checks Still Work
 // ============================================================================
 
-test("Parent WAF scanner detection still works", function() {
+test('Parent WAF scanner detection still works', function () {
     $storage = new NullStorage();
     $config = new SecurityConfig();
     $config->setScoreThreshold(50)
@@ -208,7 +211,7 @@ test("Parent WAF scanner detection still works", function() {
 // TEST 7: CIDR Whitelist Works
 // ============================================================================
 
-test("CIDR range whitelist works correctly", function() {
+test('CIDR range whitelist works correctly', function () {
     $storage = new NullStorage();
     $config = new SecurityConfig();
     $config->setScoreThreshold(50)
@@ -243,7 +246,6 @@ echo "Failed: $tests_failed\n";
 if ($tests_failed > 0) {
     echo "\n❌ TESTS FAILED - DO NOT COMMIT!\n";
     exit(1);
-} else {
-    echo "\n✅ ALL TESTS PASSED - Safe to commit!\n";
-    exit(0);
 }
+echo "\n✅ ALL TESTS PASSED - Safe to commit!\n";
+exit(0);

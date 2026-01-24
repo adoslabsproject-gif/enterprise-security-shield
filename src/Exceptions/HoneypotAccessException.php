@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Senza1dio\SecurityShield\Exceptions;
 
 /**
- * Honeypot Access Exception
+ * Honeypot Access Exception.
  *
  * Thrown when a request matches a honeypot path.
  * Contains the fake response to send to the attacker.
@@ -34,7 +34,9 @@ namespace Senza1dio\SecurityShield\Exceptions;
 class HoneypotAccessException extends \Exception
 {
     private string $response;
+
     private string $clientIp;
+
     private string $path;
 
     /**
@@ -51,7 +53,7 @@ class HoneypotAccessException extends \Exception
     }
 
     /**
-     * Get the fake response to send to the attacker
+     * Get the fake response to send to the attacker.
      */
     public function getResponse(): string
     {
@@ -59,7 +61,7 @@ class HoneypotAccessException extends \Exception
     }
 
     /**
-     * Get the attacker's IP address
+     * Get the attacker's IP address.
      */
     public function getClientIp(): string
     {
@@ -67,7 +69,7 @@ class HoneypotAccessException extends \Exception
     }
 
     /**
-     * Get the honeypot path that was accessed
+     * Get the honeypot path that was accessed.
      */
     public function getPath(): string
     {

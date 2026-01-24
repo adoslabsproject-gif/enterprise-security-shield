@@ -160,6 +160,7 @@ class ConfigValidatorTest extends TestCase
             if ($value % 2 !== 0) {
                 return 'Value must be even';
             }
+
             return true;
         });
 

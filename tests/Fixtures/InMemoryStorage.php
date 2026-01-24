@@ -7,7 +7,7 @@ namespace Senza1dio\SecurityShield\Tests\Fixtures;
 use Senza1dio\SecurityShield\Contracts\StorageInterface;
 
 /**
- * In-Memory Storage for Testing
+ * In-Memory Storage for Testing.
  *
  * A simple in-memory implementation of StorageInterface for unit tests.
  * Implements the full StorageInterface for compatibility.
@@ -58,12 +58,14 @@ class InMemoryStorage implements StorageInterface
     public function delete(string $key): bool
     {
         unset($this->data[$key]);
+
         return true;
     }
 
     public function exists(string $key): bool
     {
         $this->cleanExpired();
+
         return isset($this->data[$key]);
     }
 
@@ -75,12 +77,14 @@ class InMemoryStorage implements StorageInterface
         $this->botCache = [];
         $this->events = [];
         $this->rateLimits = [];
+
         return true;
     }
 
     public function setScore(string $ip, int $score, int $ttl): bool
     {
         $this->scores[$ip] = $score;
+
         return true;
     }
 
@@ -93,6 +97,7 @@ class InMemoryStorage implements StorageInterface
     {
         $current = $this->scores[$ip] ?? 0;
         $this->scores[$ip] = $current + $points;
+
         return $this->scores[$ip];
     }
 
@@ -104,6 +109,7 @@ class InMemoryStorage implements StorageInterface
 
         if (time() > $this->bans[$ip]['expires_at']) {
             unset($this->bans[$ip]);
+
             return false;
         }
 
@@ -121,12 +127,14 @@ class InMemoryStorage implements StorageInterface
             'reason' => $reason,
             'expires_at' => time() + $duration,
         ];
+
         return true;
     }
 
     public function unbanIP(string $ip): bool
     {
         unset($this->bans[$ip]);
+
         return true;
     }
 
@@ -136,6 +144,7 @@ class InMemoryStorage implements StorageInterface
             'verified' => $isLegitimate,
             'metadata' => $metadata,
         ];
+
         return true;
     }
 
@@ -152,6 +161,7 @@ class InMemoryStorage implements StorageInterface
             'data' => $data,
             'timestamp' => time(),
         ];
+
         return true;
     }
 
@@ -160,10 +170,11 @@ class InMemoryStorage implements StorageInterface
         $events = $this->events;
 
         if ($type !== null) {
-            $events = array_filter($events, fn($e) => $e['type'] === $type);
+            $events = array_filter($events, fn ($e) => $e['type'] === $type);
         }
 
         $events = array_reverse($events);
+
         return array_slice($events, 0, $limit);
     }
 
@@ -177,10 +188,12 @@ class InMemoryStorage implements StorageInterface
                 'count' => 1,
                 'expires_at' => $now + $window,
             ];
+
             return 1;
         }
 
         $this->rateLimits[$key]['count']++;
+
         return $this->rateLimits[$key]['count'];
     }
 
@@ -194,6 +207,7 @@ class InMemoryStorage implements StorageInterface
 
         if (time() > $this->rateLimits[$key]['expires_at']) {
             unset($this->rateLimits[$key]);
+
             return 0;
         }
 
@@ -201,7 +215,7 @@ class InMemoryStorage implements StorageInterface
     }
 
     /**
-     * Clean expired entries
+     * Clean expired entries.
      */
     private function cleanExpired(): void
     {
@@ -209,27 +223,29 @@ class InMemoryStorage implements StorageInterface
 
         $this->data = array_filter(
             $this->data,
-            fn($item) => $item['expires'] === null || $item['expires'] > $now
+            fn ($item) => $item['expires'] === null || $item['expires'] > $now,
         );
     }
 
     /**
-     * Get all keys
+     * Get all keys.
      *
      * @return array<string>
      */
     public function keys(): array
     {
         $this->cleanExpired();
+
         return array_keys($this->data);
     }
 
     /**
-     * Get count of stored items
+     * Get count of stored items.
      */
     public function count(): int
     {
         $this->cleanExpired();
+
         return count($this->data);
     }
 

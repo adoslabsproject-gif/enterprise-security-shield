@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Senza1dio\SecurityShield\Tests\Unit;
 
-use Senza1dio\SecurityShield\Services\ThreatPatterns;
 use PHPUnit\Framework\TestCase;
+use Senza1dio\SecurityShield\Services\ThreatPatterns;
 
 /**
- * ENTERPRISE GALAXY: ThreatPatterns Service Comprehensive Test Suite
+ * ENTERPRISE GALAXY: ThreatPatterns Service Comprehensive Test Suite.
  *
  * 100% coverage test suite for ThreatPatterns service with strict assertions.
  * Tests all critical paths, edge cases, and security patterns.
@@ -25,7 +25,6 @@ use PHPUnit\Framework\TestCase;
  * - Threat Score Calculation
  * - Statistics Methods
  *
- * @package Senza1dio\SecurityShield\Tests\Unit
  * @covers \Senza1dio\SecurityShield\Services\ThreatPatterns
  */
 class ThreatPatternsTest extends TestCase
@@ -35,7 +34,7 @@ class ThreatPatternsTest extends TestCase
     // ============================================================================
 
     /**
-     * Test critical path detection - Environment files
+     * Test critical path detection - Environment files.
      */
     public function testDetectsEnvironmentFiles(): void
     {
@@ -45,7 +44,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test critical path detection - Version control systems
+     * Test critical path detection - Version control systems.
      */
     public function testDetectsVersionControlPaths(): void
     {
@@ -56,7 +55,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test critical path detection - Config files
+     * Test critical path detection - Config files.
      */
     public function testDetectsConfigFiles(): void
     {
@@ -68,7 +67,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test critical path detection - AWS credentials
+     * Test critical path detection - AWS credentials.
      */
     public function testDetectsAWSCredentials(): void
     {
@@ -83,7 +82,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test critical path detection - SSH keys
+     * Test critical path detection - SSH keys.
      */
     public function testDetectsSSHKeys(): void
     {
@@ -93,7 +92,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test critical path detection - Database dumps
+     * Test critical path detection - Database dumps.
      */
     public function testDetectsDatabaseDumps(): void
     {
@@ -102,7 +101,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test critical path detection - Apache auth files
+     * Test critical path detection - Apache auth files.
      */
     public function testDetectsApacheAuthFiles(): void
     {
@@ -110,7 +109,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test critical path detection - Debug/info scripts
+     * Test critical path detection - Debug/info scripts.
      */
     public function testDetectsDebugScripts(): void
     {
@@ -120,7 +119,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test critical path detection - Shell backdoors
+     * Test critical path detection - Shell backdoors.
      */
     public function testDetectsShellBackdoors(): void
     {
@@ -130,7 +129,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test critical path detection - Case insensitivity
+     * Test critical path detection - Case insensitivity.
      */
     public function testCriticalPathCaseInsensitivity(): void
     {
@@ -141,7 +140,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test critical path detection - URL encoding variations
+     * Test critical path detection - URL encoding variations.
      *
      * NOTE: ThreatPatterns expects decoded paths.
      * Middleware should decode URL before checking.
@@ -159,7 +158,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test critical path detection - Path normalization
+     * Test critical path detection - Path normalization.
      *
      * NOTE: Path traversal detection is NOT done by ThreatPatterns.
      * Middleware should normalize paths before checking.
@@ -179,7 +178,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test critical path detection - Legitimate paths
+     * Test critical path detection - Legitimate paths.
      */
     public function testLegitimatePathsNotCritical(): void
     {
@@ -191,7 +190,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test critical path detection - Prefix matching
+     * Test critical path detection - Prefix matching.
      */
     public function testCriticalPathPrefixMatching(): void
     {
@@ -202,7 +201,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test critical path detection - Segment boundary matching
+     * Test critical path detection - Segment boundary matching.
      *
      * NOTE: ThreatPatterns uses PREFIX matching, not contains matching.
      * Paths like /app/.env are NOT detected because patterns like /.env
@@ -225,7 +224,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test critical path score value
+     * Test critical path score value.
      */
     public function testCriticalPathScore(): void
     {
@@ -237,7 +236,7 @@ class ThreatPatternsTest extends TestCase
     // ============================================================================
 
     /**
-     * Test CMS path detection - WordPress
+     * Test CMS path detection - WordPress.
      */
     public function testDetectsWordPressPaths(): void
     {
@@ -249,7 +248,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test CMS path detection - Joomla
+     * Test CMS path detection - Joomla.
      */
     public function testDetectsJoomlaPaths(): void
     {
@@ -258,7 +257,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test CMS path detection - Other CMS
+     * Test CMS path detection - Other CMS.
      */
     public function testDetectsOtherCMSPaths(): void
     {
@@ -269,7 +268,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test CMS path detection - Generic admin
+     * Test CMS path detection - Generic admin.
      *
      * NOTE: /admin/ is excluded from CMS detection when FrameworkDetector
      * identifies it as a legitimate framework path (which it does for 'custom' framework).
@@ -287,7 +286,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test CMS path detection - Database tools
+     * Test CMS path detection - Database tools.
      */
     public function testDetectsDatabaseToolPaths(): void
     {
@@ -301,7 +300,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test CMS path detection - Case insensitivity
+     * Test CMS path detection - Case insensitivity.
      */
     public function testCMSPathCaseInsensitivity(): void
     {
@@ -311,7 +310,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test CMS path detection - Legitimate paths
+     * Test CMS path detection - Legitimate paths.
      */
     public function testLegitimatePathsNotCMS(): void
     {
@@ -321,7 +320,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test CMS path score value
+     * Test CMS path score value.
      */
     public function testCMSPathScore(): void
     {
@@ -333,7 +332,7 @@ class ThreatPatternsTest extends TestCase
     // ============================================================================
 
     /**
-     * Test config path detection - JSON configs
+     * Test config path detection - JSON configs.
      */
     public function testDetectsJSONConfigs(): void
     {
@@ -347,7 +346,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test config path detection - YAML configs
+     * Test config path detection - YAML configs.
      */
     public function testDetectsYAMLConfigs(): void
     {
@@ -357,7 +356,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test config path detection - Package manager configs
+     * Test config path detection - Package manager configs.
      */
     public function testDetectsPackageManagerConfigs(): void
     {
@@ -366,7 +365,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test config path detection - Docker
+     * Test config path detection - Docker.
      */
     public function testDetectsDockerFiles(): void
     {
@@ -375,7 +374,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test config path detection - Case insensitivity
+     * Test config path detection - Case insensitivity.
      */
     public function testConfigPathCaseInsensitivity(): void
     {
@@ -384,7 +383,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test config path score value
+     * Test config path score value.
      */
     public function testConfigPathScore(): void
     {
@@ -396,7 +395,7 @@ class ThreatPatternsTest extends TestCase
     // ============================================================================
 
     /**
-     * Test scanner detection - SQL injection tools
+     * Test scanner detection - SQL injection tools.
      */
     public function testDetectsSQLInjectionTools(): void
     {
@@ -405,7 +404,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test scanner detection - Web vulnerability scanners
+     * Test scanner detection - Web vulnerability scanners.
      */
     public function testDetectsWebVulnerabilityScanners(): void
     {
@@ -416,7 +415,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test scanner detection - Network scanners
+     * Test scanner detection - Network scanners.
      */
     public function testDetectsNetworkScanners(): void
     {
@@ -426,7 +425,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test scanner detection - Professional vulnerability scanners
+     * Test scanner detection - Professional vulnerability scanners.
      */
     public function testDetectsProfessionalScanners(): void
     {
@@ -438,7 +437,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test scanner detection - Exploitation frameworks
+     * Test scanner detection - Exploitation frameworks.
      */
     public function testDetectsExploitationFrameworks(): void
     {
@@ -446,7 +445,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test scanner detection - CMS scanners
+     * Test scanner detection - CMS scanners.
      */
     public function testDetectsCMSScanners(): void
     {
@@ -455,7 +454,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test scanner detection - Directory bruteforcers
+     * Test scanner detection - Directory bruteforcers.
      */
     public function testDetectsDirectoryBruteforcers(): void
     {
@@ -465,7 +464,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test scanner detection - Fuzzing tools
+     * Test scanner detection - Fuzzing tools.
      */
     public function testDetectsFuzzingTools(): void
     {
@@ -474,7 +473,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test scanner detection - Password crackers
+     * Test scanner detection - Password crackers.
      */
     public function testDetectsPasswordCrackers(): void
     {
@@ -483,7 +482,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test scanner detection - Internet-wide scanners
+     * Test scanner detection - Internet-wide scanners.
      */
     public function testDetectsInternetScanners(): void
     {
@@ -493,7 +492,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test scanner detection - Case insensitivity
+     * Test scanner detection - Case insensitivity.
      */
     public function testScannerUserAgentCaseInsensitivity(): void
     {
@@ -503,7 +502,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test scanner detection - Partial matches
+     * Test scanner detection - Partial matches.
      */
     public function testScannerUserAgentPartialMatches(): void
     {
@@ -513,7 +512,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test scanner detection - Legitimate browsers not detected
+     * Test scanner detection - Legitimate browsers not detected.
      */
     public function testLegitimateBrowsersNotScanners(): void
     {
@@ -522,7 +521,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test scanner User-Agent score value
+     * Test scanner User-Agent score value.
      */
     public function testScannerUserAgentScore(): void
     {
@@ -534,7 +533,7 @@ class ThreatPatternsTest extends TestCase
     // ============================================================================
 
     /**
-     * Test legitimate bot detection - Google crawlers
+     * Test legitimate bot detection - Google crawlers.
      */
     public function testDetectsGoogleCrawlers(): void
     {
@@ -551,7 +550,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test legitimate bot detection - Performance testing tools
+     * Test legitimate bot detection - Performance testing tools.
      */
     public function testDetectsPerformanceTestingTools(): void
     {
@@ -564,7 +563,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test legitimate bot detection - Other search engines
+     * Test legitimate bot detection - Other search engines.
      */
     public function testDetectsOtherSearchEngines(): void
     {
@@ -580,7 +579,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test legitimate bot detection - AI crawlers
+     * Test legitimate bot detection - AI crawlers.
      */
     public function testDetectsAICrawlers(): void
     {
@@ -595,7 +594,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test legitimate bot detection - Social media crawlers
+     * Test legitimate bot detection - Social media crawlers.
      *
      * NOTE: Several social media bots have been removed from the list as they
      * lack reliable DNS verification (whatsapp, discord, reddit, slackbot).
@@ -624,7 +623,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test legitimate bot detection - Mobile app crawlers
+     * Test legitimate bot detection - Mobile app crawlers.
      */
     public function testDetectsMobileAppCrawlers(): void
     {
@@ -633,7 +632,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test legitimate bot detection - Monitoring & Analytics
+     * Test legitimate bot detection - Monitoring & Analytics.
      */
     public function testDetectsMonitoringBots(): void
     {
@@ -646,7 +645,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test legitimate bot detection - SEO & Website Tools
+     * Test legitimate bot detection - SEO & Website Tools.
      */
     public function testDetectsSEOTools(): void
     {
@@ -660,7 +659,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test legitimate bot detection - Archive & Research
+     * Test legitimate bot detection - Archive & Research.
      */
     public function testDetectsArchiveBots(): void
     {
@@ -671,7 +670,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test legitimate bot detection - News & RSS Aggregators
+     * Test legitimate bot detection - News & RSS Aggregators.
      */
     public function testDetectsNewsBots(): void
     {
@@ -681,7 +680,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test legitimate bot detection - Developer Tools
+     * Test legitimate bot detection - Developer Tools.
      *
      * NOTE: Developer tools (Postman, Insomnia) have been REMOVED from legitimate
      * bot list. They are easily spoofable with no DNS verification possible.
@@ -695,7 +694,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test legitimate bot detection - Commercial Bots
+     * Test legitimate bot detection - Commercial Bots.
      */
     public function testDetectsCommercialBots(): void
     {
@@ -706,7 +705,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test legitimate bot detection - Media Monitoring
+     * Test legitimate bot detection - Media Monitoring.
      */
     public function testDetectsMediaMonitoringBots(): void
     {
@@ -714,7 +713,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test legitimate bot detection - Case insensitivity
+     * Test legitimate bot detection - Case insensitivity.
      */
     public function testLegitimateBotCaseInsensitivity(): void
     {
@@ -724,7 +723,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test legitimate bot detection - Scanners not detected as bots
+     * Test legitimate bot detection - Scanners not detected as bots.
      */
     public function testScannersNotLegitimateBots(): void
     {
@@ -733,7 +732,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test legitimate bot hostname suffixes
+     * Test legitimate bot hostname suffixes.
      */
     public function testGetLegitimateHostnameSuffixes(): void
     {
@@ -748,7 +747,7 @@ class ThreatPatternsTest extends TestCase
     // ============================================================================
 
     /**
-     * Test fake User-Agent detection - Internet Explorer
+     * Test fake User-Agent detection - Internet Explorer.
      *
      * NOTE: IE11/Trident has been removed from fake list (still used in corporate environments).
      * Only IE 6-10 are considered definitely fake.
@@ -764,7 +763,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test fake User-Agent detection - Ancient Chrome
+     * Test fake User-Agent detection - Ancient Chrome.
      *
      * NOTE: Only Chrome 60 and below are in fake list.
      * Chrome 70-99 removed - possible on embedded/old devices.
@@ -782,7 +781,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test fake User-Agent detection - Ancient Firefox
+     * Test fake User-Agent detection - Ancient Firefox.
      *
      * NOTE: Only Firefox 50 and below are in fake list.
      * Firefox 60-99 removed - possible on old systems.
@@ -800,7 +799,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test fake User-Agent detection - Ancient Safari
+     * Test fake User-Agent detection - Ancient Safari.
      *
      * NOTE: Only Safari 9 and below are in fake list.
      * Safari 10-15 removed - possible on older macOS.
@@ -816,7 +815,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test fake User-Agent detection - Known bot signatures
+     * Test fake User-Agent detection - Known bot signatures.
      */
     public function testDetectsKnownBotSignatures(): void
     {
@@ -829,7 +828,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test fake User-Agent detection - Ancient Windows
+     * Test fake User-Agent detection - Ancient Windows.
      *
      * NOTE: Only Windows 98 and 2000 (NT 5.0) are in fake list.
      * XP/Vista removed - still exist in some industrial/embedded environments.
@@ -846,7 +845,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test fake User-Agent detection - Case insensitivity
+     * Test fake User-Agent detection - Case insensitivity.
      */
     public function testFakeUserAgentCaseInsensitivity(): void
     {
@@ -861,7 +860,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test fake User-Agent detection - Modern browsers not fake
+     * Test fake User-Agent detection - Modern browsers not fake.
      */
     public function testModernBrowsersNotFake(): void
     {
@@ -871,7 +870,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test fake User-Agent detection - Empty User-Agent not fake (handled separately)
+     * Test fake User-Agent detection - Empty User-Agent not fake (handled separately).
      */
     public function testEmptyUserAgentNotFake(): void
     {
@@ -879,7 +878,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test fake User-Agent score value
+     * Test fake User-Agent score value.
      */
     public function testFakeUserAgentScore(): void
     {
@@ -887,7 +886,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test NULL User-Agent score value
+     * Test NULL User-Agent score value.
      */
     public function testNullUserAgentScore(): void
     {
@@ -899,7 +898,7 @@ class ThreatPatternsTest extends TestCase
     // ============================================================================
 
     /**
-     * Test geographic blocking - Blocked countries
+     * Test geographic blocking - Blocked countries.
      */
     public function testDetectsBlockedCountries(): void
     {
@@ -909,7 +908,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test geographic blocking - Case insensitivity
+     * Test geographic blocking - Case insensitivity.
      */
     public function testBlockedCountryCaseInsensitivity(): void
     {
@@ -919,7 +918,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test geographic blocking - Allowed countries
+     * Test geographic blocking - Allowed countries.
      */
     public function testAllowedCountries(): void
     {
@@ -931,7 +930,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test get blocked countries list
+     * Test get blocked countries list.
      */
     public function testGetBlockedCountries(): void
     {
@@ -944,7 +943,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test geo-blocked score value
+     * Test geo-blocked score value.
      */
     public function testGeoBlockedScore(): void
     {
@@ -956,7 +955,7 @@ class ThreatPatternsTest extends TestCase
     // ============================================================================
 
     /**
-     * Test OpenAI IP verification - Valid IPs
+     * Test OpenAI IP verification - Valid IPs.
      */
     public function testValidOpenAIIPs(): void
     {
@@ -970,7 +969,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test OpenAI IP verification - Invalid IPs
+     * Test OpenAI IP verification - Invalid IPs.
      */
     public function testInvalidOpenAIIPs(): void
     {
@@ -981,7 +980,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test OpenAI IP verification - CIDR range boundaries
+     * Test OpenAI IP verification - CIDR range boundaries.
      */
     public function testOpenAIIPCIDRBoundaries(): void
     {
@@ -993,7 +992,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test get OpenAI IP ranges
+     * Test get OpenAI IP ranges.
      */
     public function testGetOpenAIIPRanges(): void
     {
@@ -1009,7 +1008,7 @@ class ThreatPatternsTest extends TestCase
     // ============================================================================
 
     /**
-     * Test User-Agent classification - Scanner
+     * Test User-Agent classification - Scanner.
      */
     public function testClassifiesScanner(): void
     {
@@ -1018,7 +1017,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test User-Agent classification - Bot
+     * Test User-Agent classification - Bot.
      */
     public function testClassifiesBot(): void
     {
@@ -1027,7 +1026,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test User-Agent classification - Browser
+     * Test User-Agent classification - Browser.
      */
     public function testClassifiesBrowser(): void
     {
@@ -1037,7 +1036,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test User-Agent classification - Unknown
+     * Test User-Agent classification - Unknown.
      */
     public function testClassifiesUnknown(): void
     {
@@ -1046,7 +1045,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test User-Agent classification - Priority order
+     * Test User-Agent classification - Priority order.
      */
     public function testClassificationPriorityOrder(): void
     {
@@ -1062,7 +1061,7 @@ class ThreatPatternsTest extends TestCase
     // ============================================================================
 
     /**
-     * Test threat score - Critical path only
+     * Test threat score - Critical path only.
      */
     public function testThreatScoreCriticalPath(): void
     {
@@ -1074,7 +1073,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test threat score - CMS path only
+     * Test threat score - CMS path only.
      */
     public function testThreatScoreCMSPath(): void
     {
@@ -1086,7 +1085,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test threat score - Config path only
+     * Test threat score - Config path only.
      */
     public function testThreatScoreConfigPath(): void
     {
@@ -1098,7 +1097,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test threat score - Scanner User-Agent only
+     * Test threat score - Scanner User-Agent only.
      */
     public function testThreatScoreScannerUserAgent(): void
     {
@@ -1110,7 +1109,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test threat score - Fake User-Agent only
+     * Test threat score - Fake User-Agent only.
      *
      * NOTE: Use a User-Agent pattern that is actually in the FAKE_USER_AGENTS list.
      * Chrome/80 is NOT in the list (only Chrome 60 and below).
@@ -1126,7 +1125,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test threat score - NULL User-Agent (instant ban)
+     * Test threat score - NULL User-Agent (instant ban).
      */
     public function testThreatScoreNullUserAgent(): void
     {
@@ -1138,7 +1137,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test threat score - Geo-blocked country only
+     * Test threat score - Geo-blocked country only.
      */
     public function testThreatScoreGeoBlocked(): void
     {
@@ -1150,7 +1149,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test threat score - Combined threats
+     * Test threat score - Combined threats.
      */
     public function testThreatScoreCombined(): void
     {
@@ -1165,7 +1164,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test threat score - Multiple path matches
+     * Test threat score - Multiple path matches.
      */
     public function testThreatScoreMultiplePathMatches(): void
     {
@@ -1187,7 +1186,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test threat score - No threats
+     * Test threat score - No threats.
      */
     public function testThreatScoreNoThreats(): void
     {
@@ -1198,7 +1197,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test threat score - Legitimate bot (no score)
+     * Test threat score - Legitimate bot (no score).
      */
     public function testThreatScoreLegitimateBot(): void
     {
@@ -1213,7 +1212,7 @@ class ThreatPatternsTest extends TestCase
     // ============================================================================
 
     /**
-     * Test shouldBan - Below threshold
+     * Test shouldBan - Below threshold.
      */
     public function testShouldNotBanBelowThreshold(): void
     {
@@ -1223,7 +1222,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test shouldBan - At threshold
+     * Test shouldBan - At threshold.
      */
     public function testShouldBanAtThreshold(): void
     {
@@ -1231,7 +1230,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test shouldBan - Above threshold
+     * Test shouldBan - Above threshold.
      */
     public function testShouldBanAboveThreshold(): void
     {
@@ -1241,7 +1240,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test ban threshold value
+     * Test ban threshold value.
      */
     public function testGetScoreThreshold(): void
     {
@@ -1253,7 +1252,7 @@ class ThreatPatternsTest extends TestCase
     // ============================================================================
 
     /**
-     * Test Unicode obfuscation score value
+     * Test Unicode obfuscation score value.
      */
     public function testUnicodeObfuscationScore(): void
     {
@@ -1265,7 +1264,7 @@ class ThreatPatternsTest extends TestCase
     // ============================================================================
 
     /**
-     * Test pattern count - Critical paths
+     * Test pattern count - Critical paths.
      */
     public function testGetCriticalPathsCount(): void
     {
@@ -1275,7 +1274,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test pattern count - CMS paths
+     * Test pattern count - CMS paths.
      */
     public function testGetCMSPathsCount(): void
     {
@@ -1285,7 +1284,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test pattern count - Config paths
+     * Test pattern count - Config paths.
      */
     public function testGetConfigPathsCount(): void
     {
@@ -1295,7 +1294,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test pattern count - Scanner User-Agents
+     * Test pattern count - Scanner User-Agents.
      */
     public function testGetScannerUserAgentsCount(): void
     {
@@ -1305,7 +1304,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test pattern count - Legitimate bots
+     * Test pattern count - Legitimate bots.
      *
      * NOTE: Bot list was reduced by removing non-DNS-verifiable bots
      * (postman, insomnia, whatsapp, discord, reddit, slackbot).
@@ -1318,7 +1317,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test pattern count - Fake User-Agents
+     * Test pattern count - Fake User-Agents.
      */
     public function testGetFakeUserAgentsCount(): void
     {
@@ -1328,7 +1327,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test comprehensive statistics
+     * Test comprehensive statistics.
      */
     public function testGetStatistics(): void
     {
@@ -1362,7 +1361,7 @@ class ThreatPatternsTest extends TestCase
     // ============================================================================
 
     /**
-     * Test edge case - Very long path
+     * Test edge case - Very long path.
      *
      * NOTE: ThreatPatterns uses PREFIX matching only.
      * Very long paths that don't START with a critical pattern
@@ -1384,7 +1383,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test edge case - Very long User-Agent
+     * Test edge case - Very long User-Agent.
      */
     public function testVeryLongUserAgent(): void
     {
@@ -1393,7 +1392,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test edge case - Path with special characters
+     * Test edge case - Path with special characters.
      */
     public function testPathWithSpecialCharacters(): void
     {
@@ -1403,7 +1402,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test edge case - User-Agent with special characters
+     * Test edge case - User-Agent with special characters.
      */
     public function testUserAgentWithSpecialCharacters(): void
     {
@@ -1412,7 +1411,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test edge case - Mixed case variations
+     * Test edge case - Mixed case variations.
      */
     public function testMixedCaseVariations(): void
     {
@@ -1423,7 +1422,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test edge case - Empty country code
+     * Test edge case - Empty country code.
      */
     public function testEmptyCountryCode(): void
     {
@@ -1431,7 +1430,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test edge case - Invalid country code format
+     * Test edge case - Invalid country code format.
      */
     public function testInvalidCountryCodeFormat(): void
     {
@@ -1440,7 +1439,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test edge case - Path with null bytes
+     * Test edge case - Path with null bytes.
      */
     public function testPathWithNullBytes(): void
     {
@@ -1450,7 +1449,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test edge case - Whitespace in paths
+     * Test edge case - Whitespace in paths.
      *
      * NOTE: ThreatPatterns does NOT trim whitespace.
      * Paths with leading/trailing whitespace won't match
@@ -1468,7 +1467,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test edge case - Whitespace in User-Agents
+     * Test edge case - Whitespace in User-Agents.
      */
     public function testWhitespaceInUserAgents(): void
     {
@@ -1477,7 +1476,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test real-world scenario - WordPress vulnerability scan
+     * Test real-world scenario - WordPress vulnerability scan.
      */
     public function testRealWorldWordPressScan(): void
     {
@@ -1492,7 +1491,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test real-world scenario - Environment file scan with fake UA
+     * Test real-world scenario - Environment file scan with fake UA.
      */
     public function testRealWorldEnvFileScan(): void
     {
@@ -1507,7 +1506,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test real-world scenario - Legitimate Googlebot crawl
+     * Test real-world scenario - Legitimate Googlebot crawl.
      */
     public function testRealWorldLegitimateCrawl(): void
     {
@@ -1519,7 +1518,7 @@ class ThreatPatternsTest extends TestCase
     }
 
     /**
-     * Test real-world scenario - Legitimate Lighthouse audit
+     * Test real-world scenario - Legitimate Lighthouse audit.
      */
     public function testRealWorldLighthouseAudit(): void
     {

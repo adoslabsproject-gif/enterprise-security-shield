@@ -5,17 +5,17 @@ declare(strict_types=1);
 namespace Senza1dio\SecurityShield\Telemetry\Metrics;
 
 /**
- * Gauge Metric
+ * Gauge Metric.
  *
  * A point-in-time measurement.
  * Use for tracking things like temperature, memory usage, etc.
- *
- * @package Senza1dio\SecurityShield\Telemetry\Metrics
  */
 class Gauge
 {
     private string $name;
+
     private string $description;
+
     private string $unit;
 
     /** @var array<string, float> */
@@ -24,7 +24,7 @@ class Gauge
     public function __construct(
         string $name,
         string $description = '',
-        string $unit = ''
+        string $unit = '',
     ) {
         $this->name = $name;
         $this->description = $description;
@@ -32,7 +32,7 @@ class Gauge
     }
 
     /**
-     * Set gauge value
+     * Set gauge value.
      *
      * @param float $value Value to set
      * @param array<string, string> $labels Metric labels
@@ -44,18 +44,19 @@ class Gauge
     }
 
     /**
-     * Get current value
+     * Get current value.
      *
      * @param array<string, string> $labels Metric labels
      */
     public function getValue(array $labels = []): ?float
     {
         $key = $this->labelsToKey($labels);
+
         return $this->values[$key] ?? null;
     }
 
     /**
-     * Get all values
+     * Get all values.
      *
      * @return array<string, float>
      */
@@ -65,7 +66,7 @@ class Gauge
     }
 
     /**
-     * Reset gauge
+     * Reset gauge.
      */
     public function reset(): void
     {
@@ -73,7 +74,7 @@ class Gauge
     }
 
     /**
-     * Export to array
+     * Export to array.
      *
      * @return array<string, mixed>
      */
@@ -100,7 +101,7 @@ class Gauge
     }
 
     /**
-     * Export to Prometheus format
+     * Export to Prometheus format.
      */
     public function toPrometheusFormat(): string
     {
@@ -121,7 +122,7 @@ class Gauge
     }
 
     /**
-     * Convert labels to unique key
+     * Convert labels to unique key.
      *
      * @param array<string, string> $labels
      */
@@ -132,13 +133,15 @@ class Gauge
         }
 
         ksort($labels);
+
         return json_encode($labels) ?: '';
     }
 
     /**
-     * Convert key back to label array format
+     * Convert key back to label array format.
      *
      * @param string $key
+     *
      * @return array<int, array{key: string, value: array{string_value: string}}>
      */
     private function keyToLabels(string $key): array
@@ -161,7 +164,7 @@ class Gauge
     }
 
     /**
-     * Format labels for Prometheus
+     * Format labels for Prometheus.
      */
     private function formatPrometheusLabels(string $key): string
     {

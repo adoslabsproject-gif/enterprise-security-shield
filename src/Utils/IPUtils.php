@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Senza1dio\SecurityShield\Utils;
 
 /**
- * IP Utilities - Centralized IP Address Operations
+ * IP Utilities - Centralized IP Address Operations.
  *
  * Provides thread-safe, well-tested utilities for IP address handling:
  * - CIDR range matching (IPv4 and IPv6)
@@ -34,13 +34,11 @@ namespace Senza1dio\SecurityShield\Utils;
  *     // Private network
  * }
  * ```
- *
- * @package Senza1dio\SecurityShield\Utils
  */
 final class IPUtils
 {
     /**
-     * Private IPv4 ranges (RFC 1918 + loopback + link-local)
+     * Private IPv4 ranges (RFC 1918 + loopback + link-local).
      */
     private const PRIVATE_IPV4_RANGES = [
         '10.0.0.0/8',       // Class A private
@@ -60,7 +58,7 @@ final class IPUtils
     ];
 
     /**
-     * Private IPv6 prefixes
+     * Private IPv6 prefixes.
      */
     private const PRIVATE_IPV6_PREFIXES = [
         '::1',          // Loopback
@@ -77,7 +75,7 @@ final class IPUtils
     ];
 
     /**
-     * Check if IP address is within a CIDR range
+     * Check if IP address is within a CIDR range.
      *
      * Supports both IPv4 and IPv6 addresses with automatic protocol detection.
      *
@@ -92,6 +90,7 @@ final class IPUtils
      *
      * @param string $ip IP address to check
      * @param string $cidr CIDR notation (e.g., '192.168.1.0/24' or '2001:db8::/32')
+     *
      * @return bool True if IP is within CIDR range
      */
     public static function isInCIDR(string $ip, string $cidr): bool
@@ -141,11 +140,12 @@ final class IPUtils
     }
 
     /**
-     * Check if IPv4 address is within CIDR range
+     * Check if IPv4 address is within CIDR range.
      *
      * @param string $ip IPv4 address
      * @param string $subnet IPv4 subnet
      * @param int $mask CIDR mask (0-32)
+     *
      * @return bool True if IP is in range
      */
     private static function ipv4InCIDR(string $ip, string $subnet, int $mask): bool
@@ -176,13 +176,14 @@ final class IPUtils
     }
 
     /**
-     * Check if IPv6 address is within CIDR range
+     * Check if IPv6 address is within CIDR range.
      *
      * Uses binary string comparison for accuracy with 128-bit addresses.
      *
      * @param string $ip IPv6 address
      * @param string $subnet IPv6 subnet
      * @param int $mask CIDR mask (0-128)
+     *
      * @return bool True if IP is in range
      */
     private static function ipv6InCIDR(string $ip, string $subnet, int $mask): bool
@@ -233,10 +234,11 @@ final class IPUtils
     }
 
     /**
-     * Check if IP matches any CIDR range in a list
+     * Check if IP matches any CIDR range in a list.
      *
      * @param string $ip IP address to check
      * @param array<string> $cidrs List of CIDR ranges
+     *
      * @return bool True if IP matches any range
      */
     public static function isInAnyCIDR(string $ip, array $cidrs): bool
@@ -251,7 +253,7 @@ final class IPUtils
     }
 
     /**
-     * Check if IP address is private or reserved
+     * Check if IP address is private or reserved.
      *
      * Detects:
      * - RFC 1918 private networks (10.x, 172.16-31.x, 192.168.x)
@@ -260,6 +262,7 @@ final class IPUtils
      * - Multicast, broadcast, reserved ranges
      *
      * @param string $ip IP address to check
+     *
      * @return bool True if private or reserved
      */
     public static function isPrivateIP(string $ip): bool
@@ -301,7 +304,7 @@ final class IPUtils
     }
 
     /**
-     * Extract real client IP from request considering trusted proxies
+     * Extract real client IP from request considering trusted proxies.
      *
      * SECURITY: Only trusts proxy headers when REMOTE_ADDR matches a trusted proxy.
      * This prevents IP spoofing attacks where attackers set fake X-Forwarded-For headers.
@@ -314,6 +317,7 @@ final class IPUtils
      *
      * @param array<string, mixed> $server $_SERVER superglobal
      * @param array<string> $trustedProxies List of trusted proxy IPs/CIDRs
+     *
      * @return string Resolved client IP address
      */
     public static function extractClientIP(array $server, array $trustedProxies = []): string
@@ -370,9 +374,10 @@ final class IPUtils
     }
 
     /**
-     * Validate IP address (IPv4 or IPv6)
+     * Validate IP address (IPv4 or IPv6).
      *
      * @param string $ip IP address to validate
+     *
      * @return bool True if valid IP address
      */
     public static function isValidIP(string $ip): bool
@@ -381,9 +386,10 @@ final class IPUtils
     }
 
     /**
-     * Check if IP is IPv4
+     * Check if IP is IPv4.
      *
      * @param string $ip IP address
+     *
      * @return bool True if IPv4
      */
     public static function isIPv4(string $ip): bool
@@ -392,9 +398,10 @@ final class IPUtils
     }
 
     /**
-     * Check if IP is IPv6
+     * Check if IP is IPv6.
      *
      * @param string $ip IP address
+     *
      * @return bool True if IPv6
      */
     public static function isIPv6(string $ip): bool
@@ -403,7 +410,7 @@ final class IPUtils
     }
 
     /**
-     * Normalize IPv6 address to full form
+     * Normalize IPv6 address to full form.
      *
      * Expands compressed IPv6 addresses for consistent comparison.
      *
@@ -412,6 +419,7 @@ final class IPUtils
      * - 2001:db8::1 → 2001:0db8:0000:0000:0000:0000:0000:0001
      *
      * @param string $ip IPv6 address
+     *
      * @return string|null Normalized IPv6 or null if invalid
      */
     public static function normalizeIPv6(string $ip): ?string
@@ -433,9 +441,10 @@ final class IPUtils
     }
 
     /**
-     * Get IP version (4 or 6)
+     * Get IP version (4 or 6).
      *
      * @param string $ip IP address
+     *
      * @return int|null 4, 6, or null if invalid
      */
     public static function getIPVersion(string $ip): ?int
@@ -452,9 +461,10 @@ final class IPUtils
     }
 
     /**
-     * Validate CIDR notation
+     * Validate CIDR notation.
      *
      * @param string $cidr CIDR string (e.g., '192.168.1.0/24')
+     *
      * @return bool True if valid CIDR notation
      */
     public static function isValidCIDR(string $cidr): bool
@@ -486,7 +496,7 @@ final class IPUtils
     }
 
     /**
-     * Anonymize IP address for logging (GDPR compliance)
+     * Anonymize IP address for logging (GDPR compliance).
      *
      * Masks the last octet(s) to prevent personal identification.
      *
@@ -495,6 +505,7 @@ final class IPUtils
      * - 2001:db8::1234:5678 → 2001:db8::0:0
      *
      * @param string $ip IP address
+     *
      * @return string Anonymized IP
      */
     public static function anonymize(string $ip): string
@@ -504,6 +515,7 @@ final class IPUtils
             $parts = explode('.', $ip);
             if (count($parts) === 4) {
                 $parts[3] = '0';
+
                 return implode('.', $parts);
             }
         }
@@ -515,6 +527,7 @@ final class IPUtils
                 // Zero out last 8 bytes
                 $binary = substr($binary, 0, 8) . str_repeat("\0", 8);
                 $result = inet_ntop($binary);
+
                 return $result !== false ? $result : $ip;
             }
         }

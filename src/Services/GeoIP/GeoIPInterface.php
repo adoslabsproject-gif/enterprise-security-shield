@@ -1,20 +1,21 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Senza1dio\SecurityShield\Services\GeoIP;
 
 /**
- * GeoIP Provider Interface
+ * GeoIP Provider Interface.
  *
  * Defines contract for GeoIP lookup providers (MaxMind, ip-api, ipinfo, etc.)
- *
- * @package Senza1dio\SecurityShield\Services\GeoIP
  */
 interface GeoIPInterface
 {
     /**
-     * Lookup IP address and return geographic data
+     * Lookup IP address and return geographic data.
      *
      * @param string $ip IPv4 or IPv6 address
+     *
      * @return array<string, mixed>|null Geographic data or null on failure
      *
      * RETURN FORMAT:
@@ -35,24 +36,24 @@ interface GeoIPInterface
     public function lookup(string $ip): ?array;
 
     /**
-     * Check if provider is available (API key valid, service reachable)
+     * Check if provider is available (API key valid, service reachable).
      *
      * @return bool True if provider ready to use
      */
     public function isAvailable(): bool;
 
     /**
-     * Get provider name (for logging/debugging)
+     * Get provider name (for logging/debugging).
      *
      * @return string Provider name (e.g., 'maxmind', 'ip-api', 'ipinfo')
      */
     public function getName(): string;
 
     /**
-     * Get rate limit info (requests per period)
+     * Get rate limit info (requests per period).
      *
      * @return array{requests: int, period: string} Rate limit info
-     * Example: ['requests' => 45, 'period' => 'minute']
+     *                                              Example: ['requests' => 45, 'period' => 'minute']
      */
     public function getRateLimit(): array;
 }

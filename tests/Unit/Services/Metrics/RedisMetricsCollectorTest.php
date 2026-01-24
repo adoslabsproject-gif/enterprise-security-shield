@@ -8,13 +8,14 @@ use PHPUnit\Framework\TestCase;
 use Senza1dio\SecurityShield\Services\Metrics\RedisMetricsCollector;
 
 /**
- * Redis Metrics Collector Test Suite
+ * Redis Metrics Collector Test Suite.
  *
  * @covers \Senza1dio\SecurityShield\Services\Metrics\RedisMetricsCollector
  */
 class RedisMetricsCollectorTest extends TestCase
 {
     private \Redis $redis;
+
     private RedisMetricsCollector $collector;
 
     protected function setUp(): void
@@ -74,7 +75,7 @@ class RedisMetricsCollectorTest extends TestCase
             ->with(
                 'test_metrics:samples:response_time',
                 $this->isType('float'),
-                $this->isType('string')
+                $this->isType('string'),
             );
 
         $this->redis

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Senza1dio\SecurityShield\RateLimiting;
 
 /**
- * Composite Rate Limit Result
+ * Composite Rate Limit Result.
  *
  * Contains results from all rate limiters in a composite.
  */
@@ -25,12 +25,12 @@ final class CompositeRateLimitResult
         public readonly int $resetAt,
         public readonly int $retryAfter,
         public readonly array $tierResults,
-        public readonly ?string $limitingTier
+        public readonly ?string $limitingTier,
     ) {
     }
 
     /**
-     * Get result for a specific tier
+     * Get result for a specific tier.
      */
     public function getTierResult(string $name): ?RateLimitResult
     {
@@ -38,7 +38,7 @@ final class CompositeRateLimitResult
     }
 
     /**
-     * Get HTTP headers for response
+     * Get HTTP headers for response.
      *
      * @return array<string, string>
      */
@@ -63,7 +63,7 @@ final class CompositeRateLimitResult
     }
 
     /**
-     * Get summary of all tiers
+     * Get summary of all tiers.
      *
      * @return array<string, array{remaining: int, limit: int, utilization: float}>
      */
@@ -83,7 +83,7 @@ final class CompositeRateLimitResult
     }
 
     /**
-     * Check if request was blocked
+     * Check if request was blocked.
      */
     public function isBlocked(): bool
     {

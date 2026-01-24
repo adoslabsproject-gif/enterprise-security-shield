@@ -8,13 +8,14 @@ use PHPUnit\Framework\TestCase;
 use Senza1dio\SecurityShield\Storage\RedisStorage;
 
 /**
- * Redis Storage Test Suite
+ * Redis Storage Test Suite.
  *
  * @covers \Senza1dio\SecurityShield\Storage\RedisStorage
  */
 class RedisStorageTest extends TestCase
 {
     private \Redis $redis;
+
     private RedisStorage $storage;
 
     protected function setUp(): void

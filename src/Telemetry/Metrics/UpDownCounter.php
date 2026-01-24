@@ -5,17 +5,17 @@ declare(strict_types=1);
 namespace Senza1dio\SecurityShield\Telemetry\Metrics;
 
 /**
- * UpDownCounter Metric
+ * UpDownCounter Metric.
  *
  * A value that can increase or decrease.
  * Use for tracking things like active connections, queue size, etc.
- *
- * @package Senza1dio\SecurityShield\Telemetry\Metrics
  */
 class UpDownCounter
 {
     private string $name;
+
     private string $description;
+
     private string $unit;
 
     /** @var array<string, float> */
@@ -24,7 +24,7 @@ class UpDownCounter
     public function __construct(
         string $name,
         string $description = '',
-        string $unit = ''
+        string $unit = '',
     ) {
         $this->name = $name;
         $this->description = $description;
@@ -32,7 +32,7 @@ class UpDownCounter
     }
 
     /**
-     * Add value to counter (can be negative)
+     * Add value to counter (can be negative).
      *
      * @param float $value Value to add
      * @param array<string, string> $labels Metric labels
@@ -49,7 +49,7 @@ class UpDownCounter
     }
 
     /**
-     * Increment counter by 1
+     * Increment counter by 1.
      *
      * @param array<string, string> $labels Metric labels
      */
@@ -59,7 +59,7 @@ class UpDownCounter
     }
 
     /**
-     * Decrement counter by 1
+     * Decrement counter by 1.
      *
      * @param array<string, string> $labels Metric labels
      */
@@ -69,18 +69,19 @@ class UpDownCounter
     }
 
     /**
-     * Get current value
+     * Get current value.
      *
      * @param array<string, string> $labels Metric labels
      */
     public function getValue(array $labels = []): float
     {
         $key = $this->labelsToKey($labels);
+
         return $this->values[$key] ?? 0.0;
     }
 
     /**
-     * Get all values
+     * Get all values.
      *
      * @return array<string, float>
      */
@@ -90,7 +91,7 @@ class UpDownCounter
     }
 
     /**
-     * Reset counter
+     * Reset counter.
      */
     public function reset(): void
     {
@@ -98,7 +99,7 @@ class UpDownCounter
     }
 
     /**
-     * Export to array
+     * Export to array.
      *
      * @return array<string, mixed>
      */
@@ -127,7 +128,7 @@ class UpDownCounter
     }
 
     /**
-     * Export to Prometheus format
+     * Export to Prometheus format.
      */
     public function toPrometheusFormat(): string
     {
@@ -148,7 +149,7 @@ class UpDownCounter
     }
 
     /**
-     * Convert labels to unique key
+     * Convert labels to unique key.
      *
      * @param array<string, string> $labels
      */
@@ -159,13 +160,15 @@ class UpDownCounter
         }
 
         ksort($labels);
+
         return json_encode($labels) ?: '';
     }
 
     /**
-     * Convert key back to label array format
+     * Convert key back to label array format.
      *
      * @param string $key
+     *
      * @return array<int, array{key: string, value: array{string_value: string}}>
      */
     private function keyToLabels(string $key): array
@@ -188,7 +191,7 @@ class UpDownCounter
     }
 
     /**
-     * Format labels for Prometheus
+     * Format labels for Prometheus.
      */
     private function formatPrometheusLabels(string $key): string
     {

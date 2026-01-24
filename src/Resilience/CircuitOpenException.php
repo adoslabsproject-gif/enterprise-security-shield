@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Senza1dio\SecurityShield\Resilience;
 
 /**
- * Exception thrown when attempting to use an open circuit
+ * Exception thrown when attempting to use an open circuit.
  *
  * Contains circuit statistics for debugging and monitoring.
  */
@@ -29,7 +29,7 @@ class CircuitOpenException extends \Exception
     }
 
     /**
-     * Get the name of the circuit that was open
+     * Get the name of the circuit that was open.
      */
     public function getCircuitName(): string
     {
@@ -37,7 +37,7 @@ class CircuitOpenException extends \Exception
     }
 
     /**
-     * Get circuit statistics at the time the exception was thrown
+     * Get circuit statistics at the time the exception was thrown.
      *
      * @return array<string, mixed>
      */
@@ -47,7 +47,7 @@ class CircuitOpenException extends \Exception
     }
 
     /**
-     * Get time until the circuit will attempt recovery (seconds)
+     * Get time until the circuit will attempt recovery (seconds).
      */
     public function getTimeUntilRecovery(): ?int
     {

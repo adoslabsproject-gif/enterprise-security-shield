@@ -5,11 +5,9 @@ declare(strict_types=1);
 namespace Senza1dio\SecurityShield\Notifications;
 
 /**
- * Notification Result
+ * Notification Result.
  *
  * Contains results of a notification dispatch.
- *
- * @package Senza1dio\SecurityShield\Notifications
  */
 class NotificationResult
 {
@@ -30,7 +28,7 @@ class NotificationResult
     }
 
     /**
-     * Check if all notifications were successful
+     * Check if all notifications were successful.
      */
     public function allSuccessful(): bool
     {
@@ -42,7 +40,7 @@ class NotificationResult
     }
 
     /**
-     * Check if at least one notification was successful
+     * Check if at least one notification was successful.
      */
     public function anySuccessful(): bool
     {
@@ -50,7 +48,7 @@ class NotificationResult
     }
 
     /**
-     * Check if all notifications failed
+     * Check if all notifications failed.
      */
     public function allFailed(): bool
     {
@@ -62,7 +60,7 @@ class NotificationResult
     }
 
     /**
-     * Get success count
+     * Get success count.
      */
     public function successCount(): int
     {
@@ -70,7 +68,7 @@ class NotificationResult
     }
 
     /**
-     * Get failure count
+     * Get failure count.
      */
     public function failureCount(): int
     {
@@ -78,7 +76,7 @@ class NotificationResult
     }
 
     /**
-     * Get successful channel names
+     * Get successful channel names.
      *
      * @return array<string>
      */
@@ -88,17 +86,17 @@ class NotificationResult
     }
 
     /**
-     * Get failed channel names
+     * Get failed channel names.
      *
      * @return array<string>
      */
     public function getFailed(): array
     {
-        return array_keys(array_filter($this->results, fn($v) => $v === false));
+        return array_keys(array_filter($this->results, fn ($v) => $v === false));
     }
 
     /**
-     * Get all results
+     * Get all results.
      *
      * @return array<string, bool>
      */
@@ -108,7 +106,7 @@ class NotificationResult
     }
 
     /**
-     * Get all errors
+     * Get all errors.
      *
      * @return array<string, string>
      */
@@ -118,9 +116,10 @@ class NotificationResult
     }
 
     /**
-     * Get error for a specific channel
+     * Get error for a specific channel.
      *
      * @param string $channel Channel name
+     *
      * @return string|null
      */
     public function getError(string $channel): ?string
@@ -129,9 +128,10 @@ class NotificationResult
     }
 
     /**
-     * Check if specific channel was successful
+     * Check if specific channel was successful.
      *
      * @param string $channel Channel name
+     *
      * @return bool|null Null if channel not in results
      */
     public function wasSuccessful(string $channel): ?bool
@@ -140,7 +140,7 @@ class NotificationResult
     }
 
     /**
-     * Export to array
+     * Export to array.
      *
      * @return array<string, mixed>
      */

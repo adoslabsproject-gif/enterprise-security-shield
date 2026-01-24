@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Senza1dio\SecurityShield\Health;
 
 /**
- * Result of a single health check
+ * Result of a single health check.
  */
 final class CheckResult
 {
@@ -17,12 +17,12 @@ final class CheckResult
     public function __construct(
         public readonly HealthStatus $status,
         public readonly ?string $message = null,
-        public readonly array $metadata = []
+        public readonly array $metadata = [],
     ) {
     }
 
     /**
-     * Create a healthy result
+     * Create a healthy result.
      *
      * @param string|null $message Optional message
      * @param array<string, mixed> $metadata Additional metadata
@@ -33,7 +33,7 @@ final class CheckResult
     }
 
     /**
-     * Create a degraded result
+     * Create a degraded result.
      *
      * @param string $message Reason for degradation
      * @param array<string, mixed> $metadata Additional metadata
@@ -44,7 +44,7 @@ final class CheckResult
     }
 
     /**
-     * Create an unhealthy result
+     * Create an unhealthy result.
      *
      * @param string $message Reason for failure
      * @param array<string, mixed> $metadata Additional metadata
@@ -55,7 +55,7 @@ final class CheckResult
     }
 
     /**
-     * Check if healthy
+     * Check if healthy.
      */
     public function isHealthy(): bool
     {

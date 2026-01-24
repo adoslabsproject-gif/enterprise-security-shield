@@ -8,7 +8,7 @@ use PHPUnit\Framework\TestCase;
 use Senza1dio\SecurityShield\Storage\NullStorage;
 
 /**
- * Test Suite for NullStorage
+ * Test Suite for NullStorage.
  *
  * NullStorage is an IN-MEMORY storage for testing and development.
  * Despite its name, it DOES store data (in memory, not persisted).
@@ -16,8 +16,6 @@ use Senza1dio\SecurityShield\Storage\NullStorage;
  * IMPORTANT: This is NOT a "null object" pattern storage.
  * Data is stored in memory and functions correctly for testing.
  * Data is NOT persisted across requests.
- *
- * @package Senza1dio\SecurityShield\Tests\Unit\Storage
  */
 final class NullStorageTest extends TestCase
 {
@@ -264,7 +262,7 @@ final class NullStorageTest extends TestCase
     {
         $this->assertInstanceOf(
             \Senza1dio\SecurityShield\Contracts\StorageInterface::class,
-            $this->storage
+            $this->storage,
         );
     }
 }

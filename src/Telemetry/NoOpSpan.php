@@ -5,16 +5,15 @@ declare(strict_types=1);
 namespace Senza1dio\SecurityShield\Telemetry;
 
 /**
- * No-Operation Span
+ * No-Operation Span.
  *
  * A span that doesn't record anything, used when sampling decides not to trace.
  * Implements SpanInterface for transparent use without inheriting Span.
- *
- * @package Senza1dio\SecurityShield\Telemetry
  */
 class NoOpSpan implements SpanInterface
 {
     private string $spanId;
+
     private string $traceId;
 
     public function __construct(string $name)

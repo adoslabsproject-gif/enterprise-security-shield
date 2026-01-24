@@ -7,7 +7,7 @@ namespace Senza1dio\SecurityShield\RateLimiting;
 use Senza1dio\SecurityShield\Contracts\StorageInterface;
 
 /**
- * Distributed Rate Limiter
+ * Distributed Rate Limiter.
  *
  * Enterprise-grade rate limiting with multiple algorithms.
  *
@@ -42,24 +42,30 @@ use Senza1dio\SecurityShield\Contracts\StorageInterface;
  *     RateLimiter::slidingWindow($storage, 1000, 3600), // 1000/hour
  * ]);
  * ```
- *
- * @package Senza1dio\SecurityShield\RateLimiting
  */
 class RateLimiter
 {
     private StorageInterface $storage;
+
     private int $maxRequests;
+
     private int $windowSeconds;
+
     private string $algorithm;
+
     private string $keyPrefix;
 
     // Token bucket specific
     private float $tokensPerSecond;
+
     private int $bucketSize;
 
     private const ALGO_SLIDING_WINDOW = 'sliding_window';
+
     private const ALGO_FIXED_WINDOW = 'fixed_window';
+
     private const ALGO_TOKEN_BUCKET = 'token_bucket';
+
     private const ALGO_LEAKY_BUCKET = 'leaky_bucket';
 
     private function __construct(
@@ -67,7 +73,7 @@ class RateLimiter
         int $maxRequests,
         int $windowSeconds,
         string $algorithm,
-        string $keyPrefix = 'rate_limit:'
+        string $keyPrefix = 'rate_limit:',
     ) {
         $this->storage = $storage;
         $this->maxRequests = max(1, $maxRequests);
@@ -83,7 +89,7 @@ class RateLimiter
     // ==================== FACTORY METHODS ====================
 
     /**
-     * Create sliding window rate limiter
+     * Create sliding window rate limiter.
      *
      * Most accurate algorithm. Prevents bursts at window boundaries.
      * Slightly higher Redis operations (2 per request).
@@ -97,13 +103,13 @@ class RateLimiter
         StorageInterface $storage,
         int $maxRequests,
         int $windowSeconds,
-        string $keyPrefix = 'rate_limit:sliding:'
+        string $keyPrefix = 'rate_limit:sliding:',
     ): self {
         return new self($storage, $maxRequests, $windowSeconds, self::ALGO_SLIDING_WINDOW, $keyPrefix);
     }
 
     /**
-     * Create fixed window rate limiter
+     * Create fixed window rate limiter.
      *
      * Simplest algorithm. Can allow 2x burst at window boundaries.
      * Single Redis operation per request.
@@ -117,13 +123,13 @@ class RateLimiter
         StorageInterface $storage,
         int $maxRequests,
         int $windowSeconds,
-        string $keyPrefix = 'rate_limit:fixed:'
+        string $keyPrefix = 'rate_limit:fixed:',
     ): self {
         return new self($storage, $maxRequests, $windowSeconds, self::ALGO_FIXED_WINDOW, $keyPrefix);
     }
 
     /**
-     * Create token bucket rate limiter
+     * Create token bucket rate limiter.
      *
      * Allows controlled bursts up to bucket size.
      * Tokens refill at constant rate.
@@ -137,22 +143,23 @@ class RateLimiter
         StorageInterface $storage,
         int $bucketSize,
         float $tokensPerSecond,
-        string $keyPrefix = 'rate_limit:bucket:'
+        string $keyPrefix = 'rate_limit:bucket:',
     ): self {
         $limiter = new self(
             $storage,
             $bucketSize,
             (int) ceil($bucketSize / $tokensPerSecond),
             self::ALGO_TOKEN_BUCKET,
-            $keyPrefix
+            $keyPrefix,
         );
         $limiter->tokensPerSecond = $tokensPerSecond;
         $limiter->bucketSize = $bucketSize;
+
         return $limiter;
     }
 
     /**
-     * Create leaky bucket rate limiter
+     * Create leaky bucket rate limiter.
      *
      * Strict rate enforcement. No bursts allowed.
      * Requests "leak" out at constant rate.
@@ -166,27 +173,29 @@ class RateLimiter
         StorageInterface $storage,
         int $bucketSize,
         float $leakRate,
-        string $keyPrefix = 'rate_limit:leaky:'
+        string $keyPrefix = 'rate_limit:leaky:',
     ): self {
         $limiter = new self(
             $storage,
             $bucketSize,
             (int) ceil($bucketSize / $leakRate),
             self::ALGO_LEAKY_BUCKET,
-            $keyPrefix
+            $keyPrefix,
         );
         $limiter->tokensPerSecond = $leakRate;
         $limiter->bucketSize = $bucketSize;
+
         return $limiter;
     }
 
     // ==================== RATE LIMITING ====================
 
     /**
-     * Attempt to consume a rate limit token
+     * Attempt to consume a rate limit token.
      *
      * @param string $identifier Unique identifier (IP, user ID, API key)
      * @param int $cost Number of tokens to consume (default 1)
+     *
      * @return RateLimitResult Result with allowed status and metadata
      */
     public function attempt(string $identifier, int $cost = 1): RateLimitResult
@@ -201,11 +210,12 @@ class RateLimiter
     }
 
     /**
-     * Check if request would be allowed without consuming token
+     * Check if request would be allowed without consuming token.
      *
      * Useful for rate limit preview or conditional processing.
      *
      * @param string $identifier Unique identifier
+     *
      * @return RateLimitResult Result with allowed status (no token consumed)
      */
     public function check(string $identifier): RateLimitResult
@@ -214,19 +224,21 @@ class RateLimiter
     }
 
     /**
-     * Check remaining tokens without consuming
+     * Check remaining tokens without consuming.
      *
      * @param string $identifier Unique identifier
+     *
      * @return int Remaining requests allowed
      */
     public function remaining(string $identifier): int
     {
         $result = $this->attempt($identifier, 0);
+
         return $result->remaining;
     }
 
     /**
-     * Reset rate limit for an identifier
+     * Reset rate limit for an identifier.
      *
      * @param string $identifier Unique identifier
      */
@@ -240,7 +252,7 @@ class RateLimiter
     }
 
     /**
-     * Get rate limiter configuration
+     * Get rate limiter configuration.
      *
      * @return array{
      *     algorithm: string,
@@ -289,7 +301,7 @@ class RateLimiter
             remaining: $remaining,
             limit: $this->maxRequests,
             resetAt: $resetAt,
-            retryAfter: $retryAfter
+            retryAfter: $retryAfter,
         );
     }
 
@@ -317,7 +329,7 @@ class RateLimiter
             remaining: $remaining,
             limit: $this->maxRequests,
             resetAt: $resetAt,
-            retryAfter: $retryAfter
+            retryAfter: $retryAfter,
         );
     }
 
@@ -357,7 +369,7 @@ class RateLimiter
             remaining: $remaining,
             limit: $this->bucketSize,
             resetAt: (int) ($now + ($this->bucketSize - $tokens) / $this->tokensPerSecond),
-            retryAfter: $retryAfter
+            retryAfter: $retryAfter,
         );
     }
 
@@ -397,7 +409,7 @@ class RateLimiter
             remaining: $remaining,
             limit: $this->bucketSize,
             resetAt: (int) ($now + $level / $this->tokensPerSecond),
-            retryAfter: $retryAfter
+            retryAfter: $retryAfter,
         );
     }
 
@@ -447,7 +459,7 @@ class RateLimiter
 
         // Cleanup old requests (keep only last 2 windows worth)
         $cutoff = $timestamp - ($this->windowSeconds * 2);
-        $requests = array_filter($requests, fn($t) => $t >= $cutoff);
+        $requests = array_filter($requests, fn ($t) => $t >= $cutoff);
         $requests = array_values($requests);
 
         $this->storage->set($dataKey, json_encode($requests), $this->windowSeconds * 2);

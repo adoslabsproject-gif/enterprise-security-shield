@@ -1,11 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Senza1dio\SecurityShield\Services\Metrics;
 
 use Senza1dio\SecurityShield\Contracts\MetricsCollectorInterface;
 
 /**
- * Redis Metrics Collector
+ * Redis Metrics Collector.
  *
  * Metrics collection using Redis with proper production patterns.
  *
@@ -18,13 +20,13 @@ use Senza1dio\SecurityShield\Contracts\MetricsCollectorInterface;
  * - Use dedicated Redis DB (SELECT N) for metrics
  * - Set reasonable TTL to prevent unbounded growth
  * - For high-traffic sites, consider dedicated metrics systems (Prometheus, DataDog)
- *
- * @package Senza1dio\SecurityShield\Services\Metrics
  */
 class RedisMetricsCollector implements MetricsCollectorInterface
 {
     private \Redis $redis;
+
     private string $keyPrefix;
+
     private int $defaultTTL;
 
     /**
@@ -40,7 +42,7 @@ class RedisMetricsCollector implements MetricsCollectorInterface
     }
 
     /**
-     * Increment a counter metric
+     * Increment a counter metric.
      *
      * @param string $metric Metric name
      * @param int $value Value to add (default: 1)
@@ -58,7 +60,7 @@ class RedisMetricsCollector implements MetricsCollectorInterface
     }
 
     /**
-     * Set a gauge metric (current value, e.g. active connections)
+     * Set a gauge metric (current value, e.g. active connections).
      *
      * @param string $metric Metric name
      * @param float $value Current value
@@ -75,7 +77,7 @@ class RedisMetricsCollector implements MetricsCollectorInterface
     }
 
     /**
-     * Record a sample value (for percentile calculations)
+     * Record a sample value (for percentile calculations).
      *
      * NOTE: This is NOT a true histogram with buckets.
      * It stores raw samples in a sorted set, ordered by timestamp.
@@ -105,7 +107,7 @@ class RedisMetricsCollector implements MetricsCollectorInterface
     }
 
     /**
-     * Alias for sample() - records timing data
+     * Alias for sample() - records timing data.
      *
      * @param string $metric Metric name
      * @param float $milliseconds Duration in milliseconds
@@ -124,15 +126,17 @@ class RedisMetricsCollector implements MetricsCollectorInterface
     }
 
     /**
-     * Get current value of a metric
+     * Get current value of a metric.
      *
      * @param string $metric Metric name
+     *
      * @return float|null Value or null if not found
      */
     public function get(string $metric): ?float
     {
         try {
             $value = $this->redis->get($this->keyPrefix . $metric);
+
             return ($value !== false && is_numeric($value)) ? (float) $value : null;
         } catch (\RedisException $e) {
             return null;
@@ -140,10 +144,11 @@ class RedisMetricsCollector implements MetricsCollectorInterface
     }
 
     /**
-     * Get percentile from samples
+     * Get percentile from samples.
      *
      * @param string $metric Metric name
      * @param float $percentile Percentile (0.0-1.0, e.g., 0.95 for p95)
+     *
      * @return float|null Percentile value or null
      */
     public function getPercentile(string $metric, float $percentile): ?float
@@ -171,6 +176,7 @@ class RedisMetricsCollector implements MetricsCollectorInterface
 
             sort($values);
             $index = (int) floor($percentile * (count($values) - 1));
+
             return $values[$index];
         } catch (\RedisException $e) {
             return null;
@@ -178,7 +184,7 @@ class RedisMetricsCollector implements MetricsCollectorInterface
     }
 
     /**
-     * Get all metrics (uses SCAN - safe for production)
+     * Get all metrics (uses SCAN - safe for production).
      *
      * WARNING: Still O(N) on keyspace. For large datasets, use specific get() calls.
      *
@@ -233,14 +239,16 @@ class RedisMetricsCollector implements MetricsCollectorInterface
     }
 
     /**
-     * Set default TTL for all metrics
+     * Set default TTL for all metrics.
      *
      * @param int $seconds TTL in seconds
+     *
      * @return self
      */
     public function setDefaultTTL(int $seconds): self
     {
         $this->defaultTTL = $seconds;
+
         return $this;
     }
 }

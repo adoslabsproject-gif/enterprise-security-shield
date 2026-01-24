@@ -1,12 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Senza1dio\SecurityShield\Tests\Integration;
 
 use PHPUnit\Framework\TestCase;
 use Senza1dio\SecurityShield\Storage\RedisStorage;
 
 /**
- * Redis Integration Tests - REAL Redis Connection Required
+ * Redis Integration Tests - REAL Redis Connection Required.
  *
  * These tests require a running Redis instance on localhost:6379
  *
@@ -23,6 +25,7 @@ use Senza1dio\SecurityShield\Storage\RedisStorage;
 class RedisIntegrationTest extends TestCase
 {
     private ?\Redis $redis = null;
+
     private ?RedisStorage $storage = null;
 
     protected function setUp(): void
@@ -64,7 +67,7 @@ class RedisIntegrationTest extends TestCase
     }
 
     /**
-     * TEST FIX #1: Race Condition in incrementScore()
+     * TEST FIX #1: Race Condition in incrementScore().
      *
      * Simulates 100 concurrent increments. All must have TTL set.
      * OLD CODE: Some keys would miss TTL under concurrent load.
@@ -94,7 +97,7 @@ class RedisIntegrationTest extends TestCase
     }
 
     /**
-     * TEST FIX #1: incrementScore() sets TTL on first call
+     * TEST FIX #1: incrementScore() sets TTL on first call.
      */
     public function test_incrementScore_sets_ttl_on_first_call()
     {
@@ -109,7 +112,7 @@ class RedisIntegrationTest extends TestCase
     }
 
     /**
-     * TEST FIX #1: incrementScore() preserves TTL on subsequent calls
+     * TEST FIX #1: incrementScore() preserves TTL on subsequent calls.
      */
     public function test_incrementScore_preserves_existing_ttl()
     {
@@ -133,7 +136,7 @@ class RedisIntegrationTest extends TestCase
     }
 
     /**
-     * TEST FIX #2: SCAN Performance - No Blocking
+     * TEST FIX #2: SCAN Performance - No Blocking.
      *
      * Creates 10,000 keys and tests getRecentEvents().
      * OLD CODE: KEYS * would BLOCK Redis for seconds.
@@ -161,7 +164,7 @@ class RedisIntegrationTest extends TestCase
     }
 
     /**
-     * TEST FIX #3: Graceful Degradation on Redis Disconnect
+     * TEST FIX #3: Graceful Degradation on Redis Disconnect.
      *
      * NOTE: This test is challenging because phpredis auto-reconnects.
      * We test with a non-existent Redis server instead.
@@ -192,7 +195,7 @@ class RedisIntegrationTest extends TestCase
     }
 
     /**
-     * TEST: Concurrent rate limiting (real-world scenario)
+     * TEST: Concurrent rate limiting (real-world scenario).
      */
     public function test_concurrent_rate_limiting()
     {
@@ -217,7 +220,7 @@ class RedisIntegrationTest extends TestCase
     }
 
     /**
-     * TEST: Ban persistence and expiration
+     * TEST: Ban persistence and expiration.
      */
     public function test_ban_persistence_and_expiration()
     {
@@ -236,7 +239,7 @@ class RedisIntegrationTest extends TestCase
     }
 
     /**
-     * TEST: Event logging with large volume
+     * TEST: Event logging with large volume.
      */
     public function test_event_logging_large_volume()
     {
@@ -260,7 +263,7 @@ class RedisIntegrationTest extends TestCase
     }
 
     /**
-     * TEST: Clear operation with batching
+     * TEST: Clear operation with batching.
      */
     public function test_clear_operation_with_batching()
     {
@@ -278,7 +281,7 @@ class RedisIntegrationTest extends TestCase
     }
 
     /**
-     * TEST: Memory leak prevention (all keys have TTL)
+     * TEST: Memory leak prevention (all keys have TTL).
      */
     public function test_no_memory_leaks_all_keys_have_ttl()
     {

@@ -9,7 +9,7 @@ use Senza1dio\SecurityShield\Anomaly\AnomalyType;
 use Senza1dio\SecurityShield\Anomaly\DetectorInterface;
 
 /**
- * Statistical Anomaly Detector
+ * Statistical Anomaly Detector.
  *
  * Detects anomalies using statistical methods (Z-score, IQR).
  *
@@ -26,8 +26,6 @@ use Senza1dio\SecurityShield\Anomaly\DetectorInterface;
  *     'response_time' => 2.5,  // Normal: 0.1-0.3
  * ]);
  * ```
- *
- * @package Senza1dio\SecurityShield\Anomaly\Detectors
  */
 class StatisticalDetector implements DetectorInterface
 {
@@ -38,7 +36,9 @@ class StatisticalDetector implements DetectorInterface
     private array $baselines = [];
 
     private float $zScoreThreshold;
+
     private float $iqrMultiplier;
+
     private bool $trained = false;
 
     /**
@@ -49,7 +49,7 @@ class StatisticalDetector implements DetectorInterface
     public function __construct(
         array $metrics,
         float $zScoreThreshold = 3.0,
-        float $iqrMultiplier = 1.5
+        float $iqrMultiplier = 1.5,
     ) {
         $this->metrics = $metrics;
         $this->zScoreThreshold = $zScoreThreshold;
@@ -109,7 +109,7 @@ class StatisticalDetector implements DetectorInterface
                         'lower_bound' => round($lowerBound, 2),
                         'upper_bound' => round($upperBound, 2),
                         'direction' => $direction,
-                    ]
+                    ],
                 );
             }
         }
@@ -126,7 +126,7 @@ class StatisticalDetector implements DetectorInterface
         foreach ($this->metrics as $metric) {
             $values = array_filter(
                 array_column($historicalData, $metric),
-                fn($v) => $v !== null
+                fn ($v) => $v !== null,
             );
 
             if (count($values) < 2) {
@@ -154,9 +154,10 @@ class StatisticalDetector implements DetectorInterface
     }
 
     /**
-     * Get baseline for a metric
+     * Get baseline for a metric.
      *
      * @param string $metric
+     *
      * @return array{mean: float, stddev: float, q1: float, q3: float, iqr: float}|null
      */
     public function getBaseline(string $metric): ?array
@@ -165,7 +166,7 @@ class StatisticalDetector implements DetectorInterface
     }
 
     /**
-     * Set baseline manually (useful for testing or preset values)
+     * Set baseline manually (useful for testing or preset values).
      *
      * @param string $metric
      * @param float $mean
@@ -184,7 +185,7 @@ class StatisticalDetector implements DetectorInterface
     }
 
     /**
-     * Calculate anomaly score based on deviation
+     * Calculate anomaly score based on deviation.
      *
      * @param float $zScore Z-score of the value
      * @param float $value Current value
@@ -204,7 +205,7 @@ class StatisticalDetector implements DetectorInterface
     }
 
     /**
-     * Calculate mean of values
+     * Calculate mean of values.
      *
      * @param array<int, float> $values
      */
@@ -218,7 +219,7 @@ class StatisticalDetector implements DetectorInterface
     }
 
     /**
-     * Calculate standard deviation
+     * Calculate standard deviation.
      *
      * @param array<int, float> $values
      */
@@ -239,7 +240,7 @@ class StatisticalDetector implements DetectorInterface
     }
 
     /**
-     * Calculate percentile
+     * Calculate percentile.
      *
      * @param array<int, float> $values Sorted values
      * @param int $percentile Percentile (0-100)

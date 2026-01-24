@@ -1,9 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Senza1dio\SecurityShield\Contracts;
 
 /**
- * Metrics Collector Interface - In-Memory Oriented
+ * Metrics Collector Interface - In-Memory Oriented.
  *
  * Collects security metrics for monitoring and analytics.
  *
@@ -29,70 +31,75 @@ namespace Senza1dio\SecurityShield\Contracts;
  * - Implement increment/gauge/histogram/timing normally (send to backend)
  * - Implement get()/getAll() as no-op or return dummy data
  * - Metrics are aggregated server-side, not client-side
- *
- * @package Senza1dio\SecurityShield\Contracts
  */
 interface MetricsCollectorInterface
 {
     /**
-     * Increment a counter metric
+     * Increment a counter metric.
      *
      * @param string $metric Metric name (e.g., 'attacks_blocked', 'requests_total')
      * @param int $value Increment value (default: 1)
+     *
      * @return void
      */
     public function increment(string $metric, int $value = 1): void;
 
     /**
-     * Set a gauge metric (current value)
+     * Set a gauge metric (current value).
      *
      * @param string $metric Metric name (e.g., 'threat_score_avg', 'active_bans')
      * @param float $value Current value
+     *
      * @return void
      */
     public function gauge(string $metric, float $value): void;
 
     /**
-     * Record a sample value (for percentile calculations)
+     * Record a sample value (for percentile calculations).
      *
      * NOTE: Named "sample" instead of "histogram" because this stores raw values,
      * not pre-aggregated buckets like Prometheus histograms.
      *
      * @param string $metric Metric name (e.g., 'request_duration', 'threat_score')
      * @param float $value Value to record
+     *
      * @return void
      */
     public function sample(string $metric, float $value): void;
 
     /**
-     * Record a histogram value (for distributions)
+     * Record a histogram value (for distributions).
      *
      * @deprecated Use sample() instead. "histogram" is misleading for raw sample storage.
+     *
      * @param string $metric Metric name (e.g., 'request_duration', 'threat_score')
      * @param float $value Value to record
+     *
      * @return void
      */
     public function histogram(string $metric, float $value): void;
 
     /**
-     * Record a timing metric
+     * Record a timing metric.
      *
      * @param string $metric Metric name (e.g., 'waf_processing_time')
      * @param float $milliseconds Duration in milliseconds
+     *
      * @return void
      */
     public function timing(string $metric, float $milliseconds): void;
 
     /**
-     * Get current metric value
+     * Get current metric value.
      *
      * @param string $metric Metric name
+     *
      * @return float|null Metric value or null if not found
      */
     public function get(string $metric): ?float;
 
     /**
-     * Get all metrics
+     * Get all metrics.
      *
      * @return array<string, float> All metrics
      */

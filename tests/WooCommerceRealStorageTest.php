@@ -1,6 +1,8 @@
 <?php
+
+declare(strict_types=1);
 /**
- * WooCommerce Security Middleware - REAL STORAGE TESTS
+ * WooCommerce Security Middleware - REAL STORAGE TESTS.
  *
  * Tests with REAL DatabaseStorage (PostgreSQL) to verify:
  * - Rate limiting actually works
@@ -17,15 +19,16 @@
 
 require __DIR__ . '/../vendor/autoload.php';
 
+use Senza1dio\SecurityShield\Config\SecurityConfig;
 use Senza1dio\SecurityShield\Integrations\WooCommerce\WooCommerceSecurityMiddleware;
 use Senza1dio\SecurityShield\Storage\DatabaseStorage;
-use Senza1dio\SecurityShield\Config\SecurityConfig;
 
 // Test counter
 $tests_passed = 0;
 $tests_failed = 0;
 
-function test(string $name, callable $test): void {
+function test(string $name, callable $test): void
+{
     global $tests_passed, $tests_failed;
 
     try {
@@ -54,7 +57,7 @@ try {
     $pdo = new PDO(
         'pgsql:host=localhost;port=5432;dbname=security_shield_test',
         'shield_test_user',
-        'test_password_123'
+        'test_password_123',
     );
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     echo "✅ Connected to PostgreSQL test database\n";
@@ -97,7 +100,7 @@ echo "✅ Test data cleaned\n\n";
 // TEST 1: Rate Limiting - Checkout (5 requests per 5 minutes)
 // ============================================================================
 
-test("Rate limiting: Checkout allows 5 requests then blocks", function() use ($storage) {
+test('Rate limiting: Checkout allows 5 requests then blocks', function () use ($storage) {
     $config = new SecurityConfig();
     $config->setScoreThreshold(50)
            ->setStorage($storage)
@@ -119,6 +122,7 @@ test("Rate limiting: Checkout allows 5 requests then blocks", function() use ($s
         $allowed = $wooSecurity->handle($server);
         if (!$allowed) {
             echo "  ❌ Request $i was blocked (should pass)\n";
+
             return false;
         }
     }
@@ -134,6 +138,7 @@ test("Rate limiting: Checkout allows 5 requests then blocks", function() use ($s
     $allowed = $wooSecurity->handle($server);
     if ($allowed) {
         echo "  ❌ 6th request was allowed (should be blocked)\n";
+
         return false;
     }
 
@@ -144,7 +149,7 @@ test("Rate limiting: Checkout allows 5 requests then blocks", function() use ($s
 // TEST 2: Rate Limiting - Add to Cart (30 requests per minute)
 // ============================================================================
 
-test("Rate limiting: Add to cart allows 30 requests then blocks", function() use ($storage) {
+test('Rate limiting: Add to cart allows 30 requests then blocks', function () use ($storage) {
     $config = new SecurityConfig();
     $config->setScoreThreshold(50)
            ->setStorage($storage)
@@ -166,6 +171,7 @@ test("Rate limiting: Add to cart allows 30 requests then blocks", function() use
         $allowed = $wooSecurity->handle($server);
         if (!$allowed) {
             echo "  ❌ Request $i was blocked (should pass)\n";
+
             return false;
         }
     }
@@ -181,6 +187,7 @@ test("Rate limiting: Add to cart allows 30 requests then blocks", function() use
     $allowed = $wooSecurity->handle($server);
     if ($allowed) {
         echo "  ❌ 31st request was allowed (should be blocked)\n";
+
         return false;
     }
 
@@ -191,7 +198,7 @@ test("Rate limiting: Add to cart allows 30 requests then blocks", function() use
 // TEST 3: Score Accumulation - Multiple Suspicious Paths
 // ============================================================================
 
-test("Score accumulation: Multiple suspicious paths lead to ban", function() use ($storage) {
+test('Score accumulation: Multiple suspicious paths lead to ban', function () use ($storage) {
     $config = new SecurityConfig();
     $config->setScoreThreshold(50)
            ->setStorage($storage)
@@ -231,6 +238,7 @@ test("Score accumulation: Multiple suspicious paths lead to ban", function() use
     // Should be BLOCKED now (60 >= 50 threshold)
     if ($allowed) {
         echo "  ❌ 3rd request passed (should be banned with 60 points)\n";
+
         return false;
     }
 
@@ -241,7 +249,7 @@ test("Score accumulation: Multiple suspicious paths lead to ban", function() use
 // TEST 4: Ban Persistence - Banned IP stays banned
 // ============================================================================
 
-test("Ban persistence: Once banned, IP stays banned across requests", function() use ($storage) {
+test('Ban persistence: Once banned, IP stays banned across requests', function () use ($storage) {
     $config = new SecurityConfig();
     $config->setScoreThreshold(50)
            ->setStorage($storage)
@@ -271,6 +279,7 @@ test("Ban persistence: Once banned, IP stays banned across requests", function()
 
     if ($allowed) {
         echo "  ❌ Banned IP was allowed for legitimate request\n";
+
         return false;
     }
 
@@ -281,7 +290,7 @@ test("Ban persistence: Once banned, IP stays banned across requests", function()
 // TEST 5: Whitelist Bypass with Real Storage
 // ============================================================================
 
-test("Whitelist bypass: Whitelisted IP passes even with suspicious paths", function() use ($storage) {
+test('Whitelist bypass: Whitelisted IP passes even with suspicious paths', function () use ($storage) {
     $config = new SecurityConfig();
     $config->setScoreThreshold(50)
            ->setStorage($storage)
@@ -311,6 +320,7 @@ test("Whitelist bypass: Whitelisted IP passes even with suspicious paths", funct
         $allowed = $wooSecurity->handle($server);
         if (!$allowed) {
             echo "  ❌ Whitelisted IP was blocked for $path\n";
+
             return false;
         }
     }
@@ -322,7 +332,7 @@ test("Whitelist bypass: Whitelisted IP passes even with suspicious paths", funct
 // TEST 6: Coupon Brute Force Protection (10 per 5 minutes)
 // ============================================================================
 
-test("Rate limiting: Coupon checks allow 10 requests then block", function() use ($storage) {
+test('Rate limiting: Coupon checks allow 10 requests then block', function () use ($storage) {
     $config = new SecurityConfig();
     $config->setScoreThreshold(50)
            ->setStorage($storage)
@@ -344,6 +354,7 @@ test("Rate limiting: Coupon checks allow 10 requests then block", function() use
         $allowed = $wooSecurity->handle($server);
         if (!$allowed) {
             echo "  ❌ Coupon check $i was blocked (should pass)\n";
+
             return false;
         }
     }
@@ -359,6 +370,7 @@ test("Rate limiting: Coupon checks allow 10 requests then block", function() use
     $allowed = $wooSecurity->handle($server);
     if ($allowed) {
         echo "  ❌ 11th coupon check was allowed (should be blocked)\n";
+
         return false;
     }
 
@@ -369,7 +381,7 @@ test("Rate limiting: Coupon checks allow 10 requests then block", function() use
 // TEST 7: Framework Detection - WordPress Admin NOT Banned (CRITICAL!)
 // ============================================================================
 
-test("Framework detection: WordPress admin paths are NOT honeypot (if WordPress detected)", function() use ($storage) {
+test('Framework detection: WordPress admin paths are NOT honeypot (if WordPress detected)', function () use ($storage) {
     // Simulate WordPress environment
     define('ABSPATH', '/var/www/html/');
 
@@ -415,6 +427,7 @@ test("Framework detection: WordPress admin paths are NOT honeypot (if WordPress 
     // If framework detection works, score should be 0 or minimal
     if ($score >= 50) {
         echo "  ❌ WordPress admin got banned (score: $score) - Framework detection FAILED!\n";
+
         return false;
     }
 
@@ -440,7 +453,6 @@ echo "Failed: $tests_failed\n";
 if ($tests_failed > 0) {
     echo "\n❌ TESTS FAILED - WooCommerce integration has BUGS!\n";
     exit(1);
-} else {
-    echo "\n✅ ALL TESTS PASSED - WooCommerce integration is SOLID!\n";
-    exit(0);
 }
+echo "\n✅ ALL TESTS PASSED - WooCommerce integration is SOLID!\n";
+exit(0);

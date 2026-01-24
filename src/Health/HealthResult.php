@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Senza1dio\SecurityShield\Health;
 
 /**
- * Overall health check result
+ * Overall health check result.
  */
 final class HealthResult
 {
@@ -17,12 +17,12 @@ final class HealthResult
     public function __construct(
         public readonly HealthStatus $status,
         public readonly array $components,
-        public readonly int $timestamp
+        public readonly int $timestamp,
     ) {
     }
 
     /**
-     * Check if overall system is healthy
+     * Check if overall system is healthy.
      */
     public function isHealthy(): bool
     {
@@ -30,7 +30,7 @@ final class HealthResult
     }
 
     /**
-     * Check if system is unhealthy
+     * Check if system is unhealthy.
      */
     public function isUnhealthy(): bool
     {
@@ -38,7 +38,7 @@ final class HealthResult
     }
 
     /**
-     * Check if system is degraded
+     * Check if system is degraded.
      */
     public function isDegraded(): bool
     {
@@ -46,7 +46,7 @@ final class HealthResult
     }
 
     /**
-     * Check if system is available (healthy or degraded)
+     * Check if system is available (healthy or degraded).
      */
     public function isAvailable(): bool
     {
@@ -54,7 +54,7 @@ final class HealthResult
     }
 
     /**
-     * Get HTTP status code
+     * Get HTTP status code.
      */
     public function getHttpStatusCode(): int
     {
@@ -62,7 +62,7 @@ final class HealthResult
     }
 
     /**
-     * Get unhealthy components
+     * Get unhealthy components.
      *
      * @return array<string, ComponentHealth>
      */
@@ -70,12 +70,12 @@ final class HealthResult
     {
         return array_filter(
             $this->components,
-            fn($c) => $c->status === HealthStatus::UNHEALTHY
+            fn ($c) => $c->status === HealthStatus::UNHEALTHY,
         );
     }
 
     /**
-     * Get degraded components
+     * Get degraded components.
      *
      * @return array<string, ComponentHealth>
      */
@@ -83,20 +83,20 @@ final class HealthResult
     {
         return array_filter(
             $this->components,
-            fn($c) => $c->status === HealthStatus::DEGRADED
+            fn ($c) => $c->status === HealthStatus::DEGRADED,
         );
     }
 
     /**
-     * Get total check duration
+     * Get total check duration.
      */
     public function getTotalDuration(): float
     {
-        return array_sum(array_map(fn($c) => $c->duration, $this->components));
+        return array_sum(array_map(fn ($c) => $c->duration, $this->components));
     }
 
     /**
-     * Convert to array for JSON response
+     * Convert to array for JSON response.
      *
      * @return array<string, mixed>
      */
@@ -106,12 +106,12 @@ final class HealthResult
             'status' => $this->status->value,
             'timestamp' => $this->timestamp,
             'duration_ms' => round($this->getTotalDuration(), 2),
-            'components' => array_map(fn($c) => $c->toArray(), $this->components),
+            'components' => array_map(fn ($c) => $c->toArray(), $this->components),
         ];
     }
 
     /**
-     * Convert to JSON string
+     * Convert to JSON string.
      */
     public function toJson(): string
     {
@@ -119,7 +119,7 @@ final class HealthResult
     }
 
     /**
-     * Convert to Prometheus format
+     * Convert to Prometheus format.
      */
     public function toPrometheus(string $prefix = 'app'): string
     {
@@ -157,7 +157,7 @@ final class HealthResult
     }
 
     /**
-     * Escape label value for Prometheus format
+     * Escape label value for Prometheus format.
      *
      * Per Prometheus spec, label values can contain any Unicode characters.
      * Backslash, double-quote, and line feed must be escaped as \\, \", and \n.
@@ -167,7 +167,7 @@ final class HealthResult
         return str_replace(
             ['\\', '"', "\n", "\r"],
             ['\\\\', '\\"', '\\n', '\\r'],
-            $value
+            $value,
         );
     }
 }

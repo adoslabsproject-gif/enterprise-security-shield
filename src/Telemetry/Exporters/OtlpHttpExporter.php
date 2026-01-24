@@ -7,7 +7,7 @@ namespace Senza1dio\SecurityShield\Telemetry\Exporters;
 use Senza1dio\SecurityShield\Telemetry\SpanExporterInterface;
 
 /**
- * OTLP HTTP Exporter
+ * OTLP HTTP Exporter.
  *
  * Exports spans to an OpenTelemetry collector via OTLP/HTTP.
  *
@@ -19,8 +19,6 @@ use Senza1dio\SecurityShield\Telemetry\SpanExporterInterface;
  * $tracer = new Tracer('my-service');
  * $tracer->addExporter($exporter);
  * ```
- *
- * @package Senza1dio\SecurityShield\Telemetry\Exporters
  */
 class OtlpHttpExporter implements SpanExporterInterface
 {
@@ -30,6 +28,7 @@ class OtlpHttpExporter implements SpanExporterInterface
     private array $headers = [];
 
     private int $timeoutMs;
+
     private bool $compression;
 
     /** @var array<int, array<string, mixed>> */
@@ -47,7 +46,7 @@ class OtlpHttpExporter implements SpanExporterInterface
         string $endpoint,
         int $timeoutMs = 10000,
         bool $compression = true,
-        int $maxBatchSize = 512
+        int $maxBatchSize = 512,
     ) {
         $this->endpoint = rtrim($endpoint, '/');
         $this->timeoutMs = $timeoutMs;
@@ -60,22 +59,24 @@ class OtlpHttpExporter implements SpanExporterInterface
     }
 
     /**
-     * Set custom headers
+     * Set custom headers.
      *
      * @param array<string, string> $headers
      */
     public function setHeaders(array $headers): self
     {
         $this->headers = array_merge($this->headers, $headers);
+
         return $this;
     }
 
     /**
-     * Set authorization token
+     * Set authorization token.
      */
     public function setAuthToken(string $token): self
     {
         $this->headers['Authorization'] = "Bearer {$token}";
+
         return $this;
     }
 
@@ -124,9 +125,10 @@ class OtlpHttpExporter implements SpanExporterInterface
     }
 
     /**
-     * Format headers for HTTP context
+     * Format headers for HTTP context.
      *
      * @param array<string, string> $headers
+     *
      * @return string
      */
     private function formatHeaders(array $headers): string
@@ -141,7 +143,7 @@ class OtlpHttpExporter implements SpanExporterInterface
     }
 
     /**
-     * Extract status code from response headers
+     * Extract status code from response headers.
      *
      * @param array<int, string> $headers
      */

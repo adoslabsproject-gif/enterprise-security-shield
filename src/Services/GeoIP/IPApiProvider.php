@@ -1,9 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Senza1dio\SecurityShield\Services\GeoIP;
 
 /**
- * IP-API.com Provider - FREE GeoIP Service
+ * IP-API.com Provider - FREE GeoIP Service.
  *
  * FREE TIER:
  * - 45 requests per minute
@@ -17,16 +19,17 @@ namespace Senza1dio\SecurityShield\Services\GeoIP;
  * - Budget-conscious deployments
  *
  * API DOCS: https://ip-api.com/docs/api:json
- *
- * @package Senza1dio\SecurityShield\Services\GeoIP
  */
 class IPApiProvider implements GeoIPInterface
 {
     private const API_URL = 'http://ip-api.com/json';
+
     private const API_URL_HTTPS = 'https://pro.ip-api.com/json'; // Requires paid plan
+
     private const TIMEOUT = 2; // 2 seconds timeout
 
     private bool $useHTTPS;
+
     private ?string $apiKey;
 
     /**
@@ -51,7 +54,7 @@ class IPApiProvider implements GeoIPInterface
         // Add fields parameter (optimize response size)
         $fields = [
             'status', 'country', 'countryCode', 'region', 'regionName',
-            'city', 'lat', 'lon', 'timezone', 'isp', 'org', 'as', 'proxy'
+            'city', 'lat', 'lon', 'timezone', 'isp', 'org', 'as', 'proxy',
         ];
         $url .= '?fields=' . implode(',', $fields);
 
@@ -136,12 +139,13 @@ class IPApiProvider implements GeoIPInterface
     }
 
     /**
-     * Detect datacenter IPs from ISP/Org name
+     * Detect datacenter IPs from ISP/Org name.
      *
      * Common patterns: AWS, Google Cloud, Azure, DigitalOcean, Linode, etc.
      *
      * @param string $isp ISP name
      * @param string $org Organization name
+     *
      * @return bool True if likely datacenter
      */
     private function isDatacenterFromISP(string $isp, string $org): bool

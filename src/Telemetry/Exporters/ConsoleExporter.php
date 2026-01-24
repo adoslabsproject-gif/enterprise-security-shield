@@ -7,7 +7,7 @@ namespace Senza1dio\SecurityShield\Telemetry\Exporters;
 use Senza1dio\SecurityShield\Telemetry\SpanExporterInterface;
 
 /**
- * Console Exporter
+ * Console Exporter.
  *
  * Exports spans to STDOUT for debugging and development.
  *
@@ -17,12 +17,11 @@ use Senza1dio\SecurityShield\Telemetry\SpanExporterInterface;
  * $tracer = new Tracer('my-service');
  * $tracer->addExporter($exporter);
  * ```
- *
- * @package Senza1dio\SecurityShield\Telemetry\Exporters
  */
 class ConsoleExporter implements SpanExporterInterface
 {
     private bool $pretty;
+
     private bool $colors;
 
     /** @var resource|null */
@@ -36,7 +35,7 @@ class ConsoleExporter implements SpanExporterInterface
     public function __construct(
         bool $pretty = true,
         bool $colors = true,
-        $stream = null
+        $stream = null,
     ) {
         $this->pretty = $pretty;
         $this->colors = $colors && $this->supportsColors();
@@ -63,7 +62,7 @@ class ConsoleExporter implements SpanExporterInterface
     }
 
     /**
-     * Export with pretty formatting
+     * Export with pretty formatting.
      *
      * @param array<string, mixed> $exportData
      * @param resource $output
@@ -73,7 +72,7 @@ class ConsoleExporter implements SpanExporterInterface
         $serviceName = $exportData['resource']['attributes'][0]['value']['string_value'] ?? 'unknown';
 
         fwrite($output, $this->color("\n═══════════════════════════════════════════════════════════════\n", 'cyan'));
-        fwrite($output, $this->color(" TRACE EXPORT ", 'white', 'blue') . " ");
+        fwrite($output, $this->color(' TRACE EXPORT ', 'white', 'blue') . ' ');
         fwrite($output, $this->color("Service: {$serviceName}", 'yellow') . "\n");
         fwrite($output, $this->color("═══════════════════════════════════════════════════════════════\n", 'cyan'));
 
@@ -87,7 +86,7 @@ class ConsoleExporter implements SpanExporterInterface
     }
 
     /**
-     * Print a single span
+     * Print a single span.
      *
      * @param array<string, mixed> $span
      * @param resource $output
@@ -114,52 +113,52 @@ class ConsoleExporter implements SpanExporterInterface
 
         // Print span header
         fwrite($output, "\n");
-        fwrite($output, $this->color("┌─ ", 'gray'));
+        fwrite($output, $this->color('┌─ ', 'gray'));
         fwrite($output, $this->color($name, 'white'));
         fwrite($output, $this->color(" [{$kind}]", 'gray'));
         fwrite($output, "\n");
 
         // Print span details
-        fwrite($output, $this->color("│  ", 'gray'));
-        fwrite($output, $this->color("Trace: ", 'gray') . $this->color($traceId, 'cyan'));
-        fwrite($output, $this->color("  Span: ", 'gray') . $this->color($spanId, 'cyan'));
+        fwrite($output, $this->color('│  ', 'gray'));
+        fwrite($output, $this->color('Trace: ', 'gray') . $this->color($traceId, 'cyan'));
+        fwrite($output, $this->color('  Span: ', 'gray') . $this->color($spanId, 'cyan'));
 
         if ($parentId) {
-            fwrite($output, $this->color("  Parent: ", 'gray') . $this->color($parentId, 'cyan'));
+            fwrite($output, $this->color('  Parent: ', 'gray') . $this->color($parentId, 'cyan'));
         }
 
         fwrite($output, "\n");
 
-        fwrite($output, $this->color("│  ", 'gray'));
-        fwrite($output, $this->color("Duration: ", 'gray') . $this->color(sprintf('%.2fms', $durationMs), 'yellow'));
-        fwrite($output, $this->color("  Status: ", 'gray') . $this->color($status, $statusColor));
+        fwrite($output, $this->color('│  ', 'gray'));
+        fwrite($output, $this->color('Duration: ', 'gray') . $this->color(sprintf('%.2fms', $durationMs), 'yellow'));
+        fwrite($output, $this->color('  Status: ', 'gray') . $this->color($status, $statusColor));
         fwrite($output, "\n");
 
         // Print attributes
         if (!empty($span['attributes'])) {
-            fwrite($output, $this->color("│  ", 'gray'));
-            fwrite($output, $this->color("Attributes:", 'gray') . "\n");
+            fwrite($output, $this->color('│  ', 'gray'));
+            fwrite($output, $this->color('Attributes:', 'gray') . "\n");
 
             foreach ($span['attributes'] as $attr) {
                 $key = $attr['key'] ?? '';
                 $value = $this->formatAttributeValue($attr['value'] ?? []);
-                fwrite($output, $this->color("│    ", 'gray'));
-                fwrite($output, $this->color($key, 'magenta') . ": " . $this->color($value, 'white') . "\n");
+                fwrite($output, $this->color('│    ', 'gray'));
+                fwrite($output, $this->color($key, 'magenta') . ': ' . $this->color($value, 'white') . "\n");
             }
         }
 
         // Print events
         if (!empty($span['events'])) {
-            fwrite($output, $this->color("│  ", 'gray'));
-            fwrite($output, $this->color("Events:", 'gray') . "\n");
+            fwrite($output, $this->color('│  ', 'gray'));
+            fwrite($output, $this->color('Events:', 'gray') . "\n");
 
             foreach ($span['events'] as $event) {
                 $eventName = $event['name'] ?? '';
                 $isException = $eventName === 'exception';
                 $eventColor = $isException ? 'red' : 'cyan';
 
-                fwrite($output, $this->color("│    ", 'gray'));
-                fwrite($output, $this->color("• ", $eventColor) . $this->color($eventName, $eventColor) . "\n");
+                fwrite($output, $this->color('│    ', 'gray'));
+                fwrite($output, $this->color('• ', $eventColor) . $this->color($eventName, $eventColor) . "\n");
 
                 if ($isException && !empty($event['attributes'])) {
                     foreach ($event['attributes'] as $attr) {
@@ -167,19 +166,19 @@ class ConsoleExporter implements SpanExporterInterface
                         if (str_starts_with($key, 'exception.')) {
                             $value = $this->formatAttributeValue($attr['value'] ?? []);
                             $shortValue = strlen($value) > 60 ? substr($value, 0, 57) . '...' : $value;
-                            fwrite($output, $this->color("│      ", 'gray'));
-                            fwrite($output, $this->color($key, 'red') . ": " . $shortValue . "\n");
+                            fwrite($output, $this->color('│      ', 'gray'));
+                            fwrite($output, $this->color($key, 'red') . ': ' . $shortValue . "\n");
                         }
                     }
                 }
             }
         }
 
-        fwrite($output, $this->color("└─────", 'gray') . "\n");
+        fwrite($output, $this->color('└─────', 'gray') . "\n");
     }
 
     /**
-     * Format attribute value for display
+     * Format attribute value for display.
      *
      * @param array<string, mixed> $value
      */
@@ -209,7 +208,7 @@ class ConsoleExporter implements SpanExporterInterface
     }
 
     /**
-     * Apply ANSI color to text
+     * Apply ANSI color to text.
      */
     private function color(string $text, string $color, ?string $background = null): string
     {
@@ -258,7 +257,7 @@ class ConsoleExporter implements SpanExporterInterface
     }
 
     /**
-     * Check if terminal supports colors
+     * Check if terminal supports colors.
      */
     private function supportsColors(): bool
     {

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Senza1dio\SecurityShield\Resilience;
 
 /**
- * Retry Policy with Multiple Strategies
+ * Retry Policy with Multiple Strategies.
  *
  * Provides configurable retry behavior for transient failures.
  *
@@ -30,16 +30,19 @@ namespace Senza1dio\SecurityShield\Resilience;
  *     ->retryOn(TimeoutException::class)
  *     ->doNotRetryOn(ValidationException::class);
  * ```
- *
- * @package Senza1dio\SecurityShield\Resilience
  */
 class RetryPolicy
 {
     private int $maxAttempts;
+
     private float $baseDelay;
+
     private float $maxDelay;
+
     private string $strategy;
+
     private float $multiplier;
+
     private float $jitterFactor;
 
     /** @var array<class-string<\Throwable>> */
@@ -55,9 +58,13 @@ class RetryPolicy
     private $onRetry = null;
 
     private const STRATEGY_EXPONENTIAL = 'exponential';
+
     private const STRATEGY_EXPONENTIAL_JITTER = 'exponential_jitter';
+
     private const STRATEGY_LINEAR = 'linear';
+
     private const STRATEGY_CONSTANT = 'constant';
+
     private const STRATEGY_IMMEDIATE = 'immediate';
 
     private function __construct(
@@ -66,7 +73,7 @@ class RetryPolicy
         float $maxDelay,
         string $strategy,
         float $multiplier = 2.0,
-        float $jitterFactor = 0.5
+        float $jitterFactor = 0.5,
     ) {
         $this->maxAttempts = max(1, $maxAttempts);
         $this->baseDelay = max(0, $baseDelay);
@@ -79,7 +86,7 @@ class RetryPolicy
     // ==================== FACTORY METHODS ====================
 
     /**
-     * Create exponential backoff policy
+     * Create exponential backoff policy.
      *
      * Delay doubles with each attempt: base, base*2, base*4, base*8...
      *
@@ -92,13 +99,13 @@ class RetryPolicy
         int $maxAttempts = 3,
         float $baseDelay = 1.0,
         float $maxDelay = 30.0,
-        float $multiplier = 2.0
+        float $multiplier = 2.0,
     ): self {
         return new self($maxAttempts, $baseDelay, $maxDelay, self::STRATEGY_EXPONENTIAL, $multiplier);
     }
 
     /**
-     * Create exponential backoff with jitter
+     * Create exponential backoff with jitter.
      *
      * Like exponential, but adds randomness to prevent thundering herd problem.
      * Jitter range: delay * (1 - jitter) to delay * (1 + jitter)
@@ -112,13 +119,13 @@ class RetryPolicy
         int $maxAttempts = 3,
         float $baseDelay = 1.0,
         float $maxDelay = 30.0,
-        float $jitterFactor = 0.5
+        float $jitterFactor = 0.5,
     ): self {
         return new self($maxAttempts, $baseDelay, $maxDelay, self::STRATEGY_EXPONENTIAL_JITTER, 2.0, $jitterFactor);
     }
 
     /**
-     * Create linear backoff policy
+     * Create linear backoff policy.
      *
      * Delay increases linearly: base, base*2, base*3, base*4...
      *
@@ -129,13 +136,13 @@ class RetryPolicy
     public static function linearBackoff(
         int $maxAttempts = 3,
         float $baseDelay = 1.0,
-        float $maxDelay = 30.0
+        float $maxDelay = 30.0,
     ): self {
         return new self($maxAttempts, $baseDelay, $maxDelay, self::STRATEGY_LINEAR);
     }
 
     /**
-     * Create constant delay policy
+     * Create constant delay policy.
      *
      * Same delay between each attempt.
      *
@@ -148,7 +155,7 @@ class RetryPolicy
     }
 
     /**
-     * Create immediate retry policy (no delay)
+     * Create immediate retry policy (no delay).
      *
      * Use sparingly - only for idempotent operations where delay doesn't help.
      *
@@ -160,7 +167,7 @@ class RetryPolicy
     }
 
     /**
-     * Create no-retry policy (fail immediately)
+     * Create no-retry policy (fail immediately).
      */
     public static function noRetry(): self
     {
@@ -170,58 +177,65 @@ class RetryPolicy
     // ==================== CONFIGURATION ====================
 
     /**
-     * Only retry on specific exception types
+     * Only retry on specific exception types.
      *
      * @param class-string<\Throwable> $exceptionClass
      */
     public function retryOn(string $exceptionClass): self
     {
         $this->retryableExceptions[] = $exceptionClass;
+
         return $this;
     }
 
     /**
-     * Never retry on specific exception types
+     * Never retry on specific exception types.
      *
      * @param class-string<\Throwable> $exceptionClass
      */
     public function doNotRetryOn(string $exceptionClass): self
     {
         $this->nonRetryableExceptions[] = $exceptionClass;
+
         return $this;
     }
 
     /**
-     * Add custom retry predicate
+     * Add custom retry predicate.
      *
      * @param callable(\Throwable): bool $predicate Returns true if should retry
      */
     public function retryIf(callable $predicate): self
     {
         $this->retryPredicates[] = $predicate;
+
         return $this;
     }
 
     /**
-     * Register callback for retry events
+     * Register callback for retry events.
      *
      * @param callable(\Throwable $e, int $attempt, float $delay): void $callback
      */
     public function onRetry(callable $callback): self
     {
         $this->onRetry = $callback;
+
         return $this;
     }
 
     // ==================== EXECUTION ====================
 
     /**
-     * Execute operation with retry policy
+     * Execute operation with retry policy.
      *
      * @template T
+     *
      * @param callable(): T $operation Operation to execute
-     * @return T Result of successful operation
+     *
      * @throws \Throwable Last exception if all retries exhausted
+     *
+     * @return T Result of successful operation
      */
     public function execute(callable $operation): mixed
     {
@@ -260,17 +274,19 @@ class RetryPolicy
     }
 
     /**
-     * Execute async operation with retry policy
+     * Execute async operation with retry policy.
      *
      * Returns a callable that can be used with async libraries.
      *
      * @template T
+     *
      * @param callable(): T $operation
+     *
      * @return callable(): T
      */
     public function wrapAsync(callable $operation): callable
     {
-        return fn() => $this->execute($operation);
+        return fn () => $this->execute($operation);
     }
 
     // ==================== PRIVATE METHODS ====================
@@ -318,7 +334,7 @@ class RetryPolicy
         $delay = match ($this->strategy) {
             self::STRATEGY_EXPONENTIAL => $this->baseDelay * pow($this->multiplier, $attempt - 1),
             self::STRATEGY_EXPONENTIAL_JITTER => $this->addJitter(
-                $this->baseDelay * pow($this->multiplier, $attempt - 1)
+                $this->baseDelay * pow($this->multiplier, $attempt - 1),
             ),
             self::STRATEGY_LINEAR => $this->baseDelay * $attempt,
             self::STRATEGY_CONSTANT => $this->baseDelay,
@@ -333,11 +349,12 @@ class RetryPolicy
     {
         $jitterRange = $delay * $this->jitterFactor;
         $jitter = (mt_rand() / mt_getrandmax()) * 2 * $jitterRange - $jitterRange;
+
         return max(0, $delay + $jitter);
     }
 
     /**
-     * Get policy configuration for debugging
+     * Get policy configuration for debugging.
      *
      * @return array<string, mixed>
      */

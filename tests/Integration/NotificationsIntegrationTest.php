@@ -146,7 +146,7 @@ class NotificationsIntegrationTest extends TestCase
                 'test_id' => uniqid(),
                 'channels' => $channelsAdded,
                 'timestamp' => date('c'),
-            ]
+            ],
         );
 
         $this->assertTrue($result->anySuccessful(), 'At least one channel should succeed');

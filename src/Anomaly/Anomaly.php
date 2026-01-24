@@ -5,19 +5,22 @@ declare(strict_types=1);
 namespace Senza1dio\SecurityShield\Anomaly;
 
 /**
- * Detected Anomaly
+ * Detected Anomaly.
  *
  * Represents a single detected anomaly with all relevant context.
- *
- * @package Senza1dio\SecurityShield\Anomaly
  */
 class Anomaly
 {
     private string $id;
+
     private AnomalyType $type;
+
     private AnomalySeverity $severity;
+
     private float $score;
+
     private string $description;
+
     private float $timestamp;
 
     /** @var array<string, mixed> */
@@ -38,7 +41,7 @@ class Anomaly
         float $score,
         string $description,
         array $context = [],
-        array $metadata = []
+        array $metadata = [],
     ) {
         $this->id = bin2hex(random_bytes(16));
         $this->type = $type;
@@ -51,7 +54,7 @@ class Anomaly
     }
 
     /**
-     * Get unique anomaly ID
+     * Get unique anomaly ID.
      */
     public function getId(): string
     {
@@ -59,7 +62,7 @@ class Anomaly
     }
 
     /**
-     * Get anomaly type
+     * Get anomaly type.
      */
     public function getType(): AnomalyType
     {
@@ -67,7 +70,7 @@ class Anomaly
     }
 
     /**
-     * Get severity level
+     * Get severity level.
      */
     public function getSeverity(): AnomalySeverity
     {
@@ -75,7 +78,7 @@ class Anomaly
     }
 
     /**
-     * Get anomaly score (0.0 - 1.0)
+     * Get anomaly score (0.0 - 1.0).
      */
     public function getScore(): float
     {
@@ -83,7 +86,7 @@ class Anomaly
     }
 
     /**
-     * Get human-readable description
+     * Get human-readable description.
      */
     public function getDescription(): string
     {
@@ -91,7 +94,7 @@ class Anomaly
     }
 
     /**
-     * Get timestamp
+     * Get timestamp.
      */
     public function getTimestamp(): float
     {
@@ -99,7 +102,7 @@ class Anomaly
     }
 
     /**
-     * Get context data
+     * Get context data.
      *
      * @return array<string, mixed>
      */
@@ -109,7 +112,7 @@ class Anomaly
     }
 
     /**
-     * Get specific context value
+     * Get specific context value.
      */
     public function getContextValue(string $key, mixed $default = null): mixed
     {
@@ -117,7 +120,7 @@ class Anomaly
     }
 
     /**
-     * Get metadata
+     * Get metadata.
      *
      * @return array<string, mixed>
      */
@@ -127,32 +130,36 @@ class Anomaly
     }
 
     /**
-     * Set a metadata value
+     * Set a metadata value.
      *
      * @param string $key Metadata key
      * @param mixed $value Metadata value
+     *
      * @return self
      */
     public function setMetadata(string $key, mixed $value): self
     {
         $this->metadata[$key] = $value;
+
         return $this;
     }
 
     /**
-     * Merge metadata values
+     * Merge metadata values.
      *
      * @param array<string, mixed> $metadata Metadata to merge
+     *
      * @return self
      */
     public function mergeMetadata(array $metadata): self
     {
         $this->metadata = array_merge($this->metadata, $metadata);
+
         return $this;
     }
 
     /**
-     * Check if severity is at least the given level
+     * Check if severity is at least the given level.
      */
     public function isSeverityAtLeast(AnomalySeverity $minSeverity): bool
     {
@@ -160,7 +167,7 @@ class Anomaly
     }
 
     /**
-     * Export to array
+     * Export to array.
      *
      * @return array<string, mixed>
      */
@@ -180,7 +187,7 @@ class Anomaly
     }
 
     /**
-     * Export to JSON
+     * Export to JSON.
      */
     public function toJson(): string
     {

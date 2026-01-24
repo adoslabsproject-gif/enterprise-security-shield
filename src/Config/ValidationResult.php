@@ -5,15 +5,14 @@ declare(strict_types=1);
 namespace Senza1dio\SecurityShield\Config;
 
 /**
- * Configuration Validation Result
+ * Configuration Validation Result.
  *
  * Immutable result object for configuration validation.
- *
- * @package Senza1dio\SecurityShield\Config
  */
 final class ValidationResult
 {
     public readonly bool $valid;
+
     public readonly ?string $error;
 
     private function __construct(bool $valid, ?string $error = null)
@@ -23,7 +22,7 @@ final class ValidationResult
     }
 
     /**
-     * Create a valid result
+     * Create a valid result.
      */
     public static function valid(): self
     {
@@ -31,7 +30,7 @@ final class ValidationResult
     }
 
     /**
-     * Create an invalid result with error message
+     * Create an invalid result with error message.
      */
     public static function invalid(string $error): self
     {
@@ -39,7 +38,7 @@ final class ValidationResult
     }
 
     /**
-     * Check if validation passed
+     * Check if validation passed.
      */
     public function isValid(): bool
     {
@@ -47,7 +46,7 @@ final class ValidationResult
     }
 
     /**
-     * Check if validation failed
+     * Check if validation failed.
      */
     public function isInvalid(): bool
     {
@@ -55,7 +54,7 @@ final class ValidationResult
     }
 
     /**
-     * Get error message (null if valid)
+     * Get error message (null if valid).
      */
     public function getError(): ?string
     {
@@ -63,7 +62,7 @@ final class ValidationResult
     }
 
     /**
-     * Throw exception if invalid
+     * Throw exception if invalid.
      *
      * @throws \InvalidArgumentException
      */
@@ -75,7 +74,7 @@ final class ValidationResult
     }
 
     /**
-     * Execute callback if valid
+     * Execute callback if valid.
      *
      * @param callable(): void $callback
      */
@@ -89,7 +88,7 @@ final class ValidationResult
     }
 
     /**
-     * Execute callback if invalid
+     * Execute callback if invalid.
      *
      * @param callable(string $error): void $callback
      */

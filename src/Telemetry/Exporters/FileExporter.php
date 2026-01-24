@@ -7,7 +7,7 @@ namespace Senza1dio\SecurityShield\Telemetry\Exporters;
 use Senza1dio\SecurityShield\Telemetry\SpanExporterInterface;
 
 /**
- * File Exporter
+ * File Exporter.
  *
  * Exports spans to a file in JSONL (JSON Lines) format.
  * Supports log rotation.
@@ -20,13 +20,13 @@ use Senza1dio\SecurityShield\Telemetry\SpanExporterInterface;
  * $tracer = new Tracer('my-service');
  * $tracer->addExporter($exporter);
  * ```
- *
- * @package Senza1dio\SecurityShield\Telemetry\Exporters
  */
 class FileExporter implements SpanExporterInterface
 {
     private string $filePath;
+
     private ?int $maxFileSize;
+
     private int $maxRotations;
 
     /** @var resource|null */
@@ -40,7 +40,7 @@ class FileExporter implements SpanExporterInterface
     public function __construct(
         string $filePath,
         ?int $maxFileSize = null,
-        int $maxRotations = 5
+        int $maxRotations = 5,
     ) {
         $this->filePath = $filePath;
         $this->maxFileSize = $maxFileSize;
@@ -50,20 +50,22 @@ class FileExporter implements SpanExporterInterface
     }
 
     /**
-     * Set maximum file size before rotation
+     * Set maximum file size before rotation.
      */
     public function setMaxFileSize(int $bytes): self
     {
         $this->maxFileSize = $bytes;
+
         return $this;
     }
 
     /**
-     * Set number of rotations to keep
+     * Set number of rotations to keep.
      */
     public function setMaxRotations(int $count): self
     {
         $this->maxRotations = $count;
+
         return $this;
     }
 
@@ -110,7 +112,7 @@ class FileExporter implements SpanExporterInterface
     }
 
     /**
-     * Get file handle
+     * Get file handle.
      *
      * @return resource|null
      */
@@ -128,7 +130,7 @@ class FileExporter implements SpanExporterInterface
     }
 
     /**
-     * Check if file should be rotated
+     * Check if file should be rotated.
      */
     private function shouldRotate(): bool
     {
@@ -142,7 +144,7 @@ class FileExporter implements SpanExporterInterface
     }
 
     /**
-     * Rotate log files
+     * Rotate log files.
      */
     private function rotate(): void
     {
@@ -175,14 +177,14 @@ class FileExporter implements SpanExporterInterface
     }
 
     /**
-     * Ensure directory exists
+     * Ensure directory exists.
      */
     private function ensureDirectory(): void
     {
         $dir = dirname($this->filePath);
 
         if (!is_dir($dir)) {
-            mkdir($dir, 0755, true);
+            mkdir($dir, 0o755, true);
         }
     }
 }

@@ -7,7 +7,7 @@ namespace Senza1dio\SecurityShield\Telemetry\Metrics\Exporters;
 use Senza1dio\SecurityShield\Telemetry\Metrics\MetricExporterInterface;
 
 /**
- * Prometheus Exporter
+ * Prometheus Exporter.
  *
  * Exposes metrics in Prometheus format via HTTP endpoint.
  *
@@ -19,8 +19,6 @@ use Senza1dio\SecurityShield\Telemetry\Metrics\MetricExporterInterface;
  * header('Content-Type: text/plain; charset=utf-8');
  * echo file_get_contents('/tmp/prometheus_metrics.prom');
  * ```
- *
- * @package Senza1dio\SecurityShield\Telemetry\Metrics\Exporters
  */
 class PrometheusExporter implements MetricExporterInterface
 {
@@ -59,12 +57,14 @@ class PrometheusExporter implements MetricExporterInterface
 
         if ($written === false) {
             @unlink($tempFile);
+
             return false;
         }
 
         // Atomic rename (on same filesystem)
         if (!rename($tempFile, $this->filePath)) {
             @unlink($tempFile);
+
             return false;
         }
 
@@ -77,7 +77,7 @@ class PrometheusExporter implements MetricExporterInterface
     }
 
     /**
-     * Get the file path
+     * Get the file path.
      */
     public function getFilePath(): string
     {
@@ -85,7 +85,7 @@ class PrometheusExporter implements MetricExporterInterface
     }
 
     /**
-     * Format a single metric to Prometheus format
+     * Format a single metric to Prometheus format.
      *
      * @param array<string, mixed> $metric
      */
@@ -158,7 +158,7 @@ class PrometheusExporter implements MetricExporterInterface
     }
 
     /**
-     * Format labels for Prometheus
+     * Format labels for Prometheus.
      *
      * @param array<int, array{key: string, value: array<string, mixed>}> $attributes
      */
@@ -181,7 +181,7 @@ class PrometheusExporter implements MetricExporterInterface
     }
 
     /**
-     * Format labels with additional labels
+     * Format labels with additional labels.
      *
      * @param array<int, array{key: string, value: array<string, mixed>}> $attributes
      * @param array<string, string> $extra
@@ -206,14 +206,14 @@ class PrometheusExporter implements MetricExporterInterface
     }
 
     /**
-     * Ensure directory exists
+     * Ensure directory exists.
      */
     private function ensureDirectory(): void
     {
         $dir = dirname($this->filePath);
 
         if (!is_dir($dir)) {
-            mkdir($dir, 0755, true);
+            mkdir($dir, 0o755, true);
         }
     }
 }

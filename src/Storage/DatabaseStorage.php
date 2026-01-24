@@ -7,7 +7,7 @@ namespace Senza1dio\SecurityShield\Storage;
 use Senza1dio\SecurityShield\Contracts\StorageInterface;
 
 /**
- * Database Storage Backend - Dual-Write Architecture
+ * Database Storage Backend - Dual-Write Architecture.
  *
  * Framework-agnostic storage backend with dual-write to database and cache.
  *
@@ -31,30 +31,30 @@ use Senza1dio\SecurityShield\Contracts\StorageInterface;
  * - PostgreSQL 9.5+ or MySQL 5.7+
  * - Redis 5.0+ (optional but recommended)
  *
- * @package Senza1dio\SecurityShield\Storage
  * @version 2.0.0
+ *
  * @author Senza1dio Security Team
  * @license MIT
  */
 class DatabaseStorage implements StorageInterface
 {
     /**
-     * PostgreSQL database connection
+     * PostgreSQL database connection.
      */
     private \PDO $pdo;
 
     /**
-     * Redis instance for caching (optional but recommended)
+     * Redis instance for caching (optional but recommended).
      */
     private ?\Redis $redis;
 
     /**
-     * Redis key prefix for namespacing
+     * Redis key prefix for namespacing.
      */
     private string $keyPrefix;
 
     /**
-     * Constructor
+     * Constructor.
      *
      * @param \PDO $pdo PostgreSQL connection with prepared schema
      * @param \Redis|null $redis Optional Redis for caching (recommended for production)
@@ -106,8 +106,10 @@ class DatabaseStorage implements StorageInterface
             // Graceful degradation - continue with Redis only
             if ($this->redis) {
                 $key = $this->keyPrefix . 'score:' . $ip;
+
                 return $this->redis->setex($key, $ttl, (string) $score) !== false;
             }
+
             return false;
         }
     }
@@ -203,18 +205,20 @@ class DatabaseStorage implements StorageInterface
             if ($this->redis) {
                 $key = $this->keyPrefix . 'score:' . $ip;
                 $lua = <<<'LUA'
-local key = KEYS[1]
-local points = tonumber(ARGV[1])
-local ttl = tonumber(ARGV[2])
-local newScore = redis.call('INCRBY', key, points)
-if redis.call('TTL', key) < 0 then
-    redis.call('EXPIRE', key, ttl)
-end
-return newScore
-LUA;
+                    local key = KEYS[1]
+                    local points = tonumber(ARGV[1])
+                    local ttl = tonumber(ARGV[2])
+                    local newScore = redis.call('INCRBY', key, points)
+                    if redis.call('TTL', key) < 0 then
+                        redis.call('EXPIRE', key, ttl)
+                    end
+                    return newScore
+                    LUA;
                 $result = $this->redis->eval($lua, [$key, $points, $ttl], 1);
+
                 return is_int($result) ? $result : 0;
             }
+
             return 0;
         }
     }
@@ -327,6 +331,7 @@ LUA;
             try {
                 $key = $this->keyPrefix . 'ban:' . $ip;
                 $exists = $this->redis->exists($key);
+
                 return is_int($exists) && $exists > 0;
             } catch (\RedisException $e) {
                 // Graceful degradation - assume not banned (fail-open)
@@ -384,8 +389,10 @@ LUA;
                     'banned_at' => time(),
                     'expires_at' => time() + $duration,
                 ]);
+
                 return $this->redis->setex($key, $duration, $data) !== false;
             }
+
             return false;
         }
     }
@@ -416,8 +423,10 @@ LUA;
             if ($this->redis) {
                 $key = $this->keyPrefix . 'ban:' . $ip;
                 $deleted = $this->redis->del($key);
+
                 return is_int($deleted) && $deleted > 0;
             }
+
             return false;
         }
     }
@@ -474,8 +483,10 @@ LUA;
                     'metadata' => $metadata,
                     'cached_at' => time(),
                 ]);
+
                 return $this->redis->setex($key, $ttl, $data) !== false;
             }
+
             return false;
         }
     }
@@ -645,8 +656,10 @@ LUA;
                 ]);
                 $this->redis->lPush($key, $event);
                 $this->redis->lTrim($key, 0, 9999);
+
                 return true;
             }
+
             return false;
         }
     }
@@ -687,6 +700,7 @@ LUA;
             // Decode JSON data
             return array_map(function ($row) {
                 $row['data'] = json_decode($row['data'] ?? '{}', true);
+
                 return $row;
             }, $results);
         } catch (\PDOException $e) {
@@ -705,8 +719,10 @@ LUA;
                         }
                     }
                 }
+
                 return $events;
             }
+
             return [];
         }
     }
@@ -766,17 +782,19 @@ LUA;
             if ($this->redis) {
                 $key = $this->keyPrefix . 'rate_limit:' . $action . ':' . $ip;
                 $lua = <<<'LUA'
-local key = KEYS[1]
-local window = tonumber(ARGV[1])
-local count = redis.call('INCR', key)
-if count == 1 then
-    redis.call('EXPIRE', key, window)
-end
-return count
-LUA;
+                    local key = KEYS[1]
+                    local window = tonumber(ARGV[1])
+                    local count = redis.call('INCR', key)
+                    if count == 1 then
+                        redis.call('EXPIRE', key, window)
+                    end
+                    return count
+                    LUA;
                 $result = $this->redis->eval($lua, [$key, $window], 1);
+
                 return is_int($result) ? $result : 1;
             }
+
             return 1;
         }
     }
@@ -884,7 +902,7 @@ LUA;
                             break;
                         }
                     } catch (\RedisException $e) {
-                        error_log("DatabaseStorage::clear() Redis SCAN error: " . $e->getMessage());
+                        error_log('DatabaseStorage::clear() Redis SCAN error: ' . $e->getMessage());
                         break;
                     }
                 } while ((int) $cursor > 0);
@@ -897,7 +915,7 @@ LUA;
     }
 
     /**
-     * Get PDO instance (for advanced queries)
+     * Get PDO instance (for advanced queries).
      *
      * @return \PDO
      */
@@ -907,7 +925,7 @@ LUA;
     }
 
     /**
-     * Get Redis instance (for custom operations)
+     * Get Redis instance (for custom operations).
      *
      * @return \Redis|null
      */
@@ -917,7 +935,7 @@ LUA;
     }
 
     /**
-     * Get key prefix
+     * Get key prefix.
      *
      * @return string
      */
@@ -937,14 +955,17 @@ LUA;
                 if ($value !== false) {
                     if (is_string($value) && (str_starts_with($value, '{') || str_starts_with($value, '['))) {
                         $decoded = json_decode($value, true);
+
                         return is_array($decoded) ? $decoded : $value;
                     }
+
                     return $value;
                 }
             } catch (\RedisException $e) {
                 // Fall through to null
             }
         }
+
         return null;
     }
 
@@ -961,11 +982,13 @@ LUA;
                 if (!is_string($value)) {
                     return false;
                 }
+
                 return $this->redis->setex($this->keyPrefix . $key, $ttl, $value) !== false;
             } catch (\RedisException $e) {
                 return false;
             }
         }
+
         return false;
     }
 }

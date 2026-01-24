@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Senza1dio\SecurityShield\Notifications;
 
 /**
- * Email Notifier
+ * Email Notifier.
  *
  * Sends notifications via email using PHP's mail() or SMTP.
  *
@@ -28,8 +28,6 @@ namespace Senza1dio\SecurityShield\Notifications;
  *     'reason' => 'Honeypot access',
  * ]);
  * ```
- *
- * @package Senza1dio\SecurityShield\Notifications
  */
 class EmailNotifier implements NotifierInterface
 {
@@ -37,12 +35,17 @@ class EmailNotifier implements NotifierInterface
     private array $recipients;
 
     private string $fromAddress;
+
     private string $fromName;
 
     private ?string $smtpHost;
+
     private ?int $smtpPort;
+
     private ?string $smtpUser;
+
     private ?string $smtpPassword;
+
     private string $smtpEncryption;
 
     /**
@@ -53,7 +56,7 @@ class EmailNotifier implements NotifierInterface
     public function __construct(
         array $recipients,
         string $fromAddress,
-        string $fromName = 'Security Shield'
+        string $fromName = 'Security Shield',
     ) {
         $this->recipients = $recipients;
         $this->fromAddress = $fromAddress;
@@ -66,7 +69,7 @@ class EmailNotifier implements NotifierInterface
     }
 
     /**
-     * Create with SMTP configuration
+     * Create with SMTP configuration.
      *
      * @param array<string> $recipients Email recipients
      * @param string $fromAddress From email address
@@ -76,6 +79,7 @@ class EmailNotifier implements NotifierInterface
      * @param string $smtpPassword SMTP password
      * @param string $encryption Encryption (tls, ssl, none)
      * @param string $fromName From name
+     *
      * @return self
      */
     public static function smtp(
@@ -86,7 +90,7 @@ class EmailNotifier implements NotifierInterface
         string $smtpUser,
         string $smtpPassword,
         string $encryption = 'tls',
-        string $fromName = 'Security Shield'
+        string $fromName = 'Security Shield',
     ): self {
         $notifier = new self($recipients, $fromAddress, $fromName);
         $notifier->smtpHost = $smtpHost;
@@ -134,10 +138,11 @@ class EmailNotifier implements NotifierInterface
     }
 
     /**
-     * Build plain text body
+     * Build plain text body.
      *
      * @param string $message
      * @param array<string, mixed> $context
+     *
      * @return string
      */
     private function buildPlainBody(string $message, array $context): string
@@ -156,18 +161,19 @@ class EmailNotifier implements NotifierInterface
         }
 
         $body .= "\n" . str_repeat('-', 40) . "\n";
-        $body .= "Sent at: " . date('Y-m-d H:i:s T') . "\n";
+        $body .= 'Sent at: ' . date('Y-m-d H:i:s T') . "\n";
         $body .= "From: Security Shield\n";
 
         return $body;
     }
 
     /**
-     * Build HTML body
+     * Build HTML body.
      *
      * @param string $title
      * @param string $message
      * @param array<string, mixed> $context
+     *
      * @return string
      */
     private function buildHtmlBody(string $title, string $message, array $context): string
@@ -184,11 +190,11 @@ class EmailNotifier implements NotifierInterface
                     : htmlspecialchars((string) $value);
 
                 $contextHtml .= <<<HTML
-                <tr>
-                    <td style="padding:8px;border:1px solid #ddd;font-weight:bold;width:30%;">{$formattedKey}</td>
-                    <td style="padding:8px;border:1px solid #ddd;">{$formattedValue}</td>
-                </tr>
-                HTML;
+                    <tr>
+                        <td style="padding:8px;border:1px solid #ddd;font-weight:bold;width:30%;">{$formattedKey}</td>
+                        <td style="padding:8px;border:1px solid #ddd;">{$formattedValue}</td>
+                    </tr>
+                    HTML;
             }
 
             $contextHtml .= '</table>';
@@ -199,36 +205,37 @@ class EmailNotifier implements NotifierInterface
         $timestamp = date('Y-m-d H:i:s T');
 
         return <<<HTML
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="UTF-8">
-            <title>{$titleHtml}</title>
-        </head>
-        <body style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;">
-            <div style="background:#e74c3c;color:white;padding:15px;border-radius:5px 5px 0 0;">
-                <h1 style="margin:0;font-size:18px;">🛡️ {$titleHtml}</h1>
-            </div>
-            <div style="border:1px solid #ddd;border-top:none;padding:20px;border-radius:0 0 5px 5px;">
-                <p style="margin-top:0;">{$messageHtml}</p>
-                {$contextHtml}
-                <hr style="border:none;border-top:1px solid #eee;margin:20px 0;">
-                <p style="color:#888;font-size:12px;margin-bottom:0;">
-                    Sent at: {$timestamp}<br>
-                    From: Security Shield
-                </p>
-            </div>
-        </body>
-        </html>
-        HTML;
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <title>{$titleHtml}</title>
+            </head>
+            <body style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;">
+                <div style="background:#e74c3c;color:white;padding:15px;border-radius:5px 5px 0 0;">
+                    <h1 style="margin:0;font-size:18px;">🛡️ {$titleHtml}</h1>
+                </div>
+                <div style="border:1px solid #ddd;border-top:none;padding:20px;border-radius:0 0 5px 5px;">
+                    <p style="margin-top:0;">{$messageHtml}</p>
+                    {$contextHtml}
+                    <hr style="border:none;border-top:1px solid #eee;margin:20px 0;">
+                    <p style="color:#888;font-size:12px;margin-bottom:0;">
+                        Sent at: {$timestamp}<br>
+                        From: Security Shield
+                    </p>
+                </div>
+            </body>
+            </html>
+            HTML;
     }
 
     /**
-     * Send email
+     * Send email.
      *
      * @param string $subject Email subject
      * @param string $htmlBody HTML body
      * @param string|null $plainBody Plain text body (optional)
+     *
      * @return bool
      */
     private function sendEmail(string $subject, string $htmlBody, ?string $plainBody = null): bool
@@ -241,11 +248,12 @@ class EmailNotifier implements NotifierInterface
     }
 
     /**
-     * Send using PHP mail()
+     * Send using PHP mail().
      *
      * @param string $subject
      * @param string $htmlBody
      * @param string|null $plainBody
+     *
      * @return bool
      */
     private function sendMail(string $subject, string $htmlBody, ?string $plainBody): bool
@@ -256,7 +264,7 @@ class EmailNotifier implements NotifierInterface
         $headers = [
             "From: {$this->fromName} <{$this->fromAddress}>",
             "Reply-To: {$this->fromAddress}",
-            "MIME-Version: 1.0",
+            'MIME-Version: 1.0',
             "Content-Type: multipart/alternative; boundary=\"{$boundary}\"",
         ];
 
@@ -274,11 +282,12 @@ class EmailNotifier implements NotifierInterface
     }
 
     /**
-     * Send using SMTP socket
+     * Send using SMTP socket.
      *
      * @param string $subject
      * @param string $htmlBody
      * @param string|null $plainBody
+     *
      * @return bool
      */
     private function sendSmtp(string $subject, string $htmlBody, ?string $plainBody): bool
@@ -292,6 +301,7 @@ class EmailNotifier implements NotifierInterface
             // Validate encryption setting
             if (!in_array($this->smtpEncryption, ['tls', 'ssl', 'none', null], true)) {
                 error_log("EmailNotifier: Invalid SMTP encryption: {$this->smtpEncryption}");
+
                 return false;
             }
 
@@ -304,6 +314,7 @@ class EmailNotifier implements NotifierInterface
 
             if (!$socket) {
                 error_log("EmailNotifier: Connection failed to {$host}:{$port} - {$errstr} ({$errno})");
+
                 return false;
             }
 
@@ -313,30 +324,31 @@ class EmailNotifier implements NotifierInterface
             $this->smtpRead($socket);
 
             // EHLO
-            $this->smtpCommand($socket, "EHLO " . gethostname());
+            $this->smtpCommand($socket, 'EHLO ' . gethostname());
 
             // STARTTLS for TLS
             if ($this->smtpEncryption === 'tls') {
-                $this->smtpCommand($socket, "STARTTLS");
+                $this->smtpCommand($socket, 'STARTTLS');
 
                 // Enable crypto with timeout protection
                 $cryptoResult = @stream_socket_enable_crypto(
                     $socket,
                     true,
-                    STREAM_CRYPTO_METHOD_TLS_CLIENT
+                    STREAM_CRYPTO_METHOD_TLS_CLIENT,
                 );
 
                 if ($cryptoResult !== true) {
-                    error_log("EmailNotifier: TLS handshake failed");
+                    error_log('EmailNotifier: TLS handshake failed');
+
                     return false;
                 }
 
-                $this->smtpCommand($socket, "EHLO " . gethostname());
+                $this->smtpCommand($socket, 'EHLO ' . gethostname());
             }
 
             // AUTH LOGIN
             if ($this->smtpUser !== null && $this->smtpPassword !== null) {
-                $this->smtpCommand($socket, "AUTH LOGIN");
+                $this->smtpCommand($socket, 'AUTH LOGIN');
                 $this->smtpCommand($socket, base64_encode($this->smtpUser));
                 $this->smtpCommand($socket, base64_encode($this->smtpPassword));
             }
@@ -350,12 +362,12 @@ class EmailNotifier implements NotifierInterface
             }
 
             // DATA
-            $this->smtpCommand($socket, "DATA");
+            $this->smtpCommand($socket, 'DATA');
 
             // Build message
             $boundary = md5(uniqid((string) time()));
             $message = "From: {$this->fromName} <{$this->fromAddress}>\r\n";
-            $message .= "To: " . implode(', ', $this->recipients) . "\r\n";
+            $message .= 'To: ' . implode(', ', $this->recipients) . "\r\n";
             $message .= "Subject: {$subject}\r\n";
             $message .= "MIME-Version: 1.0\r\n";
             $message .= "Content-Type: multipart/alternative; boundary=\"{$boundary}\"\r\n\r\n";
@@ -366,17 +378,18 @@ class EmailNotifier implements NotifierInterface
             $message .= "Content-Type: text/html; charset=UTF-8\r\n\r\n";
             $message .= $htmlBody;
             $message .= "\r\n\r\n--{$boundary}--\r\n";
-            $message .= ".";
+            $message .= '.';
 
             $this->smtpCommand($socket, $message);
 
             // QUIT
-            $this->smtpCommand($socket, "QUIT");
+            $this->smtpCommand($socket, 'QUIT');
 
             return true;
 
         } catch (\Throwable $e) {
-            error_log("EmailNotifier: SMTP error - " . $e->getMessage());
+            error_log('EmailNotifier: SMTP error - ' . $e->getMessage());
+
             return false;
         } finally {
             // Always close socket to prevent resource leak
@@ -387,22 +400,25 @@ class EmailNotifier implements NotifierInterface
     }
 
     /**
-     * Send SMTP command
+     * Send SMTP command.
      *
      * @param resource $socket
      * @param string $command
+     *
      * @return string
      */
     private function smtpCommand($socket, string $command): string
     {
         fwrite($socket, $command . "\r\n");
+
         return $this->smtpRead($socket);
     }
 
     /**
-     * Read SMTP response
+     * Read SMTP response.
      *
      * @param resource $socket
+     *
      * @return string
      */
     private function smtpRead($socket): string
@@ -418,7 +434,7 @@ class EmailNotifier implements NotifierInterface
             if ($line === false) {
                 $meta = stream_get_meta_data($socket);
                 if ($meta['timed_out']) {
-                    error_log("EmailNotifier: SMTP read timeout");
+                    error_log('EmailNotifier: SMTP read timeout');
                 }
                 break;
             }

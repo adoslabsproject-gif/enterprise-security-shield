@@ -8,7 +8,7 @@ use Senza1dio\SecurityShield\Telemetry\SamplerInterface;
 use Senza1dio\SecurityShield\Telemetry\SpanKind;
 
 /**
- * Rule Based Sampler
+ * Rule Based Sampler.
  *
  * Samples traces based on configurable rules.
  * Rules are evaluated in order; first match wins.
@@ -35,8 +35,6 @@ use Senza1dio\SecurityShield\Telemetry\SpanKind;
  *     0.0
  * );
  * ```
- *
- * @package Senza1dio\SecurityShield\Telemetry\Samplers
  */
 class RuleBasedSampler implements SamplerInterface
 {
@@ -58,7 +56,7 @@ class RuleBasedSampler implements SamplerInterface
     }
 
     /**
-     * Add a sampling rule
+     * Add a sampling rule.
      *
      * @param callable(string, SpanKind, array<string, mixed>): bool $matcher Rule matcher
      * @param float $ratio Sampling ratio if rule matches (0.0 to 1.0)
@@ -78,33 +76,33 @@ class RuleBasedSampler implements SamplerInterface
     }
 
     /**
-     * Add rule to always sample spans matching pattern
+     * Add rule to always sample spans matching pattern.
      *
      * @param string $namePattern Span name pattern (supports * wildcard)
      */
     public function alwaysSample(string $namePattern): self
     {
         return $this->addRule(
-            fn($name) => $this->matchesPattern($name, $namePattern),
-            1.0
+            fn ($name) => $this->matchesPattern($name, $namePattern),
+            1.0,
         );
     }
 
     /**
-     * Add rule to never sample spans matching pattern
+     * Add rule to never sample spans matching pattern.
      *
      * @param string $namePattern Span name pattern (supports * wildcard)
      */
     public function neverSample(string $namePattern): self
     {
         return $this->addRule(
-            fn($name) => $this->matchesPattern($name, $namePattern),
-            0.0
+            fn ($name) => $this->matchesPattern($name, $namePattern),
+            0.0,
         );
     }
 
     /**
-     * Add rule to sample spans with specific ratio by pattern
+     * Add rule to sample spans with specific ratio by pattern.
      *
      * @param string $namePattern Span name pattern (supports * wildcard)
      * @param float $ratio Sampling ratio
@@ -112,8 +110,8 @@ class RuleBasedSampler implements SamplerInterface
     public function sampleWithRatio(string $namePattern, float $ratio): self
     {
         return $this->addRule(
-            fn($name) => $this->matchesPattern($name, $namePattern),
-            $ratio
+            fn ($name) => $this->matchesPattern($name, $namePattern),
+            $ratio,
         );
     }
 
@@ -142,7 +140,7 @@ class RuleBasedSampler implements SamplerInterface
     }
 
     /**
-     * Match span name against pattern
+     * Match span name against pattern.
      *
      * @param string $name Span name
      * @param string $pattern Pattern with optional * wildcards
@@ -153,7 +151,7 @@ class RuleBasedSampler implements SamplerInterface
         $regex = '/^' . str_replace(
             ['\\*', '\\?'],
             ['.*', '.'],
-            preg_quote($pattern, '/')
+            preg_quote($pattern, '/'),
         ) . '$/';
 
         return (bool) preg_match($regex, $name);

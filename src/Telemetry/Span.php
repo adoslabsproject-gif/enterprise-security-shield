@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Senza1dio\SecurityShield\Telemetry;
 
 /**
- * OpenTelemetry-compatible Span
+ * OpenTelemetry-compatible Span.
  *
  * Represents a single operation within a trace.
  *
@@ -24,20 +24,25 @@ namespace Senza1dio\SecurityShield\Telemetry;
  *     $span->end();
  * }
  * ```
- *
- * @package Senza1dio\SecurityShield\Telemetry
  */
 class Span implements SpanInterface
 {
     private string $traceId;
+
     private string $spanId;
+
     private ?string $parentSpanId;
+
     private string $name;
+
     private SpanKind $kind;
+
     private SpanStatus $status = SpanStatus::UNSET;
+
     private ?string $statusMessage = null;
 
     private float $startTime;
+
     private ?float $endTime = null;
 
     /** @var array<string, mixed> */
@@ -61,7 +66,7 @@ class Span implements SpanInterface
         string $name,
         SpanKind $kind = SpanKind::INTERNAL,
         ?string $traceId = null,
-        ?string $parentSpanId = null
+        ?string $parentSpanId = null,
     ) {
         $this->name = $name;
         $this->kind = $kind;
@@ -74,7 +79,7 @@ class Span implements SpanInterface
     // ==================== IDENTITY ====================
 
     /**
-     * Get trace ID
+     * Get trace ID.
      */
     public function getTraceId(): string
     {
@@ -82,7 +87,7 @@ class Span implements SpanInterface
     }
 
     /**
-     * Get span ID
+     * Get span ID.
      */
     public function getSpanId(): string
     {
@@ -90,7 +95,7 @@ class Span implements SpanInterface
     }
 
     /**
-     * Get parent span ID
+     * Get parent span ID.
      */
     public function getParentSpanId(): ?string
     {
@@ -98,7 +103,7 @@ class Span implements SpanInterface
     }
 
     /**
-     * Get span name
+     * Get span name.
      */
     public function getName(): string
     {
@@ -106,7 +111,7 @@ class Span implements SpanInterface
     }
 
     /**
-     * Get span kind
+     * Get span kind.
      */
     public function getKind(): SpanKind
     {
@@ -116,7 +121,7 @@ class Span implements SpanInterface
     // ==================== ATTRIBUTES ====================
 
     /**
-     * Set a single attribute
+     * Set a single attribute.
      *
      * @param string $key Attribute key
      * @param mixed $value Attribute value (scalar, array, or null)
@@ -131,7 +136,7 @@ class Span implements SpanInterface
     }
 
     /**
-     * Set multiple attributes
+     * Set multiple attributes.
      *
      * @param array<string, mixed> $attributes
      */
@@ -145,7 +150,7 @@ class Span implements SpanInterface
     }
 
     /**
-     * Get all attributes
+     * Get all attributes.
      *
      * @return array<string, mixed>
      */
@@ -157,7 +162,7 @@ class Span implements SpanInterface
     // ==================== EVENTS ====================
 
     /**
-     * Add an event to the span
+     * Add an event to the span.
      *
      * @param string $name Event name
      * @param array<string, mixed> $attributes Event attributes
@@ -177,7 +182,7 @@ class Span implements SpanInterface
     }
 
     /**
-     * Record an exception as an event
+     * Record an exception as an event.
      *
      * @param \Throwable $exception The exception to record
      * @param array<string, mixed> $attributes Additional attributes
@@ -197,7 +202,7 @@ class Span implements SpanInterface
     }
 
     /**
-     * Get all events
+     * Get all events.
      *
      * @return array<int, array{name: string, timestamp: float, attributes: array<string, mixed>}>
      */
@@ -209,7 +214,7 @@ class Span implements SpanInterface
     // ==================== LINKS ====================
 
     /**
-     * Add a link to another span
+     * Add a link to another span.
      *
      * @param string $traceId Linked trace ID
      * @param string $spanId Linked span ID
@@ -231,7 +236,7 @@ class Span implements SpanInterface
     }
 
     /**
-     * Get all links
+     * Get all links.
      *
      * @return array<int, array{context: array<string, string>, attributes: array<string, mixed>}>
      */
@@ -243,7 +248,7 @@ class Span implements SpanInterface
     // ==================== STATUS ====================
 
     /**
-     * Set span status
+     * Set span status.
      *
      * @param SpanStatus $status Status code
      * @param string|null $message Status message (for ERROR status)
@@ -261,7 +266,7 @@ class Span implements SpanInterface
     }
 
     /**
-     * Get span status
+     * Get span status.
      */
     public function getStatus(): SpanStatus
     {
@@ -269,7 +274,7 @@ class Span implements SpanInterface
     }
 
     /**
-     * Get status message
+     * Get status message.
      */
     public function getStatusMessage(): ?string
     {
@@ -279,7 +284,7 @@ class Span implements SpanInterface
     // ==================== LIFECYCLE ====================
 
     /**
-     * End the span
+     * End the span.
      *
      * @param float|null $endTime End timestamp (null for now)
      */
@@ -294,7 +299,7 @@ class Span implements SpanInterface
     }
 
     /**
-     * Check if span is still recording
+     * Check if span is still recording.
      */
     public function isRecording(): bool
     {
@@ -302,7 +307,7 @@ class Span implements SpanInterface
     }
 
     /**
-     * Get start time
+     * Get start time.
      */
     public function getStartTime(): float
     {
@@ -310,7 +315,7 @@ class Span implements SpanInterface
     }
 
     /**
-     * Get end time (null if not ended)
+     * Get end time (null if not ended).
      */
     public function getEndTime(): ?float
     {
@@ -318,7 +323,7 @@ class Span implements SpanInterface
     }
 
     /**
-     * Get duration in seconds (null if not ended)
+     * Get duration in seconds (null if not ended).
      */
     public function getDuration(): ?float
     {
@@ -330,18 +335,19 @@ class Span implements SpanInterface
     }
 
     /**
-     * Get duration in milliseconds (null if not ended)
+     * Get duration in milliseconds (null if not ended).
      */
     public function getDurationMs(): ?float
     {
         $duration = $this->getDuration();
+
         return $duration !== null ? $duration * 1000 : null;
     }
 
     // ==================== EXPORT ====================
 
     /**
-     * Export span to array (OTLP-compatible format)
+     * Export span to array (OTLP-compatible format).
      *
      * @return array<string, mixed>
      */
@@ -358,7 +364,7 @@ class Span implements SpanInterface
                 ? (int) ($this->endTime * 1_000_000_000)
                 : null,
             'attributes' => $this->formatAttributes($this->attributes),
-            'events' => array_map(fn($event) => [
+            'events' => array_map(fn ($event) => [
                 'name' => $event['name'],
                 'time_unix_nano' => (int) ($event['timestamp'] * 1_000_000_000),
                 'attributes' => $this->formatAttributes($event['attributes']),
@@ -374,7 +380,7 @@ class Span implements SpanInterface
     // ==================== PRIVATE METHODS ====================
 
     /**
-     * Generate a 32-character trace ID
+     * Generate a 32-character trace ID.
      */
     private function generateTraceId(): string
     {
@@ -382,7 +388,7 @@ class Span implements SpanInterface
     }
 
     /**
-     * Generate a 16-character span ID
+     * Generate a 16-character span ID.
      */
     private function generateSpanId(): string
     {
@@ -390,9 +396,10 @@ class Span implements SpanInterface
     }
 
     /**
-     * Format attributes for OTLP export
+     * Format attributes for OTLP export.
      *
      * @param array<string, mixed> $attributes
+     *
      * @return array<int, array{key: string, value: array<string, mixed>}>
      */
     private function formatAttributes(array $attributes): array
@@ -410,9 +417,10 @@ class Span implements SpanInterface
     }
 
     /**
-     * Format a single attribute value for OTLP
+     * Format a single attribute value for OTLP.
      *
      * @param mixed $value
+     *
      * @return array<string, mixed>
      */
     private function formatAttributeValue(mixed $value): array
@@ -435,8 +443,8 @@ class Span implements SpanInterface
 
         if (is_array($value)) {
             return ['array_value' => ['values' => array_map(
-                fn($v) => $this->formatAttributeValue($v),
-                $value
+                fn ($v) => $this->formatAttributeValue($v),
+                $value,
             )]];
         }
 

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Senza1dio\SecurityShield\Config;
 
 /**
- * Configuration Value Validator
+ * Configuration Value Validator.
  *
  * Validates configuration values against rules.
  *
@@ -26,16 +26,22 @@ namespace Senza1dio\SecurityShield\Config;
 class ConfigValidator
 {
     private bool $required = false;
+
     private ?string $type = null;
+
     private mixed $min = null;
+
     private mixed $max = null;
+
     private ?array $allowedValues = null;
+
     private ?string $pattern = null;
+
     /** @var callable|null */
     private mixed $customValidator = null;
 
     /**
-     * Create new validator
+     * Create new validator.
      */
     public static function create(): self
     {
@@ -43,58 +49,64 @@ class ConfigValidator
     }
 
     /**
-     * Mark as required (cannot be null)
+     * Mark as required (cannot be null).
      */
     public function required(): self
     {
         $this->required = true;
+
         return $this;
     }
 
     /**
-     * Set expected type
+     * Set expected type.
      *
      * @param string $type One of: string, integer, float, boolean, array
      */
     public function type(string $type): self
     {
         $this->type = $type;
+
         return $this;
     }
 
     /**
-     * Set minimum value (for numbers) or length (for strings)
+     * Set minimum value (for numbers) or length (for strings).
      */
     public function min(int|float $min): self
     {
         $this->min = $min;
+
         return $this;
     }
 
     /**
-     * Set maximum value (for numbers) or length (for strings)
+     * Set maximum value (for numbers) or length (for strings).
      */
     public function max(int|float $max): self
     {
         $this->max = $max;
+
         return $this;
     }
 
     /**
-     * Set allowed values (enum)
+     * Set allowed values (enum).
      *
      * @param array<mixed> $values Allowed values
      */
     public function oneOf(array $values): self
     {
         $this->allowedValues = $values;
+
         return $this;
     }
 
     /**
-     * Set regex pattern (for strings)
+     * Set regex pattern (for strings).
      *
      * @param string $pattern Valid PCRE regex pattern
+     *
      * @throws \InvalidArgumentException If pattern is invalid
      */
     public function pattern(string $pattern): self
@@ -102,28 +114,32 @@ class ConfigValidator
         // Validate the regex pattern
         if (@preg_match($pattern, '') === false) {
             $error = preg_last_error_msg();
+
             throw new \InvalidArgumentException("Invalid regex pattern '{$pattern}': {$error}");
         }
 
         $this->pattern = $pattern;
+
         return $this;
     }
 
     /**
-     * Set custom validator function
+     * Set custom validator function.
      *
      * @param callable(mixed): bool|string $validator Returns true or error message
      */
     public function custom(callable $validator): self
     {
         $this->customValidator = $validator;
+
         return $this;
     }
 
     /**
-     * Validate a value
+     * Validate a value.
      *
      * @param mixed $value Value to validate
+     *
      * @return ValidationResult
      */
     public function validate(mixed $value): ValidationResult
@@ -157,7 +173,8 @@ class ConfigValidator
         // Allowed values check
         if ($this->allowedValues !== null) {
             if (!in_array($value, $this->allowedValues, true)) {
-                $allowed = implode(', ', array_map(fn($v) => var_export($v, true), $this->allowedValues));
+                $allowed = implode(', ', array_map(fn ($v) => var_export($v, true), $this->allowedValues));
+
                 return ValidationResult::invalid("Value must be one of: {$allowed}");
             }
         }

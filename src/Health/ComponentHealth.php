@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Senza1dio\SecurityShield\Health;
 
 /**
- * Health status of a single component
+ * Health status of a single component.
  */
 final class ComponentHealth
 {
@@ -15,12 +15,12 @@ final class ComponentHealth
         public readonly ?string $message,
         public readonly float $duration, // milliseconds
         public readonly array $metadata,
-        public readonly bool $critical
+        public readonly bool $critical,
     ) {
     }
 
     /**
-     * Convert to array for JSON serialization
+     * Convert to array for JSON serialization.
      *
      * @return array<string, mixed>
      */

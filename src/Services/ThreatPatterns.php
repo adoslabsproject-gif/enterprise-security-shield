@@ -5,10 +5,9 @@ declare(strict_types=1);
 namespace Senza1dio\SecurityShield\Services;
 
 use Senza1dio\SecurityShield\Utils\IPUtils;
-use Senza1dio\SecurityShield\Services\FrameworkDetector;
 
 /**
- * Threat Pattern Detection - Static Pattern Matching
+ * Threat Pattern Detection - Static Pattern Matching.
  *
  * Framework-agnostic threat pattern database for basic vulnerability scanning detection.
  *
@@ -49,43 +48,51 @@ use Senza1dio\SecurityShield\Services\FrameworkDetector;
  * - Sole security layer (use real WAF: Cloudflare, ModSecurity)
  * - Protection against skilled attackers
  *
- * @package Senza1dio\SecurityShield\Services
  * @version 1.2.0
+ *
  * @author Security Team
  * @license MIT
  */
 class ThreatPatterns
 {
     /**
-     * Score threshold for auto-ban (50 points)
+     * Score threshold for auto-ban (50 points).
      */
     public const SCORE_THRESHOLD = 50;
 
     /**
-     * Default ban duration in seconds (24 hours)
+     * Default ban duration in seconds (24 hours).
      */
     public const BAN_DURATION = 86400;
 
     /**
-     * Tracking window for score accumulation (1 hour)
+     * Tracking window for score accumulation (1 hour).
      */
     public const TRACKING_WINDOW = 3600;
 
     /**
-     * Score values for different threat types
+     * Score values for different threat types.
      */
     public const SCORE_CRITICAL_PATH = 30;      // Increased from 20 for phpinfo.php security
+
     public const SCORE_CMS_PATH = 15;
+
     public const SCORE_CONFIG_PATH = 10;
+
     public const SCORE_SCANNER_USER_AGENT = 30;
+
     public const SCORE_FAKE_USER_AGENT = 50;
+
     public const SCORE_NULL_USER_AGENT = 100;   // Instant ban
+
     public const SCORE_GEO_BLOCKED = 50;
+
     public const SCORE_UNICODE_OBFUSCATION = 20;
+
     public const SCORE_RATE_LIMIT_EXCEEDED = 20; // Rate limit violation
 
     /**
-     * Critical vulnerability paths - HIGH SCORE (30 points)
+     * Critical vulnerability paths - HIGH SCORE (30 points).
      *
      * These paths indicate clear vulnerability scanning attempts.
      * Accessing these paths is NEVER legitimate for normal users.
@@ -154,7 +161,7 @@ class ThreatPatterns
     ];
 
     /**
-     * WordPress/CMS scanning paths - MEDIUM-HIGH SCORE (15 points)
+     * WordPress/CMS scanning paths - MEDIUM-HIGH SCORE (15 points).
      *
      * These paths indicate CMS vulnerability scanning (WordPress, Joomla, Drupal, etc.).
      * Common targets for automated scanners looking for outdated CMS installations.
@@ -207,7 +214,7 @@ class ThreatPatterns
     ];
 
     /**
-     * Config file scanning paths - MEDIUM SCORE (10 points)
+     * Config file scanning paths - MEDIUM SCORE (10 points).
      *
      * These paths indicate configuration file enumeration attempts.
      * Attackers search for config files to discover credentials, API keys, or system info.
@@ -244,7 +251,7 @@ class ThreatPatterns
     ];
 
     /**
-     * Known scanner User-Agents - CRITICAL SCORE (30 points)
+     * Known scanner User-Agents - CRITICAL SCORE (30 points).
      *
      * These User-Agent strings are NEVER legitimate for normal browsing.
      * They identify automated vulnerability scanners, penetration testing tools,
@@ -312,7 +319,7 @@ class ThreatPatterns
     ];
 
     /**
-     * Legitimate Bot User-Agents (DNS VERIFICATION REQUIRED)
+     * Legitimate Bot User-Agents (DNS VERIFICATION REQUIRED).
      *
      * CRITICAL SECURITY WARNING (2025-01-23):
      * User-Agent matching ALONE is INSECURE and easily spoofed.
@@ -441,7 +448,7 @@ class ThreatPatterns
     ];
 
     /**
-     * Fake/Obsolete User-Agents - HIGH SCORE (50 points)
+     * Fake/Obsolete User-Agents - HIGH SCORE (50 points).
      *
      * REALITY CHECK (2025-01-23):
      * "Impossible" is WRONG. These are IMPROBABLE but not impossible.
@@ -516,7 +523,7 @@ class ThreatPatterns
     ];
 
     /**
-     * Geo-blocked Countries - AUTO-BAN (50 points)
+     * Geo-blocked Countries - AUTO-BAN (50 points).
      *
      * REALITY CHECK (2025-01-23):
      * This is a POLITICAL decision, not a pure security measure.
@@ -542,7 +549,7 @@ class ThreatPatterns
     ];
 
     /**
-     * Legitimate Bot Hostname Suffixes for DNS Verification
+     * Legitimate Bot Hostname Suffixes for DNS Verification.
      *
      * HOW IT WORKS:
      * 1. Check User-Agent contains bot name
@@ -574,7 +581,7 @@ class ThreatPatterns
     ];
 
     /**
-     * OpenAI IP Ranges for ChatGPT-User, GPTBot, OAI-SearchBot
+     * OpenAI IP Ranges for ChatGPT-User, GPTBot, OAI-SearchBot.
      *
      * OpenAI crawlers use Azure IPs without reverse DNS, so we verify by IP range.
      * These are /28 CIDR blocks (16 IPs each).
@@ -670,9 +677,10 @@ class ThreatPatterns
     // ============================================================================
 
     /**
-     * Check if path matches critical vulnerability patterns
+     * Check if path matches critical vulnerability patterns.
      *
      * @param string $path Request path to check
+     *
      * @return bool True if path matches critical patterns
      */
     public static function isCriticalPath(string $path): bool
@@ -681,9 +689,10 @@ class ThreatPatterns
     }
 
     /**
-     * Check if path matches CMS scanning patterns
+     * Check if path matches CMS scanning patterns.
      *
      * @param string $path Request path to check
+     *
      * @return bool True if path matches CMS patterns
      */
     public static function isCMSPath(string $path): bool
@@ -704,9 +713,10 @@ class ThreatPatterns
     }
 
     /**
-     * Check if path matches config file patterns
+     * Check if path matches config file patterns.
      *
      * @param string $path Request path to check
+     *
      * @return bool True if path matches config patterns
      */
     public static function isConfigPath(string $path): bool
@@ -715,16 +725,17 @@ class ThreatPatterns
     }
 
     /**
-     * Generic path matching helper
+     * Generic path matching helper.
      *
      * Supports both exact matches and prefix/contains matching.
      *
      * @param string $path Request path to check
      * @param array<string> $patterns Array of patterns to match against
+     *
      * @return bool True if path matches any pattern
      */
     /**
-     * Check if path matches any pattern
+     * Check if path matches any pattern.
      *
      * AGGRESSIVE MATCHING (2025-01-23):
      * Uses exact + starts_with + contains matching.
@@ -746,6 +757,7 @@ class ThreatPatterns
      *
      * @param string $path Request path
      * @param array<int, string> $patterns Patterns to match
+     *
      * @return bool True if matches any pattern
      */
     private static function matchesPaths(string $path, array $patterns): bool
@@ -803,9 +815,10 @@ class ThreatPatterns
     // ============================================================================
 
     /**
-     * Check if User-Agent is from known vulnerability scanner
+     * Check if User-Agent is from known vulnerability scanner.
      *
      * @param string $userAgent User-Agent header
+     *
      * @return bool True if scanner detected
      */
     public static function isScannerUserAgent(string $userAgent): bool
@@ -822,12 +835,13 @@ class ThreatPatterns
     }
 
     /**
-     * Check if User-Agent is from legitimate bot
+     * Check if User-Agent is from legitimate bot.
      *
      * NOTE: This only checks User-Agent string. For security, always perform
      * DNS verification using isLegitimateBot() method.
      *
      * @param string $userAgent User-Agent header
+     *
      * @return bool True if legitimate bot User-Agent detected
      */
     public static function isLegitimateBot(string $userAgent): bool
@@ -844,9 +858,10 @@ class ThreatPatterns
     }
 
     /**
-     * Check if User-Agent is fake/obsolete (impossible in 2025)
+     * Check if User-Agent is fake/obsolete (impossible in 2025).
      *
      * @param string $userAgent User-Agent header
+     *
      * @return bool True if fake/obsolete browser detected
      */
     public static function isFakeUserAgent(string $userAgent): bool
@@ -867,7 +882,7 @@ class ThreatPatterns
     }
 
     /**
-     * Classify User-Agent into threat categories
+     * Classify User-Agent into threat categories.
      *
      * CLASSIFICATION vs SECURITY:
      * This is CLASSIFICATION logic, not security validation.
@@ -880,6 +895,7 @@ class ThreatPatterns
      * - Do NOT use this for security decisions, only for logging/analytics
      *
      * @param string $userAgent User-Agent header
+     *
      * @return string One of: 'scanner', 'bot', 'browser', 'unknown'
      */
     public static function classifyUserAgent(string $userAgent): string
@@ -916,9 +932,10 @@ class ThreatPatterns
     // ============================================================================
 
     /**
-     * Check if country code is geo-blocked
+     * Check if country code is geo-blocked.
      *
      * @param string $countryCode Two-letter ISO country code (e.g., 'RU', 'CN')
+     *
      * @return bool True if country is blocked
      */
     public static function isBlockedCountry(string $countryCode): bool
@@ -927,7 +944,7 @@ class ThreatPatterns
     }
 
     /**
-     * Get list of blocked country codes
+     * Get list of blocked country codes.
      *
      * @return array<string> Array of two-letter country codes
      */
@@ -941,21 +958,24 @@ class ThreatPatterns
     // ============================================================================
 
     /**
-     * Get legitimate hostname suffixes for a bot
+     * Get legitimate hostname suffixes for a bot.
      *
      * @param string $botName Bot name (e.g., 'googlebot', 'bingbot')
+     *
      * @return array<string>|null Array of allowed hostname suffixes, or null if not found
      */
     public static function getLegitimateHostnameSuffixes(string $botName): ?array
     {
         $botNameLower = strtolower($botName);
+
         return self::LEGITIMATE_BOT_HOSTNAMES[$botNameLower] ?? null;
     }
 
     /**
-     * Check if IP is in OpenAI IP ranges
+     * Check if IP is in OpenAI IP ranges.
      *
      * @param string $ip IP address to check
+     *
      * @return bool True if IP is in OpenAI ranges
      */
     public static function isOpenAIIP(string $ip): bool
@@ -970,7 +990,7 @@ class ThreatPatterns
     }
 
     /**
-     * Get OpenAI IP ranges
+     * Get OpenAI IP ranges.
      *
      * @return array<string> Array of CIDR notation IP ranges
      */
@@ -980,12 +1000,13 @@ class ThreatPatterns
     }
 
     /**
-     * Check if IP is within CIDR range
+     * Check if IP is within CIDR range.
      *
      * Delegates to IPUtils for centralized CIDR matching.
      *
      * @param string $ip IP address to check
      * @param string $cidr CIDR notation (e.g., '192.168.1.0/24')
+     *
      * @return bool True if IP is in range
      */
     private static function ipInCIDR(string $ip, string $cidr): bool
@@ -998,7 +1019,7 @@ class ThreatPatterns
     // ============================================================================
 
     /**
-     * Get score for critical path detection
+     * Get score for critical path detection.
      *
      * @return int Score points (30)
      */
@@ -1008,7 +1029,7 @@ class ThreatPatterns
     }
 
     /**
-     * Get score for CMS path detection
+     * Get score for CMS path detection.
      *
      * @return int Score points (15)
      */
@@ -1018,7 +1039,7 @@ class ThreatPatterns
     }
 
     /**
-     * Get score for config path detection
+     * Get score for config path detection.
      *
      * @return int Score points (10)
      */
@@ -1028,7 +1049,7 @@ class ThreatPatterns
     }
 
     /**
-     * Get score for scanner User-Agent detection
+     * Get score for scanner User-Agent detection.
      *
      * @return int Score points (30)
      */
@@ -1038,7 +1059,7 @@ class ThreatPatterns
     }
 
     /**
-     * Get score for fake User-Agent detection
+     * Get score for fake User-Agent detection.
      *
      * @return int Score points (50)
      */
@@ -1048,7 +1069,7 @@ class ThreatPatterns
     }
 
     /**
-     * Get score for NULL User-Agent
+     * Get score for NULL User-Agent.
      *
      * @return int Score points (100 - instant ban)
      */
@@ -1058,7 +1079,7 @@ class ThreatPatterns
     }
 
     /**
-     * Get score for geo-blocked country
+     * Get score for geo-blocked country.
      *
      * @return int Score points (50)
      */
@@ -1068,7 +1089,7 @@ class ThreatPatterns
     }
 
     /**
-     * Get score for Unicode obfuscation
+     * Get score for Unicode obfuscation.
      *
      * @return int Score points (20)
      */
@@ -1077,9 +1098,8 @@ class ThreatPatterns
         return self::SCORE_UNICODE_OBFUSCATION;
     }
 
-
     /**
-     * Get score for rate limit exceeded
+     * Get score for rate limit exceeded.
      *
      * @return int Score points (20)
      */
@@ -1089,7 +1109,7 @@ class ThreatPatterns
     }
 
     /**
-     * Get ban threshold score
+     * Get ban threshold score.
      *
      * @return int Threshold points (50)
      */
@@ -1099,17 +1119,18 @@ class ThreatPatterns
     }
 
     /**
-     * Calculate total threat score for a request
+     * Calculate total threat score for a request.
      *
      * @param string $path Request path
      * @param string $userAgent User-Agent header
      * @param string|null $countryCode Optional country code
+     *
      * @return array{score: int, reasons: array<string>} Score and reasons
      */
     public static function calculateThreatScore(
         string $path,
         string $userAgent,
-        ?string $countryCode = null
+        ?string $countryCode = null,
     ): array {
         $score = 0;
         $reasons = [];
@@ -1157,9 +1178,10 @@ class ThreatPatterns
     }
 
     /**
-     * Check if score exceeds ban threshold
+     * Check if score exceeds ban threshold.
      *
      * @param int $score Current score
+     *
      * @return bool True if score >= threshold
      */
     public static function shouldBan(int $score): bool
@@ -1172,7 +1194,7 @@ class ThreatPatterns
     // ============================================================================
 
     /**
-     * Get total number of critical paths
+     * Get total number of critical paths.
      *
      * @return int Count of patterns
      */
@@ -1182,7 +1204,7 @@ class ThreatPatterns
     }
 
     /**
-     * Get total number of CMS paths
+     * Get total number of CMS paths.
      *
      * @return int Count of patterns
      */
@@ -1192,7 +1214,7 @@ class ThreatPatterns
     }
 
     /**
-     * Get total number of config paths
+     * Get total number of config paths.
      *
      * @return int Count of patterns
      */
@@ -1202,7 +1224,7 @@ class ThreatPatterns
     }
 
     /**
-     * Get total number of scanner User-Agents
+     * Get total number of scanner User-Agents.
      *
      * @return int Count of patterns
      */
@@ -1212,7 +1234,7 @@ class ThreatPatterns
     }
 
     /**
-     * Get total number of legitimate bots
+     * Get total number of legitimate bots.
      *
      * @return int Count of patterns
      */
@@ -1222,7 +1244,7 @@ class ThreatPatterns
     }
 
     /**
-     * Get total number of fake User-Agent patterns
+     * Get total number of fake User-Agent patterns.
      *
      * @return int Count of patterns
      */
@@ -1232,7 +1254,7 @@ class ThreatPatterns
     }
 
     /**
-     * Get comprehensive pattern statistics
+     * Get comprehensive pattern statistics.
      *
      * @return array<string, int> Pattern counts by category
      */

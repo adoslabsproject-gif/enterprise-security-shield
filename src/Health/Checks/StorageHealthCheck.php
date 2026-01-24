@@ -9,14 +9,16 @@ use Senza1dio\SecurityShield\Health\CheckResult;
 use Senza1dio\SecurityShield\Health\HealthCheckInterface;
 
 /**
- * Storage Interface Health Check
+ * Storage Interface Health Check.
  *
  * Generic health check for any StorageInterface implementation.
  */
 class StorageHealthCheck implements HealthCheckInterface
 {
     private StorageInterface $storage;
+
     private string $testKey;
+
     private int $timeoutMs;
 
     /**
@@ -27,7 +29,7 @@ class StorageHealthCheck implements HealthCheckInterface
     public function __construct(
         StorageInterface $storage,
         string $testKey = '_health_check_test',
-        int $timeoutMs = 1000
+        int $timeoutMs = 1000,
     ) {
         $this->storage = $storage;
         $this->testKey = $testKey;
@@ -71,7 +73,7 @@ class StorageHealthCheck implements HealthCheckInterface
             if ($duration > $this->timeoutMs) {
                 return CheckResult::degraded(
                     "Storage operations slow: {$duration}ms",
-                    $metadata
+                    $metadata,
                 );
             }
 

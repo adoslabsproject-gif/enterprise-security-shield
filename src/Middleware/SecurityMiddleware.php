@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace Senza1dio\SecurityShield\Middleware;
 
 use Senza1dio\SecurityShield\Config\SecurityConfig;
-use Senza1dio\SecurityShield\Contracts\StorageInterface;
 use Senza1dio\SecurityShield\Contracts\LoggerInterface;
+use Senza1dio\SecurityShield\Contracts\StorageInterface;
 use Senza1dio\SecurityShield\Services\BotVerifier;
 use Senza1dio\SecurityShield\Services\ThreatPatterns;
 use Senza1dio\SecurityShield\Utils\IPUtils;
 
 /**
- * Security Middleware - Threat Detection and IP Management
+ * Security Middleware - Threat Detection and IP Management.
  *
  * Framework-agnostic security middleware that provides threat detection,
  * scanning detection and automatic IP banning. Designed to protect web
@@ -69,60 +69,60 @@ use Senza1dio\SecurityShield\Utils\IPUtils;
  * - Storage via interface (Redis, DB, Memory)
  * - Logger via interface (PSR-3 compatible)
  *
- * @package Senza1dio\SecurityShield\Middleware
  * @version 2.0.0
+ *
  * @author Senza1dio Security Team
  * @license MIT
  */
 class SecurityMiddleware
 {
     /**
-     * Security configuration
+     * Security configuration.
      */
     protected SecurityConfig $config;
 
     /**
-     * Storage backend for IP scores, bans, and caching
+     * Storage backend for IP scores, bans, and caching.
      */
     protected StorageInterface $storage;
 
     /**
-     * Logger for security events
+     * Logger for security events.
      */
     protected LoggerInterface $logger;
 
     /**
-     * Bot verifier instance (DNS + IP verification)
+     * Bot verifier instance (DNS + IP verification).
      */
     private ?BotVerifier $botVerifier = null;
 
     /**
-     * GeoIP service instance
+     * GeoIP service instance.
      */
     private ?\Senza1dio\SecurityShield\Services\GeoIP\GeoIPService $geoip = null;
 
     /**
-     * Metrics collector instance
+     * Metrics collector instance.
      */
     private ?\Senza1dio\SecurityShield\Contracts\MetricsCollectorInterface $metrics = null;
 
     /**
-     * Webhook notifier instance
+     * Webhook notifier instance.
      */
     private ?\Senza1dio\SecurityShield\Services\WebhookNotifier $webhooks = null;
 
     /**
-     * Block reason (set when request is blocked)
+     * Block reason (set when request is blocked).
      */
     private ?string $blockReason = null;
 
     /**
-     * Current threat score
+     * Current threat score.
      */
     private int $threatScore = 0;
 
     /**
-     * Resolved client IP (proxy-aware)
+     * Resolved client IP (proxy-aware).
      *
      * Set once during handle() and reused by child classes.
      * Ensures consistent IP across all security checks.
@@ -130,9 +130,10 @@ class SecurityMiddleware
     protected ?string $clientIp = null;
 
     /**
-     * Constructor
+     * Constructor.
      *
      * @param SecurityConfig $config Security configuration with storage and logger
+     *
      * @throws \InvalidArgumentException If storage or logger not set in config
      */
     public function __construct(SecurityConfig $config)
@@ -145,13 +146,13 @@ class SecurityMiddleware
 
         if ($storage === null) {
             throw new \InvalidArgumentException(
-                'SecurityConfig must have storage configured. Use $config->setStorage($storage)'
+                'SecurityConfig must have storage configured. Use $config->setStorage($storage)',
             );
         }
 
         if ($logger === null) {
             throw new \InvalidArgumentException(
-                'SecurityConfig must have logger configured. Use $config->setLogger($logger)'
+                'SecurityConfig must have logger configured. Use $config->setLogger($logger)',
             );
         }
 
@@ -166,43 +167,49 @@ class SecurityMiddleware
     }
 
     /**
-     * Set GeoIP service (optional but recommended)
+     * Set GeoIP service (optional but recommended).
      *
      * @param \Senza1dio\SecurityShield\Services\GeoIP\GeoIPService $geoip
+     *
      * @return self
      */
     public function setGeoIP(\Senza1dio\SecurityShield\Services\GeoIP\GeoIPService $geoip): self
     {
         $this->geoip = $geoip;
+
         return $this;
     }
 
     /**
-     * Set metrics collector (optional)
+     * Set metrics collector (optional).
      *
      * @param \Senza1dio\SecurityShield\Contracts\MetricsCollectorInterface $metrics
+     *
      * @return self
      */
     public function setMetrics(\Senza1dio\SecurityShield\Contracts\MetricsCollectorInterface $metrics): self
     {
         $this->metrics = $metrics;
+
         return $this;
     }
 
     /**
-     * Set webhook notifier (optional)
+     * Set webhook notifier (optional).
      *
      * @param \Senza1dio\SecurityShield\Services\WebhookNotifier $webhooks
+     *
      * @return self
      */
     public function setWebhooks(\Senza1dio\SecurityShield\Services\WebhookNotifier $webhooks): self
     {
         $this->webhooks = $webhooks;
+
         return $this;
     }
 
     /**
-     * Handle WAF security checks
+     * Handle WAF security checks.
      *
      * WORKFLOW:
      * 0. EARLY BAN CHECK - Block banned IPs immediately (cache-only, no storage writes)
@@ -219,6 +226,7 @@ class SecurityMiddleware
      * @param array<string, mixed> $server $_SERVER superglobal (REMOTE_ADDR, REQUEST_URI, HTTP_USER_AGENT)
      * @param array<string, mixed> $get $_GET superglobal (optional, for query string analysis)
      * @param array<string, mixed> $post $_POST superglobal (optional, for POST analysis)
+     *
      * @return bool True if request allowed, false if blocked
      */
     public function handle(array $server, array $get = [], array $post = []): bool
@@ -263,12 +271,14 @@ class SecurityMiddleware
             try {
                 if ($this->storage->isIpBannedCached($remoteAddr)) {
                     $this->blockReason = 'ip_banned_early';
+
                     return false; // BLOCKED
                 }
             } catch (\Throwable $e) {
                 // FAIL-CLOSED: If configured, block on storage failure
                 if ($this->config->isFailClosedEnabled()) {
                     $this->blockReason = 'storage_failure_failclosed';
+
                     return false; // BLOCK ALL on storage failure
                 }
                 // FAIL-OPEN: Continue (default behavior)
@@ -289,12 +299,14 @@ class SecurityMiddleware
             try {
                 if ($this->storage->isIpBannedCached($ip)) {
                     $this->blockReason = 'ip_banned_early';
+
                     return false; // BLOCKED
                 }
             } catch (\Throwable $e) {
                 // FAIL-CLOSED policy
                 if ($this->config->isFailClosedEnabled()) {
                     $this->blockReason = 'storage_failure_failclosed';
+
                     return false;
                 }
             }
@@ -319,6 +331,7 @@ class SecurityMiddleware
                 'path' => $path,
                 'remote_addr' => $server['REMOTE_ADDR'] ?? 'unknown',
             ]);
+
             return false;
         }
 
@@ -332,6 +345,7 @@ class SecurityMiddleware
                 'path' => $path,
                 'whitelist_type' => 'config',
             ]);
+
             return true; // ALLOWED
         }
 
@@ -346,6 +360,7 @@ class SecurityMiddleware
                 'path' => $path,
             ]);
             $this->recordMetric('blocked', 'blacklist');
+
             return false; // BLOCKED
         }
 
@@ -392,6 +407,7 @@ class SecurityMiddleware
                     'ip' => $ip,
                     'path' => $path,
                 ]);
+
                 // CRITICAL: Do NOT increment request count for banned IPs
                 // (prevents DoS storage amplification attack)
                 return false; // BLOCKED
@@ -404,6 +420,7 @@ class SecurityMiddleware
                     'ip' => $ip,
                     'error' => $e->getMessage(),
                 ]);
+
                 return false; // BLOCK on storage failure
             }
             // FAIL-OPEN: Continue (storage unavailable, assume not banned)
@@ -421,6 +438,7 @@ class SecurityMiddleware
                     'user_agent' => $userAgent,
                     'path' => $path,
                 ]);
+
                 // CRITICAL: Do NOT increment request count for legitimate bots
                 return true; // ALLOWED
             }
@@ -508,7 +526,7 @@ class SecurityMiddleware
             $totalScore = $this->storage->incrementScore(
                 $ip,
                 $score,
-                $this->config->getTrackingWindow()
+                $this->config->getTrackingWindow(),
             );
 
             $this->logger->warning('WAF: Suspicious activity detected', [
@@ -533,7 +551,7 @@ class SecurityMiddleware
                 $this->storage->banIP(
                     $ip,
                     $this->config->getBanDuration(),
-                    implode(', ', $reasons)
+                    implode(', ', $reasons),
                 );
 
                 // Log critical security event
@@ -569,7 +587,7 @@ class SecurityMiddleware
     }
 
     /**
-     * Get block reason (if request was blocked)
+     * Get block reason (if request was blocked).
      *
      * USAGE:
      * ```php
@@ -587,7 +605,7 @@ class SecurityMiddleware
     }
 
     /**
-     * Get threat score added in current request
+     * Get threat score added in current request.
      *
      * Returns the score added ONLY in the current request, NOT the total accumulated score.
      * For total score, query storage->getScore($ip).
@@ -602,9 +620,10 @@ class SecurityMiddleware
     }
 
     /**
-     * Get threat score added in current request (DEPRECATED - use getLastRequestScore)
+     * Get threat score added in current request (DEPRECATED - use getLastRequestScore).
      *
      * @deprecated Use getLastRequestScore() instead for clarity
+     *
      * @return int Threat score added this request
      */
     public function getThreatScore(): int
@@ -613,12 +632,13 @@ class SecurityMiddleware
     }
 
     /**
-     * Check if IP is whitelisted
+     * Check if IP is whitelisted.
      *
      * Whitelisted IPs bypass ALL security checks (ban, scoring, patterns).
      * Supports both single IPs and CIDR ranges.
      *
      * @param string $ip Client IP address
+     *
      * @return bool True if whitelisted
      */
     protected function isIPWhitelisted(string $ip): bool
@@ -633,12 +653,13 @@ class SecurityMiddleware
     }
 
     /**
-     * Check if IP is blacklisted
+     * Check if IP is blacklisted.
      *
      * Blacklisted IPs are instantly blocked (no scoring, no verification).
      * Supports both single IPs and CIDR ranges.
      *
      * @param string $ip Client IP address
+     *
      * @return bool True if blacklisted
      */
     protected function isIPBlacklisted(string $ip): bool
@@ -653,7 +674,7 @@ class SecurityMiddleware
     }
 
     /**
-     * Get configuration instance
+     * Get configuration instance.
      *
      * @return SecurityConfig
      */
@@ -663,7 +684,7 @@ class SecurityMiddleware
     }
 
     /**
-     * Get bot verifier instance
+     * Get bot verifier instance.
      *
      * @return BotVerifier|null
      */
@@ -673,7 +694,7 @@ class SecurityMiddleware
     }
 
     /**
-     * Extract real client IP from proxy headers
+     * Extract real client IP from proxy headers.
      *
      * Delegates to IPUtils::extractClientIP() for centralized IP extraction logic.
      *
@@ -688,6 +709,7 @@ class SecurityMiddleware
      *
      * @param array<string, mixed> $server $_SERVER superglobal
      * @param array<string> $trustedProxies List of trusted proxy IPs/CIDRs
+     *
      * @return string Client IP address
      */
     protected function extractRealClientIP(array $server, array $trustedProxies = []): string
@@ -696,10 +718,11 @@ class SecurityMiddleware
     }
 
     /**
-     * Record metric (if metrics collector configured)
+     * Record metric (if metrics collector configured).
      *
      * @param string $action Action (e.g., 'blocked', 'allowed', 'banned')
      * @param string $reason Reason (e.g., 'blacklist', 'geo_country', 'sql_injection')
+     *
      * @return void
      */
     private function recordMetric(string $action, string $reason): void
@@ -711,10 +734,11 @@ class SecurityMiddleware
     }
 
     /**
-     * Send webhook notification (if webhooks configured)
+     * Send webhook notification (if webhooks configured).
      *
      * @param string $event Event type
      * @param array<string, mixed> $data Event data
+     *
      * @return void
      */
     private function sendWebhook(string $event, array $data): void
@@ -725,7 +749,7 @@ class SecurityMiddleware
     }
 
     /**
-     * Get statistics (requires metrics collector)
+     * Get statistics (requires metrics collector).
      *
      * @return array<string, float> Statistics
      */
@@ -739,25 +763,27 @@ class SecurityMiddleware
     }
 
     /**
-     * Sanitize params for logging (prevents log poisoning + storage bloat)
+     * Sanitize params for logging (prevents log poisoning + storage bloat).
      *
      * Security: Limits each param to 500 chars, handles non-scalar values
      * Prevents: Log injection, emoji flood, binary data, UTF-16 attacks
      *
      * @internal Available for subclasses to use in custom logging
+     *
      * @param array<string, mixed> $params Raw GET/POST params
+     *
      * @return array<string, string> Sanitized params safe for logging
      */
     protected function sanitizeParamsForLogging(array $params): array
     {
         return array_map(
-            fn($v) => is_scalar($v) ? mb_substr((string)$v, 0, 500) : '[non-scalar]',
-            $params
+            fn ($v) => is_scalar($v) ? mb_substr((string) $v, 0, 500) : '[non-scalar]',
+            $params,
         );
     }
 
     /**
-     * Get resolved client IP (proxy-aware)
+     * Get resolved client IP (proxy-aware).
      *
      * Returns the real client IP extracted during handle().
      * Child classes MUST use this instead of re-extracting IP.

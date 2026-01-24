@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Senza1dio\SecurityShield\Resilience;
 
 /**
- * Exception thrown when bulkhead is at capacity
+ * Exception thrown when bulkhead is at capacity.
  */
 class BulkheadFullException extends \Exception
 {

@@ -158,17 +158,18 @@ class NotificationManagerTest extends TestCase
     }
 
     /**
-     * Create mock notifier
+     * Create mock notifier.
      *
      * @param string $name
      * @param bool $configured
      * @param bool $sendSuccess
+     *
      * @return NotifierInterface&\PHPUnit\Framework\MockObject\MockObject
      */
     private function createMockNotifier(
         string $name,
         bool $configured = true,
-        bool $sendSuccess = true
+        bool $sendSuccess = true,
     ): NotifierInterface {
         $mock = $this->createMock(NotifierInterface::class);
 

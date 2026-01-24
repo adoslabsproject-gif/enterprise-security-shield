@@ -7,7 +7,7 @@ namespace Senza1dio\SecurityShield\Resilience;
 use Senza1dio\SecurityShield\Contracts\StorageInterface;
 
 /**
- * Bulkhead Pattern Implementation
+ * Bulkhead Pattern Implementation.
  *
  * Limits concurrent access to a resource to prevent resource exhaustion.
  * Like watertight compartments in a ship - failure in one doesn't sink the whole ship.
@@ -39,26 +39,30 @@ use Senza1dio\SecurityShield\Contracts\StorageInterface;
  *     'queue_timeout' => 5.0,
  * ]);
  * ```
- *
- * @package Senza1dio\SecurityShield\Resilience
  */
 class Bulkhead
 {
     private string $name;
+
     private int $maxConcurrent;
+
     private ?StorageInterface $storage;
 
     // Queue configuration
     private int $queueSize;
+
     private float $queueTimeout;
 
     // Local state (when no storage)
     private int $localActive = 0;
+
     private int $localQueued = 0;
 
     // Metrics
     private int $totalExecutions = 0;
+
     private int $totalRejections = 0;
+
     private int $totalQueueTimeouts = 0;
 
     /**
@@ -75,7 +79,7 @@ class Bulkhead
         string $name,
         int $maxConcurrent,
         ?StorageInterface $storage = null,
-        array $options = []
+        array $options = [],
     ) {
         $this->name = $name;
         $this->maxConcurrent = max(1, $maxConcurrent);
@@ -86,13 +90,16 @@ class Bulkhead
     }
 
     /**
-     * Execute operation within bulkhead constraints
+     * Execute operation within bulkhead constraints.
      *
      * @template T
+     *
      * @param callable(): T $operation Operation to execute
-     * @return T Result of operation
+     *
      * @throws BulkheadFullException When bulkhead is at capacity and queue is full
      * @throws BulkheadTimeoutException When queue timeout exceeded
+     *
+     * @return T Result of operation
      */
     public function execute(callable $operation): mixed
     {
@@ -104,15 +111,17 @@ class Bulkhead
             }
 
             $this->totalRejections++;
+
             throw new BulkheadFullException(
                 "Bulkhead '{$this->name}' is full. Max concurrent: {$this->maxConcurrent}",
                 $this->name,
-                $this->getStatistics()
+                $this->getStatistics(),
             );
         }
 
         try {
             $this->totalExecutions++;
+
             return $operation();
         } finally {
             $this->release();
@@ -120,10 +129,12 @@ class Bulkhead
     }
 
     /**
-     * Try to execute, return null if bulkhead is full
+     * Try to execute, return null if bulkhead is full.
      *
      * @template T
+     *
      * @param callable(): T $operation
+     *
      * @return T|null
      */
     public function tryExecute(callable $operation): mixed
@@ -134,6 +145,7 @@ class Bulkhead
 
         try {
             $this->totalExecutions++;
+
             return $operation();
         } finally {
             $this->release();
@@ -141,7 +153,7 @@ class Bulkhead
     }
 
     /**
-     * Check if bulkhead has capacity
+     * Check if bulkhead has capacity.
      */
     public function hasCapacity(): bool
     {
@@ -149,7 +161,7 @@ class Bulkhead
     }
 
     /**
-     * Get number of active executions
+     * Get number of active executions.
      */
     public function getActiveCount(): int
     {
@@ -158,11 +170,12 @@ class Bulkhead
         }
 
         $count = $this->storage->get($this->getKey('active'));
+
         return is_numeric($count) ? max(0, (int) $count) : 0;
     }
 
     /**
-     * Get number of queued executions
+     * Get number of queued executions.
      */
     public function getQueuedCount(): int
     {
@@ -171,11 +184,12 @@ class Bulkhead
         }
 
         $count = $this->storage->get($this->getKey('queued'));
+
         return is_numeric($count) ? max(0, (int) $count) : 0;
     }
 
     /**
-     * Get available capacity
+     * Get available capacity.
      */
     public function getAvailableCapacity(): int
     {
@@ -183,7 +197,7 @@ class Bulkhead
     }
 
     /**
-     * Get bulkhead statistics
+     * Get bulkhead statistics.
      *
      * @return array{
      *     name: string,
@@ -225,6 +239,7 @@ class Bulkhead
                 return false;
             }
             $this->localActive++;
+
             return true;
         }
 
@@ -239,6 +254,7 @@ class Bulkhead
 
         // Increment with TTL as safety net (auto-cleanup if process dies)
         $this->storage->increment($key, 1, 300); // 5 min TTL
+
         return true;
     }
 
@@ -246,6 +262,7 @@ class Bulkhead
     {
         if ($this->storage === null) {
             $this->localActive = max(0, $this->localActive - 1);
+
             return;
         }
 
@@ -284,14 +301,16 @@ class Bulkhead
 
             if (!$acquired) {
                 $this->totalQueueTimeouts++;
+
                 throw new BulkheadTimeoutException(
                     "Queue timeout for bulkhead '{$this->name}' after {$this->queueTimeout}s",
                     $this->name,
-                    $this->queueTimeout
+                    $this->queueTimeout,
                 );
             }
 
             $this->totalExecutions++;
+
             return $operation();
 
         } finally {
@@ -307,6 +326,7 @@ class Bulkhead
     {
         if ($this->storage === null) {
             $this->localQueued++;
+
             return;
         }
 
@@ -317,6 +337,7 @@ class Bulkhead
     {
         if ($this->storage === null) {
             $this->localQueued = max(0, $this->localQueued - 1);
+
             return;
         }
 

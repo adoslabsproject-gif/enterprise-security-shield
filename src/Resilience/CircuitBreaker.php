@@ -7,7 +7,7 @@ namespace Senza1dio\SecurityShield\Resilience;
 use Senza1dio\SecurityShield\Contracts\StorageInterface;
 
 /**
- * Circuit Breaker Pattern Implementation
+ * Circuit Breaker Pattern Implementation.
  *
  * Prevents cascading failures by failing fast when a dependency is unhealthy.
  *
@@ -41,37 +41,48 @@ use Senza1dio\SecurityShield\Contracts\StorageInterface;
  * DISTRIBUTED STATE:
  * State is stored in Redis/DB so all instances share the same circuit state.
  * This prevents one instance from hammering a dead service while others have it open.
- *
- * @package Senza1dio\SecurityShield\Resilience
  */
 class CircuitBreaker
 {
     public const STATE_CLOSED = 'closed';
+
     public const STATE_OPEN = 'open';
+
     public const STATE_HALF_OPEN = 'half_open';
 
     private string $name;
+
     private ?StorageInterface $storage;
+
     private string $keyPrefix;
 
     // Configuration
     private int $failureThreshold;
+
     private int $recoveryTimeout;
+
     private int $halfOpenMaxCalls;
+
     private int $successThreshold;
 
     // In-memory state (fallback when no storage)
     private string $localState = self::STATE_CLOSED;
+
     private int $localFailureCount = 0;
+
     private int $localSuccessCount = 0;
+
     private ?int $localOpenedAt = null;
+
     private int $localHalfOpenCalls = 0;
 
     // Event callbacks
     /** @var array<callable> */
     private array $onStateChange = [];
+
     /** @var array<callable> */
     private array $onFailure = [];
+
     /** @var array<callable> */
     private array $onSuccess = [];
 
@@ -89,7 +100,7 @@ class CircuitBreaker
     public function __construct(
         string $name,
         ?StorageInterface $storage = null,
-        array $options = []
+        array $options = [],
     ) {
         $this->name = $name;
         $this->storage = $storage;
@@ -103,14 +114,17 @@ class CircuitBreaker
     }
 
     /**
-     * Execute operation through the circuit breaker
+     * Execute operation through the circuit breaker.
      *
      * @template T
+     *
      * @param callable(): T $operation Primary operation to execute
      * @param callable(): T|null $fallback Fallback when circuit is open (optional)
-     * @return T Result of operation or fallback
+     *
      * @throws CircuitOpenException When circuit is open and no fallback provided
      * @throws \Throwable When operation fails and circuit allows propagation
+     *
+     * @return T Result of operation or fallback
      */
     public function call(callable $operation, ?callable $fallback = null): mixed
     {
@@ -138,6 +152,7 @@ class CircuitBreaker
         try {
             $result = $operation();
             $this->recordSuccess();
+
             return $result;
         } catch (\Throwable $e) {
             $this->recordFailure($e);
@@ -157,7 +172,7 @@ class CircuitBreaker
     }
 
     /**
-     * Get current circuit state
+     * Get current circuit state.
      */
     public function getState(): string
     {
@@ -166,11 +181,12 @@ class CircuitBreaker
         }
 
         $state = $this->storage->get($this->getKey('state'));
+
         return is_string($state) ? $state : self::STATE_CLOSED;
     }
 
     /**
-     * Get failure count
+     * Get failure count.
      */
     public function getFailureCount(): int
     {
@@ -179,11 +195,12 @@ class CircuitBreaker
         }
 
         $count = $this->storage->get($this->getKey('failures'));
+
         return is_numeric($count) ? (int) $count : 0;
     }
 
     /**
-     * Get success count (in half-open state)
+     * Get success count (in half-open state).
      */
     public function getSuccessCount(): int
     {
@@ -192,11 +209,12 @@ class CircuitBreaker
         }
 
         $count = $this->storage->get($this->getKey('successes'));
+
         return is_numeric($count) ? (int) $count : 0;
     }
 
     /**
-     * Get half-open call count
+     * Get half-open call count.
      */
     public function getHalfOpenCalls(): int
     {
@@ -205,11 +223,12 @@ class CircuitBreaker
         }
 
         $count = $this->storage->get($this->getKey('half_open_calls'));
+
         return is_numeric($count) ? (int) $count : 0;
     }
 
     /**
-     * Check if circuit is allowing requests
+     * Check if circuit is allowing requests.
      */
     public function isAvailable(): bool
     {
@@ -228,7 +247,7 @@ class CircuitBreaker
     }
 
     /**
-     * Force circuit to open state (manual trip)
+     * Force circuit to open state (manual trip).
      */
     public function forceOpen(): void
     {
@@ -236,7 +255,7 @@ class CircuitBreaker
     }
 
     /**
-     * Force circuit to closed state (manual reset)
+     * Force circuit to closed state (manual reset).
      */
     public function forceClose(): void
     {
@@ -245,7 +264,7 @@ class CircuitBreaker
     }
 
     /**
-     * Get circuit statistics
+     * Get circuit statistics.
      *
      * @return array{
      *     name: string,
@@ -284,35 +303,38 @@ class CircuitBreaker
     }
 
     /**
-     * Register callback for state changes
+     * Register callback for state changes.
      *
      * @param callable(string $oldState, string $newState, string $circuitName): void $callback
      */
     public function onStateChange(callable $callback): self
     {
         $this->onStateChange[] = $callback;
+
         return $this;
     }
 
     /**
-     * Register callback for failures
+     * Register callback for failures.
      *
      * @param callable(\Throwable $e, int $failureCount, string $circuitName): void $callback
      */
     public function onFailure(callable $callback): self
     {
         $this->onFailure[] = $callback;
+
         return $this;
     }
 
     /**
-     * Register callback for successes
+     * Register callback for successes.
      *
      * @param callable(int $successCount, string $circuitName): void $callback
      */
     public function onSuccess(callable $callback): self
     {
         $this->onSuccess[] = $callback;
+
         return $this;
     }
 
@@ -370,12 +392,12 @@ class CircuitBreaker
 
         // Log state transition for observability
         error_log(sprintf(
-            "CircuitBreaker[%s]: State transition %s -> %s (failures=%d, threshold=%d)",
+            'CircuitBreaker[%s]: State transition %s -> %s (failures=%d, threshold=%d)',
             $this->name,
             $oldState,
             $newState,
             $this->getFailureCount(),
-            $this->failureThreshold
+            $this->failureThreshold,
         ));
 
         // Update state
@@ -414,8 +436,9 @@ class CircuitBreaker
     }
 
     /**
-     * @return mixed
      * @throws CircuitOpenException
+     *
+     * @return mixed
      */
     private function handleOpenCircuit(?callable $fallback): mixed
     {
@@ -426,7 +449,7 @@ class CircuitBreaker
         throw new CircuitOpenException(
             "Circuit '{$this->name}' is open. Service unavailable.",
             $this->name,
-            $this->getStatistics()
+            $this->getStatistics(),
         );
     }
 
@@ -437,6 +460,7 @@ class CircuitBreaker
         }
 
         $timestamp = $this->storage->get($this->getKey('opened_at'));
+
         return is_numeric($timestamp) ? (int) $timestamp : null;
     }
 

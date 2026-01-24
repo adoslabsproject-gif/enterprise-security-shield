@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Senza1dio\SecurityShield\Health;
 
 /**
- * Health Check System
+ * Health Check System.
  *
  * Enterprise health monitoring for Kubernetes, Docker, and load balancers.
  *
@@ -47,8 +47,6 @@ namespace Senza1dio\SecurityShield\Health;
  * header('Content-Type: application/json');
  * echo json_encode($result->toArray());
  * ```
- *
- * @package Senza1dio\SecurityShield\Health
  */
 class HealthCheck
 {
@@ -59,11 +57,13 @@ class HealthCheck
     private array $criticalChecks = [];
 
     private ?int $cacheTTL = null;
+
     private ?HealthResult $cachedResult = null;
+
     private ?float $cachedAt = null;
 
     /**
-     * Add a health check
+     * Add a health check.
      *
      * @param string $name Unique name for this check
      * @param HealthCheckInterface $check The health check implementation
@@ -73,11 +73,12 @@ class HealthCheck
     {
         $this->checks[$name] = $check;
         $this->criticalChecks[$name] = $critical;
+
         return $this;
     }
 
     /**
-     * Add a simple callable check
+     * Add a simple callable check.
      *
      * @param string $name Check name
      * @param callable(): bool $check Returns true if healthy
@@ -87,22 +88,24 @@ class HealthCheck
     {
         $this->checks[$name] = new CallableHealthCheck($check);
         $this->criticalChecks[$name] = $critical;
+
         return $this;
     }
 
     /**
-     * Enable caching of health check results
+     * Enable caching of health check results.
      *
      * @param int $ttlSeconds Cache TTL in seconds
      */
     public function enableCache(int $ttlSeconds): self
     {
         $this->cacheTTL = $ttlSeconds;
+
         return $this;
     }
 
     /**
-     * Run all health checks
+     * Run all health checks.
      *
      * @param bool $forceRefresh Bypass cache
      */
@@ -130,7 +133,7 @@ class HealthCheck
                     message: $componentResult->message,
                     duration: $duration,
                     metadata: $componentResult->metadata,
-                    critical: $this->criticalChecks[$name] ?? true
+                    critical: $this->criticalChecks[$name] ?? true,
                 );
 
             } catch (\Throwable $e) {
@@ -142,7 +145,7 @@ class HealthCheck
                     message: $e->getMessage(),
                     duration: $duration,
                     metadata: ['exception' => get_class($e)],
-                    critical: $this->criticalChecks[$name] ?? true
+                    critical: $this->criticalChecks[$name] ?? true,
                 );
             }
 
@@ -161,7 +164,7 @@ class HealthCheck
         $result = new HealthResult(
             status: $overallStatus,
             components: $componentResults,
-            timestamp: time()
+            timestamp: time(),
         );
 
         // Cache result
@@ -174,7 +177,7 @@ class HealthCheck
     }
 
     /**
-     * Run liveness check (minimal, fast)
+     * Run liveness check (minimal, fast).
      *
      * Only checks if the process is alive, not dependencies.
      */
@@ -183,12 +186,12 @@ class HealthCheck
         return new HealthResult(
             status: HealthStatus::HEALTHY,
             components: [],
-            timestamp: time()
+            timestamp: time(),
         );
     }
 
     /**
-     * Run readiness check (all checks)
+     * Run readiness check (all checks).
      *
      * Full check of all dependencies.
      */
@@ -198,7 +201,7 @@ class HealthCheck
     }
 
     /**
-     * Get check names
+     * Get check names.
      *
      * @return array<string>
      */
@@ -208,7 +211,7 @@ class HealthCheck
     }
 
     /**
-     * Clear cached result
+     * Clear cached result.
      */
     public function clearCache(): void
     {
@@ -223,6 +226,7 @@ class HealthCheck
         }
 
         $elapsed = microtime(true) - $this->cachedAt;
+
         return $elapsed < $this->cacheTTL;
     }
 }

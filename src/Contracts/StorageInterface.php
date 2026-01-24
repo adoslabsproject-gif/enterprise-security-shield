@@ -1,9 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Senza1dio\SecurityShield\Contracts;
 
 /**
- * Storage Interface - Framework-Agnostic Data Persistence
+ * Storage Interface - Framework-Agnostic Data Persistence.
  *
  * Allows SecurityShield to work with any backend:
  * - Redis (recommended for production)
@@ -14,25 +16,27 @@ namespace Senza1dio\SecurityShield\Contracts;
 interface StorageInterface
 {
     /**
-     * Store IP threat score
+     * Store IP threat score.
      *
      * @param string $ip Client IP address
      * @param int $score Current threat score
      * @param int $ttl Time to live in seconds
+     *
      * @return bool Success
      */
     public function setScore(string $ip, int $score, int $ttl): bool;
 
     /**
-     * Get IP threat score
+     * Get IP threat score.
      *
      * @param string $ip Client IP address
+     *
      * @return int|null Score or null if not found
      */
     public function getScore(string $ip): ?int;
 
     /**
-     * Increment IP threat score
+     * Increment IP threat score.
      *
      * CRITICAL: This operation MUST be atomic to prevent race conditions.
      *
@@ -56,12 +60,13 @@ interface StorageInterface
      * @param string $ip Client IP address
      * @param int $points Points to add
      * @param int $ttl Time to live in seconds
+     *
      * @return int New score after increment
      */
     public function incrementScore(string $ip, int $points, int $ttl): int;
 
     /**
-     * Check if IP is banned (may query database on cold cache)
+     * Check if IP is banned (may query database on cold cache).
      *
      * Use isIpBannedCached() for hot-path ban checks (avoids DB query).
      *
@@ -98,12 +103,13 @@ interface StorageInterface
      * ```
      *
      * @param string $ip Client IP address
+     *
      * @return bool True if banned
      */
     public function isBanned(string $ip): bool;
 
     /**
-     * Fast cache-only ban check (no database fallback)
+     * Fast cache-only ban check (no database fallback).
      *
      * PERFORMANCE-CRITICAL: This method is called at the START of handle()
      * before ANY other operations (rate limiting, scoring, etc.).
@@ -121,68 +127,75 @@ interface StorageInterface
      * - TTL must match ban duration
      *
      * @param string $ip Client IP address
+     *
      * @return bool True if banned (cache hit), false if not banned or cache miss
      */
     public function isIpBannedCached(string $ip): bool;
 
     /**
-     * Ban an IP address
+     * Ban an IP address.
      *
      * @param string $ip Client IP address
      * @param int $duration Ban duration in seconds
      * @param string $reason Ban reason
+     *
      * @return bool Success
      */
     public function banIP(string $ip, int $duration, string $reason): bool;
 
     /**
-     * Unban an IP address
+     * Unban an IP address.
      *
      * @param string $ip Client IP address
+     *
      * @return bool Success
      */
     public function unbanIP(string $ip): bool;
 
     /**
-     * Store bot verification result in cache
+     * Store bot verification result in cache.
      *
      * @param string $ip Bot IP address
      * @param bool $isLegitimate Verification result
      * @param array<string, mixed> $metadata Bot metadata (user_agent, hostname, etc.)
      * @param int $ttl Cache TTL in seconds
+     *
      * @return bool Success
      */
     public function cacheBotVerification(string $ip, bool $isLegitimate, array $metadata, int $ttl): bool;
 
     /**
-     * Get cached bot verification result
+     * Get cached bot verification result.
      *
      * @param string $ip Bot IP address
+     *
      * @return array<string, mixed>|null ['verified' => bool, 'metadata' => array] or null
      */
     public function getCachedBotVerification(string $ip): ?array;
 
     /**
-     * Log security event (attack, honeypot access, etc.)
+     * Log security event (attack, honeypot access, etc.).
      *
      * @param string $type Event type (scan, honeypot, ban, etc.)
      * @param string $ip Client IP
      * @param array<string, mixed> $data Event data
+     *
      * @return bool Success
      */
     public function logSecurityEvent(string $type, string $ip, array $data): bool;
 
     /**
-     * Get recent security events
+     * Get recent security events.
      *
      * @param int $limit Number of events to retrieve
      * @param string|null $type Filter by event type
+     *
      * @return array<int, array<string, mixed>> Array of events
      */
     public function getRecentEvents(int $limit = 100, ?string $type = null): array;
 
     /**
-     * Increment request count for IP (rate limiting)
+     * Increment request count for IP (rate limiting).
      *
      * Increments the request counter for a specific IP within a time window.
      * Used for rate limiting to prevent abuse and DDoS attacks.
@@ -199,12 +212,13 @@ interface StorageInterface
      * @param string $ip Client IP address
      * @param int $window Time window in seconds
      * @param string $action Action type (default: 'general' for backward compatibility)
+     *
      * @return int Current request count after increment
      */
     public function incrementRequestCount(string $ip, int $window, string $action = 'general'): int;
 
     /**
-     * Get request count for IP (rate limiting)
+     * Get request count for IP (rate limiting).
      *
      * Retrieves the current request count for a specific IP within a time window.
      * Returns 0 if no requests recorded or window expired.
@@ -212,60 +226,65 @@ interface StorageInterface
      * @param string $ip Client IP address
      * @param int $window Time window in seconds (not used in get, but kept for interface consistency)
      * @param string $action Action type (default: 'general' for backward compatibility)
+     *
      * @return int Current request count (0 if not found or expired)
      */
     public function getRequestCount(string $ip, int $window, string $action = 'general'): int;
 
     /**
-     * Clear all data (for testing)
+     * Clear all data (for testing).
      *
      * @return bool Success
      */
     public function clear(): bool;
 
     /**
-     * Generic cache get operation
+     * Generic cache get operation.
      *
      * Used by services (GeoIP, etc.) for caching arbitrary data.
      * Returns null if key not found or cache unavailable.
      *
      * @param string $key Cache key
+     *
      * @return mixed|null Cached value or null
      */
     public function get(string $key): mixed;
 
     /**
-     * Generic cache set operation
+     * Generic cache set operation.
      *
      * Used by services (GeoIP, etc.) for caching arbitrary data.
      *
      * @param string $key Cache key
      * @param mixed $value Value to cache (will be JSON encoded if array/object)
      * @param int $ttl Time to live in seconds
+     *
      * @return bool Success
      */
     public function set(string $key, mixed $value, int $ttl): bool;
 
     /**
-     * Generic cache delete operation
+     * Generic cache delete operation.
      *
      * Removes a key from the cache.
      *
      * @param string $key Cache key to delete
+     *
      * @return bool Success (true even if key didn't exist)
      */
     public function delete(string $key): bool;
 
     /**
-     * Check if a key exists in the cache
+     * Check if a key exists in the cache.
      *
      * @param string $key Cache key
+     *
      * @return bool True if key exists
      */
     public function exists(string $key): bool;
 
     /**
-     * Generic atomic increment operation
+     * Generic atomic increment operation.
      *
      * Used by resilience patterns (CircuitBreaker, Bulkhead, RateLimiter)
      * for tracking counters with automatic TTL.
@@ -282,6 +301,7 @@ interface StorageInterface
      * @param string $key Cache key
      * @param int $delta Value to add (can be negative)
      * @param int $ttl Time to live in seconds (only applied to new keys)
+     *
      * @return int New value after increment
      */
     public function increment(string $key, int $delta, int $ttl): int;

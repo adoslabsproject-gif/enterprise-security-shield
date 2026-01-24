@@ -8,14 +8,16 @@ use Senza1dio\SecurityShield\Health\CheckResult;
 use Senza1dio\SecurityShield\Health\HealthCheckInterface;
 
 /**
- * Redis Health Check
+ * Redis Health Check.
  *
  * Verifies Redis connection and optionally checks memory usage.
  */
 class RedisHealthCheck implements HealthCheckInterface
 {
     private \Redis $redis;
+
     private ?float $memoryWarningThreshold;
+
     private ?float $memoryCriticalThreshold;
 
     /**
@@ -26,7 +28,7 @@ class RedisHealthCheck implements HealthCheckInterface
     public function __construct(
         \Redis $redis,
         ?float $memoryWarningThreshold = 80.0,
-        ?float $memoryCriticalThreshold = 95.0
+        ?float $memoryCriticalThreshold = 95.0,
     ) {
         $this->redis = $redis;
         $this->memoryWarningThreshold = $memoryWarningThreshold;
@@ -65,14 +67,14 @@ class RedisHealthCheck implements HealthCheckInterface
                 if ($this->memoryCriticalThreshold !== null && $memoryUsage >= $this->memoryCriticalThreshold) {
                     return CheckResult::unhealthy(
                         "Memory usage critical: {$memoryUsage}%",
-                        $metadata
+                        $metadata,
                     );
                 }
 
                 if ($this->memoryWarningThreshold !== null && $memoryUsage >= $this->memoryWarningThreshold) {
                     return CheckResult::degraded(
                         "Memory usage high: {$memoryUsage}%",
-                        $metadata
+                        $metadata,
                     );
                 }
             }

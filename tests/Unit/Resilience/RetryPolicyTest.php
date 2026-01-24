@@ -16,6 +16,7 @@ class RetryPolicyTest extends TestCase
 
         $result = $policy->execute(function () use (&$attempts) {
             $attempts++;
+
             return 'success';
         });
 
@@ -31,6 +32,7 @@ class RetryPolicyTest extends TestCase
         try {
             $policy->execute(function () use (&$attempts) {
                 $attempts++;
+
                 throw new \RuntimeException('fail');
             });
         } catch (\RuntimeException) {
@@ -50,6 +52,7 @@ class RetryPolicyTest extends TestCase
             if ($attempts < 3) {
                 throw new \RuntimeException('fail');
             }
+
             return 'success';
         });
 
@@ -63,7 +66,7 @@ class RetryPolicyTest extends TestCase
             maxAttempts: 3,
             baseDelay: 1.0,
             maxDelay: 10.0,
-            multiplier: 2.0
+            multiplier: 2.0,
         );
 
         // Access delays via reflection
@@ -139,6 +142,7 @@ class RetryPolicyTest extends TestCase
         try {
             $policy->execute(function () use (&$attempts) {
                 $attempts++;
+
                 throw new \RuntimeException('not retryable');
             });
         } catch (\RuntimeException) {
@@ -149,9 +153,11 @@ class RetryPolicyTest extends TestCase
 
         // Should retry on InvalidArgumentException
         $attempts = 0;
+
         try {
             $policy->execute(function () use (&$attempts) {
                 $attempts++;
+
                 throw new \InvalidArgumentException('retryable');
             });
         } catch (\InvalidArgumentException) {
@@ -165,12 +171,13 @@ class RetryPolicyTest extends TestCase
     {
         $attempts = 0;
         $policy = RetryPolicy::constantDelay(3, 0.01)
-            ->retryIf(fn(\Throwable $e) => str_contains($e->getMessage(), 'retry'));
+            ->retryIf(fn (\Throwable $e) => str_contains($e->getMessage(), 'retry'));
 
         // Should NOT retry
         try {
             $policy->execute(function () use (&$attempts) {
                 $attempts++;
+
                 throw new \RuntimeException('do not repeat');
             });
         } catch (\RuntimeException) {
@@ -181,9 +188,11 @@ class RetryPolicyTest extends TestCase
 
         // Should retry
         $attempts = 0;
+
         try {
             $policy->execute(function () use (&$attempts) {
                 $attempts++;
+
                 throw new \RuntimeException('please retry');
             });
         } catch (\RuntimeException) {
@@ -203,7 +212,7 @@ class RetryPolicyTest extends TestCase
             });
 
         try {
-            $policy->execute(fn() => throw new \RuntimeException('fail'));
+            $policy->execute(fn () => throw new \RuntimeException('fail'));
         } catch (\RuntimeException) {
             // Expected
         }
@@ -212,5 +221,4 @@ class RetryPolicyTest extends TestCase
         $this->assertSame(1, $retryLogs[0]['attempt']);
         $this->assertSame(2, $retryLogs[1]['attempt']);
     }
-
 }

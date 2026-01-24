@@ -1,9 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Senza1dio\SecurityShield\Services;
 
 /**
- * Framework Detector - Auto-detect application framework
+ * Framework Detector - Auto-detect application framework.
  *
  * Prevents honeypot false positives by detecting if the application
  * is running on WordPress, Laravel, Symfony, etc.
@@ -29,7 +31,7 @@ namespace Senza1dio\SecurityShield\Services;
 class FrameworkDetector
 {
     /**
-     * Cached framework detection result
+     * Cached framework detection result.
      *
      * WARNING: Static cache can cause issues in:
      * - Long-running processes (Swoole, RoadRunner, ReactPHP)
@@ -45,7 +47,7 @@ class FrameworkDetector
     private static ?string $detectedFramework = null;
 
     /**
-     * Flag to disable static caching (for long-running processes)
+     * Flag to disable static caching (for long-running processes).
      *
      * When true, detect() will NOT cache results - safe for Swoole/RoadRunner
      * Performance impact: ~0.1ms per request (filesystem checks)
@@ -55,7 +57,7 @@ class FrameworkDetector
     private static bool $staticCacheDisabled = false;
 
     /**
-     * Detect application framework
+     * Detect application framework.
      *
      * Detection methods (in order):
      * 1. Environment variables (WP_ENV, LARAVEL_ENV, SYMFONY_ENV)
@@ -75,28 +77,32 @@ class FrameworkDetector
         // WordPress detection
         if (self::isWordPress()) {
             self::$detectedFramework = 'wordpress';
+
             return 'wordpress';
         }
 
         // Laravel detection
         if (self::isLaravel()) {
             self::$detectedFramework = 'laravel';
+
             return 'laravel';
         }
 
         // Symfony detection
         if (self::isSymfony()) {
             self::$detectedFramework = 'symfony';
+
             return 'symfony';
         }
 
         // Custom/unknown framework
         self::$detectedFramework = 'custom';
+
         return 'custom';
     }
 
     /**
-     * Check if application is WordPress
+     * Check if application is WordPress.
      *
      * Detection methods (ordered by reliability):
      * 1. ABSPATH constant (most reliable - runtime)
@@ -143,7 +149,7 @@ class FrameworkDetector
     }
 
     /**
-     * Check if application is Laravel
+     * Check if application is Laravel.
      *
      * @return bool True if Laravel detected
      */
@@ -169,7 +175,7 @@ class FrameworkDetector
     }
 
     /**
-     * Check if application is Symfony
+     * Check if application is Symfony.
      *
      * @return bool True if Symfony detected
      */
@@ -190,7 +196,7 @@ class FrameworkDetector
     }
 
     /**
-     * Get framework-specific paths that should NOT be honeypot
+     * Get framework-specific paths that should NOT be honeypot.
      *
      * Returns legitimate paths for the detected framework that should
      * be excluded from honeypot detection.
@@ -252,7 +258,7 @@ class FrameworkDetector
     }
 
     /**
-     * Check if a path is legitimate for the detected framework
+     * Check if a path is legitimate for the detected framework.
      *
      * Uses PREFIX matching (not substring) to avoid false positives.
      *
@@ -262,6 +268,7 @@ class FrameworkDetector
      * - /backup/wp-login.php → NO MATCH (honeypot)
      *
      * @param string $path Request path to check
+     *
      * @return bool True if path is legitimate for this framework
      */
     public static function isLegitimateFrameworkPath(string $path): bool
@@ -284,7 +291,7 @@ class FrameworkDetector
     }
 
     /**
-     * Reset framework detection (for testing)
+     * Reset framework detection (for testing).
      *
      * @return void
      */
@@ -294,7 +301,7 @@ class FrameworkDetector
     }
 
     /**
-     * Disable static caching (for long-running processes)
+     * Disable static caching (for long-running processes).
      *
      * USAGE IN BOOTSTRAP (Swoole/RoadRunner/ReactPHP):
      * ```php
@@ -322,7 +329,7 @@ class FrameworkDetector
     }
 
     /**
-     * Enable static caching (default behavior)
+     * Enable static caching (default behavior).
      *
      * Only use this in traditional PHP-FPM/Apache mod_php environments
      * where each request is a fresh process.
@@ -335,7 +342,7 @@ class FrameworkDetector
     }
 
     /**
-     * Check if static caching is enabled
+     * Check if static caching is enabled.
      *
      * @return bool True if caching is enabled
      */

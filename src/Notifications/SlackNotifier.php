@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Senza1dio\SecurityShield\Notifications;
 
 /**
- * Slack Notifier
+ * Slack Notifier.
  *
  * Sends notifications via Slack Incoming Webhooks.
  *
@@ -29,15 +29,17 @@ namespace Senza1dio\SecurityShield\Notifications;
  *     'score' => 100,
  * ]);
  * ```
- *
- * @package Senza1dio\SecurityShield\Notifications
  */
 class SlackNotifier implements NotifierInterface
 {
     private string $webhookUrl;
+
     private int $timeout;
+
     private ?string $channel;
+
     private ?string $username;
+
     private ?string $iconEmoji;
 
     /**
@@ -52,7 +54,7 @@ class SlackNotifier implements NotifierInterface
         int $timeout = 10,
         ?string $channel = null,
         ?string $username = 'Security Shield',
-        ?string $iconEmoji = ':shield:'
+        ?string $iconEmoji = ':shield:',
     ) {
         $this->webhookUrl = $webhookUrl;
         $this->timeout = $timeout;
@@ -114,10 +116,11 @@ class SlackNotifier implements NotifierInterface
     }
 
     /**
-     * Send message with custom blocks (Slack Block Kit)
+     * Send message with custom blocks (Slack Block Kit).
      *
      * @param array<int, array<string, mixed>> $blocks Slack blocks
      * @param string|null $fallbackText Fallback text for notifications
+     *
      * @return bool
      */
     public function sendBlocks(array $blocks, ?string $fallbackText = null): bool
@@ -133,11 +136,12 @@ class SlackNotifier implements NotifierInterface
     }
 
     /**
-     * Send with custom color attachment
+     * Send with custom color attachment.
      *
      * @param string $message Message text
      * @param string $color Color (good, warning, danger, or hex)
      * @param array<string, mixed> $context Additional fields
+     *
      * @return bool
      */
     public function sendWithColor(string $message, string $color, array $context = []): bool
@@ -164,9 +168,10 @@ class SlackNotifier implements NotifierInterface
     }
 
     /**
-     * Build base payload
+     * Build base payload.
      *
      * @param string $text Message text
+     *
      * @return array<string, mixed>
      */
     private function buildPayload(string $text): array
@@ -189,9 +194,10 @@ class SlackNotifier implements NotifierInterface
     }
 
     /**
-     * Build context attachment
+     * Build context attachment.
      *
      * @param array<string, mixed> $context
+     *
      * @return array<string, mixed>
      */
     private function buildContextAttachment(array $context): array
@@ -204,9 +210,10 @@ class SlackNotifier implements NotifierInterface
     }
 
     /**
-     * Build attachment fields from context
+     * Build attachment fields from context.
      *
      * @param array<string, mixed> $context
+     *
      * @return array<int, array{title: string, value: string, short: bool}>
      */
     private function buildFields(array $context): array
@@ -229,9 +236,10 @@ class SlackNotifier implements NotifierInterface
     }
 
     /**
-     * Make HTTP request to Slack
+     * Make HTTP request to Slack.
      *
      * @param array<string, mixed> $payload
+     *
      * @return bool
      */
     private function request(array $payload): bool

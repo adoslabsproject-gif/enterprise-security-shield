@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Senza1dio\SecurityShield\Config;
 
-use Senza1dio\SecurityShield\Contracts\StorageInterface;
 use Senza1dio\SecurityShield\Contracts\LoggerInterface;
+use Senza1dio\SecurityShield\Contracts\StorageInterface;
 
 /**
- * Security Configuration - Fluent Builder API
+ * Security Configuration - Fluent Builder API.
  *
  * Framework-agnostic configuration for the Security Shield.
  *
@@ -29,13 +29,11 @@ use Senza1dio\SecurityShield\Contracts\LoggerInterface;
  *     ->setStorage($redisStorage)
  *     ->setLogger($logger);
  * ```
- *
- * @package Senza1dio\SecurityShield\Config
  */
 class SecurityConfig
 {
     /**
-     * Factory method to create a new SecurityConfig instance
+     * Factory method to create a new SecurityConfig instance.
      *
      * Fluent API alternative to constructor for chaining:
      * ```php
@@ -100,7 +98,7 @@ class SecurityConfig
     private string $environment = 'production';
 
     /**
-     * Max requests allowed per rate limit window
+     * Max requests allowed per rate limit window.
      *
      * NAMING: "rateLimitMax" (not "perMinute") to avoid confusion
      * when window != 60 seconds
@@ -128,7 +126,7 @@ class SecurityConfig
     private int $geoipBanDuration = 2592000;
 
     /**
-     * Fail-closed mode: Ban users on storage failure (default: false = fail-open)
+     * Fail-closed mode: Ban users on storage failure (default: false = fail-open).
      *
      * FAIL-OPEN (false, default):
      * - Storage down → Allow traffic (high availability)
@@ -147,9 +145,10 @@ class SecurityConfig
     private bool $failClosed = false;
 
     /**
-     * Set threat score threshold for auto-ban
+     * Set threat score threshold for auto-ban.
      *
      * @param int $threshold Score threshold (1-1000)
+     *
      * @return self
      */
     public function setScoreThreshold(int $threshold): self
@@ -158,13 +157,15 @@ class SecurityConfig
             throw new \InvalidArgumentException('Score threshold must be between 1 and 1000');
         }
         $this->scoreThreshold = $threshold;
+
         return $this;
     }
 
     /**
-     * Set ban duration in seconds
+     * Set ban duration in seconds.
      *
      * @param int $seconds Ban duration (60-2592000, max 30 days)
+     *
      * @return self
      */
     public function setBanDuration(int $seconds): self
@@ -173,13 +174,15 @@ class SecurityConfig
             throw new \InvalidArgumentException('Ban duration must be between 60s and 30 days');
         }
         $this->banDuration = $seconds;
+
         return $this;
     }
 
     /**
-     * Set tracking window in seconds
+     * Set tracking window in seconds.
      *
      * @param int $seconds Tracking window (60-86400, max 24h)
+     *
      * @return self
      */
     public function setTrackingWindow(int $seconds): self
@@ -188,13 +191,15 @@ class SecurityConfig
             throw new \InvalidArgumentException('Tracking window must be between 60s and 24h');
         }
         $this->trackingWindow = $seconds;
+
         return $this;
     }
 
     /**
-     * Set honeypot ban duration in seconds
+     * Set honeypot ban duration in seconds.
      *
      * @param int $seconds Ban duration (3600-2592000, max 30 days)
+     *
      * @return self
      */
     public function setHoneypotBanDuration(int $seconds): self
@@ -203,37 +208,43 @@ class SecurityConfig
             throw new \InvalidArgumentException('Honeypot ban must be between 1h and 30 days');
         }
         $this->honeypotBanDuration = $seconds;
+
         return $this;
     }
 
     /**
-     * Enable or disable honeypot trap endpoints
+     * Enable or disable honeypot trap endpoints.
      *
      * @param bool $enabled
+     *
      * @return self
      */
     public function enableHoneypot(bool $enabled): self
     {
         $this->honeypotEnabled = $enabled;
+
         return $this;
     }
 
     /**
-     * Enable or disable bot verification with DNS
+     * Enable or disable bot verification with DNS.
      *
      * @param bool $enabled
+     *
      * @return self
      */
     public function enableBotVerification(bool $enabled): self
     {
         $this->botVerificationEnabled = $enabled;
+
         return $this;
     }
 
     /**
-     * Set bot verification cache TTL
+     * Set bot verification cache TTL.
      *
      * @param int $seconds Cache TTL (3600-2592000, max 30 days)
+     *
      * @return self
      */
     public function setBotCacheTTL(int $seconds): self
@@ -242,39 +253,45 @@ class SecurityConfig
             throw new \InvalidArgumentException('Bot cache TTL must be between 1h and 30 days');
         }
         $this->botCacheTTL = $seconds;
+
         return $this;
     }
 
     /**
-     * Set storage backend
+     * Set storage backend.
      *
      * @param StorageInterface $storage
+     *
      * @return self
      */
     public function setStorage(StorageInterface $storage): self
     {
         $this->storage = $storage;
+
         return $this;
     }
 
     /**
-     * Set logger instance
+     * Set logger instance.
      *
      * @param LoggerInterface $logger
+     *
      * @return self
      */
     public function setLogger(LoggerInterface $logger): self
     {
         $this->logger = $logger;
+
         return $this;
     }
 
     /**
-     * Add custom threat pattern
+     * Add custom threat pattern.
      *
      * @param string $pattern Regex pattern
      * @param int $score Score to add (1-100)
      * @param string $description Pattern description
+     *
      * @return self
      */
     public function addThreatPattern(string $pattern, int $score, string $description = ''): self
@@ -287,17 +304,19 @@ class SecurityConfig
             'score' => $score,
             'description' => $description,
         ];
+
         return $this;
     }
 
     /**
-     * Add IP to whitelist (never ban)
+     * Add IP to whitelist (never ban).
      *
      * Supports both single IPs and CIDR ranges:
      * - Single IP: '192.168.1.1'
      * - CIDR range: '192.168.1.0/24', '10.0.0.0/8'
      *
      * @param string|array<int, string> $ips Single IP/CIDR or array of IPs/CIDRs
+     *
      * @return self
      */
     public function addIPWhitelist(string|array $ips): self
@@ -310,7 +329,7 @@ class SecurityConfig
                 if (filter_var($ipPart, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) === false) {
                     throw new \InvalidArgumentException("Invalid CIDR notation: {$ip}");
                 }
-                if (!is_numeric($mask) || (int)$mask < 0 || (int)$mask > 32) {
+                if (!is_numeric($mask) || (int) $mask < 0 || (int) $mask > 32) {
                     throw new \InvalidArgumentException("Invalid CIDR mask: {$ip}");
                 }
             } else {
@@ -321,17 +340,19 @@ class SecurityConfig
             }
             $this->ipWhitelist[] = $ip;
         }
+
         return $this;
     }
 
     /**
-     * Add IP to blacklist (always ban)
+     * Add IP to blacklist (always ban).
      *
      * Supports both single IPs and CIDR ranges:
      * - Single IP: '192.168.1.1'
      * - CIDR range: '192.168.1.0/24', '10.0.0.0/8'
      *
      * @param string|array<int, string> $ips Single IP/CIDR or array of IPs/CIDRs
+     *
      * @return self
      */
     public function addIPBlacklist(string|array $ips): self
@@ -344,7 +365,7 @@ class SecurityConfig
                 if (filter_var($ipPart, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) === false) {
                     throw new \InvalidArgumentException("Invalid CIDR notation: {$ip}");
                 }
-                if (!is_numeric($mask) || (int)$mask < 0 || (int)$mask > 32) {
+                if (!is_numeric($mask) || (int) $mask < 0 || (int) $mask > 32) {
                     throw new \InvalidArgumentException("Invalid CIDR mask: {$ip}");
                 }
             } else {
@@ -355,50 +376,58 @@ class SecurityConfig
             }
             $this->ipBlacklist[] = $ip;
         }
+
         return $this;
     }
 
     /**
-     * Set IP whitelist (replaces existing list)
+     * Set IP whitelist (replaces existing list).
      *
      * @param array<int, string> $ips Array of IPs/CIDRs
+     *
      * @return self
      */
     public function setIPWhitelist(array $ips): self
     {
         $this->ipWhitelist = [];
+
         return $this->addIPWhitelist($ips); // Reuse validation logic
     }
 
     /**
-     * Set IP blacklist (replaces existing list)
+     * Set IP blacklist (replaces existing list).
      *
      * @param array<int, string> $ips Array of IPs/CIDRs
+     *
      * @return self
      */
     public function setIPBlacklist(array $ips): self
     {
         $this->ipBlacklist = [];
+
         return $this->addIPBlacklist($ips); // Reuse validation logic
     }
 
     /**
-     * Enable or disable intelligence gathering
+     * Enable or disable intelligence gathering.
      *
      * @param bool $enabled
+     *
      * @return self
      */
     public function enableIntelligence(bool $enabled): self
     {
         $this->intelligenceEnabled = $enabled;
+
         return $this;
     }
 
     /**
-     * Enable or disable critical alerts
+     * Enable or disable critical alerts.
      *
      * @param bool $enabled
      * @param string|null $webhook Webhook URL for alerts
+     *
      * @return self
      */
     public function enableAlerts(bool $enabled, ?string $webhook = null): self
@@ -410,13 +439,15 @@ class SecurityConfig
             }
             $this->alertWebhook = $webhook;
         }
+
         return $this;
     }
 
     /**
-     * Set environment (production, staging, development)
+     * Set environment (production, staging, development).
      *
      * @param string $environment
+     *
      * @return self
      */
     public function setEnvironment(string $environment): self
@@ -426,11 +457,12 @@ class SecurityConfig
             throw new \InvalidArgumentException('Environment must be: ' . implode(', ', $allowed));
         }
         $this->environment = $environment;
+
         return $this;
     }
 
     /**
-     * Set rate limit maximum requests per window
+     * Set rate limit maximum requests per window.
      *
      * Controls how many requests a single IP can make within the rate limit window.
      * Exceeding this limit adds threat score points.
@@ -441,6 +473,7 @@ class SecurityConfig
      * - High-traffic sites: 200-500 requests/window
      *
      * @param int $limit Maximum requests per window (1-10000)
+     *
      * @return self
      */
     public function setRateLimitMax(int $limit): self
@@ -449,14 +482,17 @@ class SecurityConfig
             throw new \InvalidArgumentException('Rate limit must be between 1 and 10000 requests per window');
         }
         $this->rateLimitMax = $limit;
+
         return $this;
     }
 
     /**
-     * Set rate limit (requests per minute) - Alias for setRateLimitMax
+     * Set rate limit (requests per minute) - Alias for setRateLimitMax.
      *
      * @deprecated Use setRateLimitMax() instead (clearer naming)
+     *
      * @param int $limit Requests per window (1-10000)
+     *
      * @return self
      */
     public function setRateLimitPerMinute(int $limit): self
@@ -465,7 +501,7 @@ class SecurityConfig
     }
 
     /**
-     * Set rate limit window (time window in seconds)
+     * Set rate limit window (time window in seconds).
      *
      * Defines the time window for rate limiting.
      * Default: 60 seconds (1 minute)
@@ -476,6 +512,7 @@ class SecurityConfig
      * - 3600 seconds = per-hour rate limiting
      *
      * @param int $seconds Window size in seconds (10-3600)
+     *
      * @return self
      */
     public function setRateLimitWindow(int $seconds): self
@@ -484,13 +521,14 @@ class SecurityConfig
             throw new \InvalidArgumentException('Rate limit window must be between 10 seconds and 1 hour');
         }
         $this->rateLimitWindow = $seconds;
+
         return $this;
     }
 
     /**
-     * Set trusted proxy IPs/CIDRs
+     * Set trusted proxy IPs/CIDRs.
      *
-     * 
+     *
      * When running behind Cloudflare, Nginx, AWS ELB, the REMOTE_ADDR is the proxy IP.
      * Configure trusted proxies to extract real client IP from X-Forwarded-For headers.
      *
@@ -507,6 +545,7 @@ class SecurityConfig
      * - Docker network: ['172.17.0.0/16']
      *
      * @param array<int, string> $proxies List of trusted proxy IPs/CIDRs
+     *
      * @return self
      */
     public function setTrustedProxies(array $proxies): self
@@ -523,7 +562,7 @@ class SecurityConfig
                 if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) === false) {
                     throw new \InvalidArgumentException("Invalid CIDR notation: {$proxy}");
                 }
-                if (!is_numeric($mask) || (int)$mask < 0 || (int)$mask > 32) {
+                if (!is_numeric($mask) || (int) $mask < 0 || (int) $mask > 32) {
                     throw new \InvalidArgumentException("Invalid CIDR mask: {$proxy}");
                 }
             } else {
@@ -535,14 +574,15 @@ class SecurityConfig
         }
 
         $this->trustedProxies = $proxies;
+
         return $this;
     }
 
-
     /**
-     * Create config from array (Laravel/Symfony style)
+     * Create config from array (Laravel/Symfony style).
      *
      * @param array<string, mixed> $config Configuration array
+     *
      * @return self
      */
     public static function fromArray(array $config): self
@@ -619,7 +659,7 @@ class SecurityConfig
                     $instance->addThreatPattern(
                         $pattern['pattern'],
                         $pattern['score'],
-                        $pattern['description'] ?? ''
+                        $pattern['description'] ?? '',
                     );
                 }
             }
@@ -630,49 +670,149 @@ class SecurityConfig
 
     // Getters
 
-    public function getScoreThreshold(): int { return $this->scoreThreshold; }
-    public function getBanDuration(): int { return $this->banDuration; }
-    public function getTrackingWindow(): int { return $this->trackingWindow; }
-    public function getHoneypotBanDuration(): int { return $this->honeypotBanDuration; }
-    public function isHoneypotEnabled(): bool { return $this->honeypotEnabled; }
-    public function isBotVerificationEnabled(): bool { return $this->botVerificationEnabled; }
-    public function getBotCacheTTL(): int { return $this->botCacheTTL; }
-    public function getStorage(): ?StorageInterface { return $this->storage; }
-    public function getLogger(): ?LoggerInterface { return $this->logger; }
+    public function getScoreThreshold(): int
+    {
+        return $this->scoreThreshold;
+    }
+
+    public function getBanDuration(): int
+    {
+        return $this->banDuration;
+    }
+
+    public function getTrackingWindow(): int
+    {
+        return $this->trackingWindow;
+    }
+
+    public function getHoneypotBanDuration(): int
+    {
+        return $this->honeypotBanDuration;
+    }
+
+    public function isHoneypotEnabled(): bool
+    {
+        return $this->honeypotEnabled;
+    }
+
+    public function isBotVerificationEnabled(): bool
+    {
+        return $this->botVerificationEnabled;
+    }
+
+    public function getBotCacheTTL(): int
+    {
+        return $this->botCacheTTL;
+    }
+
+    public function getStorage(): ?StorageInterface
+    {
+        return $this->storage;
+    }
+
+    public function getLogger(): ?LoggerInterface
+    {
+        return $this->logger;
+    }
+
     /** @return array<int, array{pattern: string, score: int, description: string}> */
-    public function getCustomPatterns(): array { return $this->customPatterns; }
+    public function getCustomPatterns(): array
+    {
+        return $this->customPatterns;
+    }
+
     /** @return array<int, string> */
-    public function getIPWhitelist(): array { return $this->ipWhitelist; }
+    public function getIPWhitelist(): array
+    {
+        return $this->ipWhitelist;
+    }
+
     /** @return array<int, string> */
-    public function getIPBlacklist(): array { return $this->ipBlacklist; }
-    public function isIntelligenceEnabled(): bool { return $this->intelligenceEnabled; }
-    public function isAlertsEnabled(): bool { return $this->alertsEnabled; }
-    public function getAlertWebhook(): ?string { return $this->alertWebhook; }
-    public function getEnvironment(): string { return $this->environment; }
+    public function getIPBlacklist(): array
+    {
+        return $this->ipBlacklist;
+    }
+
+    public function isIntelligenceEnabled(): bool
+    {
+        return $this->intelligenceEnabled;
+    }
+
+    public function isAlertsEnabled(): bool
+    {
+        return $this->alertsEnabled;
+    }
+
+    public function getAlertWebhook(): ?string
+    {
+        return $this->alertWebhook;
+    }
+
+    public function getEnvironment(): string
+    {
+        return $this->environment;
+    }
+
     /**
-     * Get max requests per rate limit window
+     * Get max requests per rate limit window.
      *
      * @deprecated Use getRateLimitMax() instead (clearer naming)
+     *
      * @return int Max requests allowed
      */
-    public function getRateLimitPerMinute(): int { return $this->rateLimitMax; }
+    public function getRateLimitPerMinute(): int
+    {
+        return $this->rateLimitMax;
+    }
 
     /** @return int Max requests per window */
-    public function getRateLimitMax(): int { return $this->rateLimitMax; }
-    public function getRateLimitWindow(): int { return $this->rateLimitWindow; }
+    public function getRateLimitMax(): int
+    {
+        return $this->rateLimitMax;
+    }
+
+    public function getRateLimitWindow(): int
+    {
+        return $this->rateLimitWindow;
+    }
+
     /** @return array<int, string> */
-    public function getTrustedProxies(): array { return $this->trustedProxies; }
+    public function getTrustedProxies(): array
+    {
+        return $this->trustedProxies;
+    }
+
     /** @return array<int, string> */
-    public function getBlockedCountries(): array { return $this->blockedCountries; }
-    public function isGeoIPEnabled(): bool { return $this->geoipEnabled; }
-    public function getGeoIPCacheTTL(): int { return $this->geoipCacheTTL; }
-    public function getGeoIPBanDuration(): int { return $this->geoipBanDuration; }
-    public function isFailClosedEnabled(): bool { return $this->failClosed; }
+    public function getBlockedCountries(): array
+    {
+        return $this->blockedCountries;
+    }
+
+    public function isGeoIPEnabled(): bool
+    {
+        return $this->geoipEnabled;
+    }
+
+    public function getGeoIPCacheTTL(): int
+    {
+        return $this->geoipCacheTTL;
+    }
+
+    public function getGeoIPBanDuration(): int
+    {
+        return $this->geoipBanDuration;
+    }
+
+    public function isFailClosedEnabled(): bool
+    {
+        return $this->failClosed;
+    }
 
     /**
-     * Set blocked countries (ISO 3166-1 alpha-2 codes)
+     * Set blocked countries (ISO 3166-1 alpha-2 codes).
      *
      * @param array<int, string> $countries Country codes (e.g., ['CN', 'RU', 'KP'])
+     *
      * @return self
      */
     public function setBlockedCountries(array $countries): self
@@ -683,25 +823,29 @@ class SecurityConfig
             }
         }
         $this->blockedCountries = array_map('strtoupper', $countries);
+
         return $this;
     }
 
     /**
-     * Enable GeoIP detection
+     * Enable GeoIP detection.
      *
      * @param bool $enabled
+     *
      * @return self
      */
     public function enableGeoIP(bool $enabled): self
     {
         $this->geoipEnabled = $enabled;
+
         return $this;
     }
 
     /**
-     * Set GeoIP cache TTL
+     * Set GeoIP cache TTL.
      *
      * @param int $seconds Cache TTL (3600-604800, 1h-7days)
+     *
      * @return self
      */
     public function setGeoIPCacheTTL(int $seconds): self
@@ -710,11 +854,12 @@ class SecurityConfig
             throw new \InvalidArgumentException('GeoIP cache TTL must be between 1 hour and 7 days');
         }
         $this->geoipCacheTTL = $seconds;
+
         return $this;
     }
 
     /**
-     * Enable fail-closed mode (block traffic on storage failure)
+     * Enable fail-closed mode (block traffic on storage failure).
      *
      * FAIL-OPEN (false, default):
      * - Storage unavailable → Allow traffic (prioritize availability)
@@ -723,18 +868,21 @@ class SecurityConfig
      * - Storage unavailable → Block traffic (prioritize security)
      *
      * @param bool $enabled Enable fail-closed mode
+     *
      * @return self
      */
     public function setFailClosed(bool $enabled): self
     {
         $this->failClosed = $enabled;
+
         return $this;
     }
 
     /**
-     * Set GeoIP ban duration
+     * Set GeoIP ban duration.
      *
      * @param int $seconds Ban duration (3600-2592000, 1h-30days)
+     *
      * @return self
      */
     public function setGeoIPBanDuration(int $seconds): self
@@ -743,6 +891,7 @@ class SecurityConfig
             throw new \InvalidArgumentException('GeoIP ban duration must be between 1 hour and 30 days');
         }
         $this->geoipBanDuration = $seconds;
+
         return $this;
     }
 }

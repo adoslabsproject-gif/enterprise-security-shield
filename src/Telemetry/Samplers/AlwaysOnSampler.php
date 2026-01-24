@@ -8,11 +8,9 @@ use Senza1dio\SecurityShield\Telemetry\SamplerInterface;
 use Senza1dio\SecurityShield\Telemetry\SpanKind;
 
 /**
- * Always On Sampler
+ * Always On Sampler.
  *
  * Samples all traces. Use in development or when complete tracing is needed.
- *
- * @package Senza1dio\SecurityShield\Telemetry\Samplers
  */
 class AlwaysOnSampler implements SamplerInterface
 {
