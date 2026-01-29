@@ -219,9 +219,74 @@ final class SecurityShield
             $totalScore += $geoResult['risk_score'];
         }
 
-        // === LAYER 5: ML Threat Classification (DUAL-ENGINE) ===
+        // === LAYER 5: Payload Analysis (SQLi, XSS) - BEFORE ML for feature extraction ===
+        $payloadsToCheck = array_filter([$queryString, $body], fn ($v) => !empty($v));
+        $sqliDetected = false;
+        $xssDetected = false;
+
+        foreach ($payloadsToCheck as $payload) {
+            // SQLi Detection
+            if ($this->config->get('sqli_detection_enabled', true)) {
+                $sqliResult = $this->getSQLiDetector()->detect($payload);
+                if ($sqliResult['detected']) {
+                    $sqliDetected = true;
+                    $totalScore += min(50, $sqliResult['confidence']);
+                    $reasons[] = sprintf('SQL injection detected (%.0f%% confidence)', $sqliResult['confidence']);
+                    $threats[] = [
+                        'type' => 'sqli',
+                        'confidence' => $sqliResult['confidence'],
+                        'fingerprint' => $sqliResult['fingerprint'] ?? null,
+                        'severity' => $sqliResult['confidence'] >= 80 ? 'CRITICAL' : 'HIGH',
+                    ];
+                }
+            }
+
+            // XSS Detection
+            if ($this->config->get('xss_detection_enabled', true)) {
+                $xssResult = $this->getXSSDetector()->detect($payload);
+                if ($xssResult['detected']) {
+                    $xssDetected = true;
+                    $totalScore += min(40, $xssResult['confidence']);
+                    $reasons[] = sprintf('XSS detected (%.0f%% confidence)', $xssResult['confidence']);
+                    $threats[] = [
+                        'type' => 'xss',
+                        'confidence' => $xssResult['confidence'],
+                        'vectors' => $xssResult['vectors'],
+                        'severity' => $xssResult['confidence'] >= 80 ? 'HIGH' : 'MEDIUM',
+                    ];
+                }
+            }
+        }
+
+        // === LAYER 6: Honeypot Check ===
+        $honeypotHit = false;
+        if ($this->config->get('honeypot_enabled', true)) {
+            $honeypotPaths = $this->config->get('honeypot_paths', [
+                '/.env', '/.git/config', '/wp-config.php', '/phpinfo.php',
+                '/admin/config.php', '/.aws/credentials', '/server-status',
+            ]);
+
+            foreach ($honeypotPaths as $honeypot) {
+                if (str_contains(strtolower($path), strtolower($honeypot))) {
+                    $honeypotHit = true;
+                    $totalScore += 60;
+                    $reasons[] = 'Honeypot path accessed: ' . $path;
+                    $threats[] = [
+                        'type' => 'honeypot',
+                        'path' => $path,
+                        'severity' => 'HIGH',
+                    ];
+                    break;
+                }
+            }
+        }
+
+        // === LAYER 7: ML Threat Classification (DUAL-ENGINE) ===
+        // Now with REAL detection results from Layers 5-6
+        $mlResult = null;
+        $onlineResult = null;
         if ($this->config->get('ml_enabled', true)) {
-            // 5A: Static ML Analyzer (trained on 662 events)
+            // 7A: Static ML Analyzer (trained on 662 events)
             $mlResult = $this->getRequestAnalyzer()->analyze([
                 'ip' => $ip,
                 'user_agent' => $userAgent,
@@ -244,18 +309,18 @@ final class SecurityShield
                 ];
             }
 
-            // 5B: Online Learning ML Classifier (TRUE ML that learns continuously)
+            // 7B: Online Learning ML Classifier (TRUE ML with REAL features)
             $onlineLearner = $this->getOnlineLearner();
             $onlineResult = $onlineLearner->classify([
                 'ip' => $ip,
                 'user_agent' => $userAgent,
                 'path' => $path,
                 'request_count' => $this->getRequestCount($ip),
-                'error_404_count' => 0,
-                'rate_limited' => false,
-                'honeypot_hit' => false,
-                'sqli_detected' => false,
-                'xss_detected' => false,
+                'error_404_count' => $this->getIPMetrics($ip)['error_count'] ?? 0,
+                'rate_limited' => $rateLimitResult !== null && !$rateLimitResult['allowed'],
+                'honeypot_hit' => $honeypotHit,
+                'sqli_detected' => $sqliDetected,
+                'xss_detected' => $xssDetected,
             ]);
 
             // Online Learning ML weight: 25% (increases model maturity)
@@ -271,62 +336,6 @@ final class SecurityShield
                     'total_samples' => $onlineResult['total_samples_learned'],
                     'severity' => $onlineResult['confidence'] >= 0.8 ? 'HIGH' : 'MEDIUM',
                 ];
-            }
-        }
-
-        // === LAYER 6: Payload Analysis (SQLi, XSS) ===
-        $payloadsToCheck = array_filter([$queryString, $body], fn ($v) => !empty($v));
-
-        foreach ($payloadsToCheck as $payload) {
-            // SQLi Detection
-            if ($this->config->get('sqli_detection_enabled', true)) {
-                $sqliResult = $this->getSQLiDetector()->detect($payload);
-                if ($sqliResult['detected']) {
-                    $totalScore += min(50, $sqliResult['confidence']);
-                    $reasons[] = sprintf('SQL injection detected (%.0f%% confidence)', $sqliResult['confidence']);
-                    $threats[] = [
-                        'type' => 'sqli',
-                        'confidence' => $sqliResult['confidence'],
-                        'fingerprint' => $sqliResult['fingerprint'] ?? null,
-                        'severity' => $sqliResult['confidence'] >= 80 ? 'CRITICAL' : 'HIGH',
-                    ];
-                }
-            }
-
-            // XSS Detection
-            if ($this->config->get('xss_detection_enabled', true)) {
-                $xssResult = $this->getXSSDetector()->detect($payload);
-                if ($xssResult['detected']) {
-                    $totalScore += min(40, $xssResult['confidence']);
-                    $reasons[] = sprintf('XSS detected (%.0f%% confidence)', $xssResult['confidence']);
-                    $threats[] = [
-                        'type' => 'xss',
-                        'confidence' => $xssResult['confidence'],
-                        'vectors' => $xssResult['vectors'],
-                        'severity' => $xssResult['confidence'] >= 80 ? 'HIGH' : 'MEDIUM',
-                    ];
-                }
-            }
-        }
-
-        // === LAYER 7: Honeypot Check ===
-        if ($this->config->get('honeypot_enabled', true)) {
-            $honeypotPaths = $this->config->get('honeypot_paths', [
-                '/.env', '/.git/config', '/wp-config.php', '/phpinfo.php',
-                '/admin/config.php', '/.aws/credentials', '/server-status',
-            ]);
-
-            foreach ($honeypotPaths as $honeypot) {
-                if (str_contains(strtolower($path), strtolower($honeypot))) {
-                    $totalScore += 60;
-                    $reasons[] = 'Honeypot path accessed: ' . $path;
-                    $threats[] = [
-                        'type' => 'honeypot',
-                        'path' => $path,
-                        'severity' => 'HIGH',
-                    ];
-                    break;
-                }
             }
         }
 

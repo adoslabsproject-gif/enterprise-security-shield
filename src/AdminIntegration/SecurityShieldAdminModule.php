@@ -103,8 +103,12 @@ final class SecurityShieldAdminModule implements AdminModuleInterface
 
     /**
      * Get storage (lazy initialization).
+     *
+     * Returns null if no storage backend is available.
+     * This allows the module to be instantiated for admin panel
+     * registration even without a working storage backend.
      */
-    public function getStorage(): StorageInterface
+    public function getStorage(): ?StorageInterface
     {
         if ($this->storage === null) {
             // Try Redis first, fallback to Database
@@ -129,11 +133,7 @@ final class SecurityShieldAdminModule implements AdminModuleInterface
                 $this->storage = new DatabaseStorage($this->db);
             }
 
-            if ($this->storage === null) {
-                throw new \RuntimeException(
-                    'No storage backend available. Configure REDIS_HOST or provide DatabasePool.',
-                );
-            }
+            // Don't throw - return null and let caller handle gracefully
         }
 
         return $this->storage;
