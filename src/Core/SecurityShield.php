@@ -7,14 +7,23 @@ namespace AdosLabs\EnterpriseSecurityShield\Core;
 use AdosLabs\EnterpriseSecurityShield\Bot\BotVerificationService;
 use AdosLabs\EnterpriseSecurityShield\Config\SecurityConfig;
 use AdosLabs\EnterpriseSecurityShield\Contracts\StorageInterface;
+use AdosLabs\EnterpriseSecurityShield\Detection\DDoSProtector;
+use AdosLabs\EnterpriseSecurityShield\Detection\GraphQLProtector;
+use AdosLabs\EnterpriseSecurityShield\Detection\HTTP2Protector;
+use AdosLabs\EnterpriseSecurityShield\Detection\RequestSmugglingDetector;
 use AdosLabs\EnterpriseSecurityShield\Detection\SQLiDetector;
+use AdosLabs\EnterpriseSecurityShield\Detection\WebSocketProtector;
 use AdosLabs\EnterpriseSecurityShield\Detection\XSSDetector;
 use AdosLabs\EnterpriseSecurityShield\GeoIP\GeoIPService;
 use AdosLabs\EnterpriseSecurityShield\ML\AnomalyDetector;
 use AdosLabs\EnterpriseSecurityShield\ML\OnlineLearningClassifier;
 use AdosLabs\EnterpriseSecurityShield\ML\RequestAnalyzer;
 use AdosLabs\EnterpriseSecurityShield\ML\ThreatClassifier;
+use AdosLabs\EnterpriseSecurityShield\RateLimiting\APIRateLimiter;
 use AdosLabs\EnterpriseSecurityShield\RateLimiting\RateLimiter;
+use AdosLabs\EnterpriseSecurityShield\Security\JWTValidator;
+use AdosLabs\EnterpriseSecurityShield\ThreatIntel\ThreatFeedClient;
+use AdosLabs\EnterpriseSecurityShield\ThreatIntel\ThreatMatcher;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 
@@ -63,6 +72,25 @@ final class SecurityShield
 
     private ?RateLimiter $rateLimiter = null;
 
+    // New Enterprise Features
+    private ?RequestSmugglingDetector $smugglingDetector = null;
+
+    private ?WebSocketProtector $wsProtector = null;
+
+    private ?JWTValidator $jwtValidator = null;
+
+    private ?GraphQLProtector $graphqlProtector = null;
+
+    private ?DDoSProtector $ddosProtector = null;
+
+    private ?HTTP2Protector $http2Protector = null;
+
+    private ?APIRateLimiter $apiRateLimiter = null;
+
+    private ?ThreatFeedClient $threatFeedClient = null;
+
+    private ?ThreatMatcher $threatMatcher = null;
+
     // ML configuration
     private bool $onlineLearningEnabled = true;
 
@@ -73,6 +101,11 @@ final class SecurityShield
         'bots_verified' => 0,
         'bots_spoofed' => 0,
         'rate_limited' => 0,
+        'smuggling_detected' => 0,
+        'ddos_detected' => 0,
+        'jwt_attacks' => 0,
+        'graphql_attacks' => 0,
+        'threat_intel_blocked' => 0,
     ];
 
     public function __construct(
@@ -518,6 +551,76 @@ final class SecurityShield
         return $this->anomalyDetector ??= new AnomalyDetector();
     }
 
+    // === NEW ENTERPRISE FEATURES ===
+
+    public function getRequestSmugglingDetector(): RequestSmugglingDetector
+    {
+        return $this->smugglingDetector ??= new RequestSmugglingDetector();
+    }
+
+    public function getWebSocketProtector(): WebSocketProtector
+    {
+        return $this->wsProtector ??= new WebSocketProtector([
+            'allowed_origins' => $this->config->get('websocket_allowed_origins', []),
+            'strict_origin' => $this->config->get('websocket_strict_origin', true),
+        ]);
+    }
+
+    public function getJWTValidator(): JWTValidator
+    {
+        return $this->jwtValidator ??= new JWTValidator([
+            'allowed_algorithms' => $this->config->get('jwt_allowed_algorithms', ['HS256', 'RS256']),
+            'required_claims' => $this->config->get('jwt_required_claims', ['exp', 'iat']),
+        ]);
+    }
+
+    public function getGraphQLProtector(): GraphQLProtector
+    {
+        return $this->graphqlProtector ??= new GraphQLProtector([
+            'max_depth' => $this->config->get('graphql_max_depth', 10),
+            'max_complexity' => $this->config->get('graphql_max_complexity', 1000),
+            'max_batch_size' => $this->config->get('graphql_max_batch_size', 10),
+            'allow_introspection' => $this->config->get('graphql_allow_introspection', false),
+        ]);
+    }
+
+    public function getDDoSProtector(): DDoSProtector
+    {
+        return $this->ddosProtector ??= new DDoSProtector($this->storage, [
+            'max_requests_per_window' => $this->config->get('ddos_max_requests', 1000),
+            'window_size' => $this->config->get('ddos_window_size', 60),
+            'max_concurrent_connections' => $this->config->get('ddos_max_connections', 50),
+        ]);
+    }
+
+    public function getHTTP2Protector(): HTTP2Protector
+    {
+        return $this->http2Protector ??= new HTTP2Protector([
+            'max_header_list_size' => $this->config->get('http2_max_header_size', 16384),
+            'max_concurrent_streams' => $this->config->get('http2_max_streams', 100),
+        ]);
+    }
+
+    public function getAPIRateLimiter(): APIRateLimiter
+    {
+        return $this->apiRateLimiter ??= new APIRateLimiter($this->storage, [
+            'default_limit' => $this->config->get('api_rate_limit', 60),
+            'default_window' => $this->config->get('api_rate_window', 60),
+        ]);
+    }
+
+    public function getThreatFeedClient(): ThreatFeedClient
+    {
+        return $this->threatFeedClient ??= new ThreatFeedClient($this->storage, [
+            'cache_ttl' => $this->config->get('threat_feed_cache_ttl', 21600),
+        ]);
+    }
+
+    public function getThreatMatcher(): ThreatMatcher
+    {
+        return $this->threatMatcher ??= new ThreatMatcher($this->storage);
+    }
+
     public function getRequestAnalyzer(): RequestAnalyzer
     {
         if ($this->requestAnalyzer === null) {
@@ -576,6 +679,204 @@ final class SecurityShield
             'static_classifier' => $this->getThreatClassifier()->getModelStats(),
             'online_learner' => $this->getOnlineLearner()->getStats(),
         ];
+    }
+
+    // === Enterprise Security Methods ===
+
+    /**
+     * Analyze HTTP request for smuggling attacks.
+     *
+     * Use this for reverse proxy/load balancer protection.
+     *
+     * @param array<string, string|array<string>> $headers Request headers
+     * @param string $rawRequest Raw HTTP request (optional)
+     */
+    public function analyzeRequestSmuggling(array $headers, string $rawRequest = ''): array
+    {
+        $result = $this->getRequestSmugglingDetector()->detect($headers, $rawRequest);
+
+        if ($result['detected']) {
+            $this->stats['smuggling_detected']++;
+            $this->logger->warning('Request smuggling detected', [
+                'attack_type' => $result['attack_type'],
+                'confidence' => $result['confidence'],
+            ]);
+        }
+
+        return $result;
+    }
+
+    /**
+     * Validate WebSocket upgrade request.
+     *
+     * Call this before accepting WebSocket connections.
+     *
+     * @param array<string, string> $headers Request headers
+     * @param string $origin Request origin
+     * @param string $clientIp Client IP address
+     * @param int $currentConnections Current connections from this IP
+     */
+    public function validateWebSocketUpgrade(
+        array $headers,
+        string $origin,
+        string $clientIp,
+        int $currentConnections = 0,
+    ): array {
+        $protector = $this->getWebSocketProtector();
+
+        // Validate upgrade request
+        $result = $protector->validateUpgrade($headers, $origin, $clientIp, $currentConnections);
+
+        // Check for CSWSH
+        $cswsh = $protector->detectCSWSH($origin, $headers['referer'] ?? '', $headers['host'] ?? '');
+        if ($cswsh['detected']) {
+            $result['valid'] = false;
+            $result['errors'][] = 'CSWSH attack detected: ' . $cswsh['reason'];
+        }
+
+        return $result;
+    }
+
+    /**
+     * Validate JWT token for security issues.
+     *
+     * IMPORTANT: This validates for ATTACKS, not signature.
+     * Use a JWT library for signature verification.
+     */
+    public function validateJWT(string $token): array
+    {
+        $result = $this->getJWTValidator()->validate($token);
+
+        if (!$result['valid'] && !empty($result['attacks_detected'])) {
+            $this->stats['jwt_attacks']++;
+            $this->logger->warning('JWT attack detected', [
+                'attacks' => $result['attacks_detected'],
+                'errors' => $result['errors'],
+            ]);
+        }
+
+        return $result;
+    }
+
+    /**
+     * Analyze GraphQL query for abuse.
+     *
+     * @param string|array<mixed> $query GraphQL query or batch
+     * @param array<string, mixed>|null $variables Query variables
+     */
+    public function analyzeGraphQL(string|array $query, ?array $variables = null): array
+    {
+        $result = $this->getGraphQLProtector()->analyze($query, $variables);
+
+        if (!$result['allowed']) {
+            $this->stats['graphql_attacks']++;
+            $this->logger->warning('GraphQL abuse detected', [
+                'attacks' => $result['attacks_detected'],
+                'metrics' => $result['metrics'],
+            ]);
+        }
+
+        return $result;
+    }
+
+    /**
+     * Analyze request for DDoS patterns.
+     *
+     * @param string $clientIp Client IP address
+     * @param string $path Request path
+     * @param string $method HTTP method
+     * @param array<string, mixed> $serverMetrics Metrics from web server
+     */
+    public function analyzeDDoS(
+        string $clientIp,
+        string $path,
+        string $method = 'GET',
+        array $serverMetrics = [],
+    ): array {
+        $result = $this->getDDoSProtector()->analyze($clientIp, $path, $method, $serverMetrics);
+
+        if (!$result['allowed']) {
+            $this->stats['ddos_detected']++;
+            $this->getDDoSProtector()->recordAttack($clientIp, $result['attack_type'] ?? 'unknown');
+            $this->logger->warning('DDoS attack detected', [
+                'ip' => $clientIp,
+                'attack_type' => $result['attack_type'],
+                'confidence' => $result['confidence'],
+            ]);
+        }
+
+        return $result;
+    }
+
+    /**
+     * Check API rate limit with advanced features.
+     *
+     * @param string $identifier Client identifier (IP, user ID)
+     * @param string $endpoint API endpoint
+     * @param string|null $apiKey API key if authenticated
+     * @param int $cost Request cost (default 1)
+     */
+    public function checkAPIRateLimit(
+        string $identifier,
+        string $endpoint = '/',
+        ?string $apiKey = null,
+        int $cost = 1,
+    ): array {
+        return $this->getAPIRateLimiter()->check($identifier, $endpoint, $apiKey, $cost);
+    }
+
+    /**
+     * Check IP against threat intelligence feeds.
+     *
+     * @return array{match: bool, feed: string|null, type: string|null}
+     */
+    public function checkThreatIntel(string $ip): array
+    {
+        $result = $this->getThreatMatcher()->matchIp($ip);
+
+        if ($result['match']) {
+            $this->stats['threat_intel_blocked']++;
+            $this->logger->warning('Threat intelligence match', [
+                'ip' => $ip,
+                'feed' => $result['feed'],
+            ]);
+        }
+
+        return $result;
+    }
+
+    /**
+     * Update threat intelligence feeds.
+     *
+     * Should be called periodically (e.g., every 6 hours via cron).
+     */
+    public function updateThreatFeeds(): array
+    {
+        $result = $this->getThreatFeedClient()->fetchAllFeeds();
+
+        if (!empty($result['success'])) {
+            // Reload matcher with new data
+            $this->getThreatMatcher()->reload();
+        }
+
+        $this->logger->info('Threat feeds updated', [
+            'success' => $result['success'],
+            'failed' => array_keys($result['failed']),
+            'total_entries' => $result['total_entries'],
+        ]);
+
+        return $result;
+    }
+
+    /**
+     * Analyze HTTP/2 request for protocol-specific attacks.
+     *
+     * @param array<string, string|array<string>> $headers Request headers
+     * @param array<string, mixed> $serverMetrics HTTP/2 metrics from server
+     */
+    public function analyzeHTTP2(array $headers, array $serverMetrics = []): array
+    {
+        return $this->getHTTP2Protector()->analyze($headers, $serverMetrics);
     }
 
     // === Private Methods ===

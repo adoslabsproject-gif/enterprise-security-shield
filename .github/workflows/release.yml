@@ -1,20 +1,48 @@
 name: Release
 
-# This workflow ONLY runs when a version tag is pushed (v1.0.0, v2.1.3, etc.)
-# It will NOT run on regular branch pushes
+# This workflow runs ONLY when:
+# 1. A version tag is pushed (v1.0.0, v2.1.3, etc.)
+# 2. Manually triggered via workflow_dispatch
 on:
   push:
     tags:
       - 'v[0-9]+.[0-9]+.[0-9]+'
       - 'v[0-9]+.[0-9]+.[0-9]+-*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., v1.0.0)'
+        required: true
+        type: string
 
 permissions:
   contents: write
 
 jobs:
+  # This job checks if we should actually run
+  check:
+    name: Check if release should run
+    runs-on: ubuntu-latest
+    outputs:
+      should_release: ${{ steps.check.outputs.should_release }}
+    steps:
+      - name: Check trigger
+        id: check
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "should_release=true" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            echo "should_release=true" >> $GITHUB_OUTPUT
+          else
+            echo "should_release=false" >> $GITHUB_OUTPUT
+            echo "::notice::Skipping release - not a tag push"
+          fi
+
   release:
     name: Create Release
     runs-on: ubuntu-latest
+    needs: check
+    if: needs.check.outputs.should_release == 'true'
 
     steps:
       - name: Checkout code
@@ -73,7 +101,7 @@ jobs:
             ## Installation
 
             ```bash
-            composer require senza1dio/security-shield:${{ github.ref_name }}
+            composer require ados-labs/enterprise-security-shield:${{ github.ref_name }}
             ```
 
             ## Upgrade Notes
@@ -94,5 +122,5 @@ jobs:
         if: ${{ secrets.PACKAGIST_TOKEN != '' }}
         run: |
           curl -XPOST -H "Content-Type: application/json" \
-            -d '{"repository":{"url":"https://packagist.org/packages/senza1dio/security-shield"}}' \
+            -d '{"repository":{"url":"https://packagist.org/packages/ados-labs/enterprise-security-shield"}}' \
             "https://packagist.org/api/update-package?username=${{ secrets.PACKAGIST_USERNAME }}&apiToken=${{ secrets.PACKAGIST_TOKEN }}"
