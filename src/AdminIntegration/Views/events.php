@@ -4,9 +4,47 @@
  *
  * @var array $events Security events list
  * @var array $filters Current filters
- * @var array $pagination Pagination data
- * @var string $csrfToken CSRF token
+ * @var int $total Total events count
+ * @var int $page Current page
+ * @var int $per_page Items per page
+ * @var int $pages Total pages
+ * @var array $event_types Available event types
+ * @var string $csrf_token CSRF token
  */
+
+// Helper functions for badge classes
+if (!function_exists('essThreatBadgeClass')) {
+    function essThreatBadgeClass(string $type): string {
+        return match (strtolower($type)) {
+            'auto_ban', 'ban' => 'danger',
+            'honeypot', 'honeypot_access' => 'warning',
+            'rate_limit', 'rate_limit_exceeded' => 'info',
+            'sqli', 'sqli_detected' => 'danger',
+            'xss', 'xss_detected' => 'danger',
+            'scanner', 'scanner_detected' => 'warning',
+            default => 'secondary',
+        };
+    }
+}
+
+if (!function_exists('essScoreClass')) {
+    function essScoreClass(int $score): string {
+        if ($score >= 80) return 'danger';
+        if ($score >= 50) return 'warning';
+        if ($score >= 20) return 'info';
+        return 'success';
+    }
+}
+
+// Normalize variable names
+$csrfToken = $csrf_token ?? '';
+$pagination = [
+    'current_page' => $page ?? 1,
+    'total_pages' => $pages ?? 1,
+    'total' => $total ?? 0,
+    'from' => (($page ?? 1) - 1) * ($per_page ?? 100) + 1,
+    'to' => min(($page ?? 1) * ($per_page ?? 100), $total ?? 0),
+];
 ?>
 <div class="ess-events">
     <div class="ess-events__header">
@@ -109,7 +147,7 @@
                             <?php endif; ?>
                         </td>
                         <td class="ess-table__td">
-                            <span class="ess-badge ess-badge--<?= htmlspecialchars($this->getThreatBadgeClass($event['type'] ?? '')) ?>">
+                            <span class="ess-badge ess-badge--<?= htmlspecialchars(essThreatBadgeClass($event['type'] ?? '')) ?>">
                                 <?= htmlspecialchars($event['type'] ?? 'unknown') ?>
                             </span>
                         </td>
@@ -125,7 +163,7 @@
                         </td>
                         <td class="ess-table__td">
                             <div class="ess-score-bar">
-                                <div class="ess-score-bar__fill ess-score-bar__fill--<?= $this->getScoreClass($event['score'] ?? 0) ?>"
+                                <div class="ess-score-bar__fill ess-score-bar__fill--<?= essScoreClass((int)($event['score'] ?? 0)) ?>"
                                      data-score="<?= min(100, $event['score'] ?? 0) ?>"></div>
                                 <span class="ess-score-bar__value"><?= $event['score'] ?? 0 ?></span>
                             </div>
@@ -215,7 +253,7 @@
                 <div class="ess-detail-grid__item">
                     <span class="ess-detail-grid__label">Type</span>
                     <span class="ess-detail-grid__value">
-                        <span class="ess-badge ess-badge--<?= htmlspecialchars($this->getThreatBadgeClass($event['type'] ?? '')) ?>">
+                        <span class="ess-badge ess-badge--<?= htmlspecialchars(essThreatBadgeClass($event['type'] ?? '')) ?>">
                             <?= htmlspecialchars($event['type'] ?? 'unknown') ?>
                         </span>
                     </span>

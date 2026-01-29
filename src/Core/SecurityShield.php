@@ -11,6 +11,7 @@ use AdosLabs\EnterpriseSecurityShield\Detection\SQLiDetector;
 use AdosLabs\EnterpriseSecurityShield\Detection\XSSDetector;
 use AdosLabs\EnterpriseSecurityShield\GeoIP\GeoIPService;
 use AdosLabs\EnterpriseSecurityShield\ML\AnomalyDetector;
+use AdosLabs\EnterpriseSecurityShield\ML\OnlineLearningClassifier;
 use AdosLabs\EnterpriseSecurityShield\ML\RequestAnalyzer;
 use AdosLabs\EnterpriseSecurityShield\ML\ThreatClassifier;
 use AdosLabs\EnterpriseSecurityShield\RateLimiting\RateLimiter;
@@ -43,6 +44,7 @@ final class SecurityShield
 
     // Components (lazy loaded)
     private ?ThreatClassifier $threatClassifier = null;
+    private ?OnlineLearningClassifier $onlineLearner = null;
     private ?AnomalyDetector $anomalyDetector = null;
     private ?RequestAnalyzer $requestAnalyzer = null;
     private ?BotVerificationService $botVerifier = null;
@@ -50,6 +52,9 @@ final class SecurityShield
     private ?SQLiDetector $sqliDetector = null;
     private ?XSSDetector $xssDetector = null;
     private ?RateLimiter $rateLimiter = null;
+
+    // ML configuration
+    private bool $onlineLearningEnabled = true;
 
     // Statistics
     private array $stats = [
@@ -166,8 +171,9 @@ final class SecurityShield
             $totalScore += $geoResult['risk_score'];
         }
 
-        // === LAYER 5: ML Threat Classification ===
+        // === LAYER 5: ML Threat Classification (DUAL-ENGINE) ===
         if ($this->config->get('ml_enabled', true)) {
+            // 5A: Static ML Analyzer (trained on 662 events)
             $mlResult = $this->getRequestAnalyzer()->analyze([
                 'ip' => $ip,
                 'user_agent' => $userAgent,
@@ -178,7 +184,7 @@ final class SecurityShield
                 'body' => $body ?? '',
             ]);
 
-            $totalScore += (int) ($mlResult['score'] * 0.6); // Weight ML score at 60%
+            $totalScore += (int) ($mlResult['score'] * 0.35); // Static ML weight: 35%
 
             if ($mlResult['classification']['is_threat']) {
                 $reasons[] = $mlResult['classification']['reasoning'];
@@ -187,6 +193,35 @@ final class SecurityShield
                     'classification' => $mlResult['classification']['classification'],
                     'confidence' => $mlResult['classification']['confidence'],
                     'severity' => $mlResult['score'] >= 70 ? 'HIGH' : 'MEDIUM',
+                ];
+            }
+
+            // 5B: Online Learning ML Classifier (TRUE ML that learns continuously)
+            $onlineLearner = $this->getOnlineLearner();
+            $onlineResult = $onlineLearner->classify([
+                'ip' => $ip,
+                'user_agent' => $userAgent,
+                'path' => $path,
+                'request_count' => $this->getRequestCount($ip),
+                'error_404_count' => 0,
+                'rate_limited' => false,
+                'honeypot_hit' => false,
+                'sqli_detected' => false,
+                'xss_detected' => false,
+            ]);
+
+            // Online Learning ML weight: 25% (increases model maturity)
+            if ($onlineResult['is_threat']) {
+                $onlineScore = (int) ($onlineResult['confidence'] * 25);
+                $totalScore += $onlineScore;
+                $reasons[] = 'Online ML: ' . $onlineResult['classification'] . ' (confidence: ' . round($onlineResult['confidence'] * 100) . '%)';
+                $threats[] = [
+                    'type' => 'online_ml_classification',
+                    'classification' => $onlineResult['classification'],
+                    'confidence' => $onlineResult['confidence'],
+                    'learning_status' => $onlineResult['learning_status'],
+                    'total_samples' => $onlineResult['total_samples_learned'],
+                    'severity' => $onlineResult['confidence'] >= 0.8 ? 'HIGH' : 'MEDIUM',
                 ];
             }
         }
@@ -434,6 +469,52 @@ final class SecurityShield
         return $this->requestAnalyzer;
     }
 
+    /**
+     * Get Online Learning Classifier (TRUE ML with continuous learning)
+     */
+    public function getOnlineLearner(): OnlineLearningClassifier
+    {
+        return $this->onlineLearner ??= new OnlineLearningClassifier($this->storage, $this->logger);
+    }
+
+    /**
+     * Enable or disable online learning
+     */
+    public function setOnlineLearningEnabled(bool $enabled): self
+    {
+        $this->onlineLearningEnabled = $enabled;
+        return $this;
+    }
+
+    /**
+     * Train the online learning model from historical security events
+     *
+     * @param int $limit Maximum events to learn from
+     * @return int Number of events learned from
+     */
+    public function trainFromHistoricalEvents(int $limit = 1000): int
+    {
+        $learned = $this->getOnlineLearner()->autoLearnFromEvents($limit);
+
+        $this->logger->info('SecurityShield: ML model trained from historical events', [
+            'events_learned' => $learned,
+            'stats' => $this->getOnlineLearner()->getStats(),
+        ]);
+
+        return $learned;
+    }
+
+    /**
+     * Get ML model statistics
+     */
+    public function getMLStats(): array
+    {
+        return [
+            'static_classifier' => $this->getThreatClassifier()->getModelStats(),
+            'online_learner' => $this->getOnlineLearner()->getStats(),
+        ];
+    }
+
     // === Private Methods ===
 
     private function checkIPReputation(string $ip): array
@@ -475,19 +556,21 @@ final class SecurityShield
     private function checkRateLimit(string $ip, string $path): array
     {
         if ($this->rateLimiter === null) {
-            $this->rateLimiter = new RateLimiter($this->storage);
+            $maxRequests = $this->config->get('rate_limit_max', 100);
+            $windowSeconds = $this->config->get('rate_limit_window', 60);
+            $this->rateLimiter = RateLimiter::slidingWindow(
+                $this->storage,
+                $maxRequests,
+                $windowSeconds
+            );
         }
 
-        $result = $this->rateLimiter->attempt(
-            "ip:{$ip}",
-            $this->config->get('rate_limit_max', 100),
-            $this->config->get('rate_limit_window', 60)
-        );
+        $result = $this->rateLimiter->attempt("ip:{$ip}");
 
         return [
-            'allowed' => $result->isAllowed(),
-            'remaining' => $result->getRemaining(),
-            'retry_after' => $result->getRetryAfter(),
+            'allowed' => $result->allowed,
+            'remaining' => $result->remaining,
+            'retry_after' => $result->retryAfter,
         ];
     }
 
@@ -517,6 +600,11 @@ final class SecurityShield
         $threshold = $this->config->get('score_threshold', 100);
         if ($newScore >= $threshold) {
             $this->banIP($ip, $this->config->get('ban_duration', 86400), 'Auto-ban: Score threshold exceeded');
+
+            // Feed online ML classifier with this confirmed threat
+            $this->learnFromSecurityEvent('auto_ban', $ip, [
+                'reasons' => $reasons,
+            ]);
         }
     }
 
@@ -534,6 +622,57 @@ final class SecurityShield
         }
 
         $this->storage->set($key, $data, 3600);
+    }
+
+    private function getRequestCount(string $ip): int
+    {
+        $data = $this->storage->get("security:metrics:{$ip}");
+        return $data['requests'] ?? 1;
+    }
+
+    /**
+     * Learn from a security event (feeds online ML classifier)
+     */
+    private function learnFromSecurityEvent(string $eventType, string $ip, array $data): void
+    {
+        if (!$this->onlineLearningEnabled) {
+            return;
+        }
+
+        $classMapping = [
+            'auto_ban' => OnlineLearningClassifier::CLASS_SCANNER,
+            'bot_spoofing' => OnlineLearningClassifier::CLASS_BOT_SPOOF,
+            'sqli_detected' => OnlineLearningClassifier::CLASS_SQLI_ATTEMPT,
+            'xss_detected' => OnlineLearningClassifier::CLASS_XSS_ATTEMPT,
+            'honeypot_access' => OnlineLearningClassifier::CLASS_SCANNER,
+            'brute_force' => OnlineLearningClassifier::CLASS_BRUTE_FORCE,
+            'path_traversal' => OnlineLearningClassifier::CLASS_PATH_TRAVERSAL,
+            'config_hunt' => OnlineLearningClassifier::CLASS_CONFIG_HUNT,
+        ];
+
+        $class = $classMapping[$eventType] ?? null;
+        if ($class === null) {
+            return;
+        }
+
+        $features = [
+            'user_agent' => $data['user_agent'] ?? '',
+            'path' => $data['path'] ?? '',
+            'request_count' => $data['request_count'] ?? 0,
+            'sqli_detected' => str_contains($eventType, 'sqli'),
+            'xss_detected' => str_contains($eventType, 'xss'),
+            'honeypot_hit' => str_contains($eventType, 'honeypot'),
+        ];
+
+        $weight = in_array($eventType, ['auto_ban', 'sqli_detected', 'xss_detected']) ? 1.0 : 0.8;
+
+        $this->getOnlineLearner()->learn($features, $class, $weight);
+
+        $this->logger->debug('SecurityShield: Online ML learned from event', [
+            'event_type' => $eventType,
+            'class' => $class,
+            'ip' => $ip,
+        ]);
     }
 
     private function determineAction(int $score): string

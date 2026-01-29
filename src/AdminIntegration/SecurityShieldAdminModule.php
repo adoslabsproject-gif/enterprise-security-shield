@@ -268,28 +268,123 @@ final class SecurityShieldAdminModule implements AdminModuleInterface
             return;
         }
 
-        $driver = $this->db->getConfig()->getDriver();
+        // Determine database driver
+        $driver = 'postgresql';
+        try {
+            $driverMethod = method_exists($this->db, 'getConfig')
+                ? $this->db->getConfig()->getDriver()
+                : 'postgresql';
+            $driver = strtolower($driverMethod);
+            if (str_contains($driver, 'mysql') || str_contains($driver, 'mariadb')) {
+                $driver = 'mysql';
+            } else {
+                $driver = 'postgresql';
+            }
+        } catch (\Throwable $e) {
+            $driver = 'postgresql';
+        }
+
+        // Find migrations directory
         $migrationPath = dirname(__DIR__, 2) . "/database/migrations/{$driver}";
 
         if (!is_dir($migrationPath)) {
             $migrationPath = dirname(__DIR__, 2) . '/database/migrations/postgresql';
         }
 
+        if (!is_dir($migrationPath)) {
+            if ($this->logger) {
+                $this->logger->warning('SecurityShield: No migrations found', [
+                    'path' => $migrationPath,
+                ]);
+            }
+            return;
+        }
+
         // Run migrations
         $migrations = glob($migrationPath . '/*.sql');
+        if ($migrations === false) {
+            return;
+        }
         sort($migrations);
 
         foreach ($migrations as $file) {
             $sql = file_get_contents($file);
-            if ($sql !== false) {
+            if ($sql === false) {
+                continue;
+            }
+
+            // Split SQL into individual statements (handle MySQL DELIMITER)
+            $statements = $this->parseSqlStatements($sql);
+
+            foreach ($statements as $statement) {
+                $statement = trim($statement);
+                if (empty($statement)) {
+                    continue;
+                }
+
                 try {
-                    $this->db->execute($sql);
+                    $this->db->execute($statement);
                 } catch (\Throwable $e) {
-                    // Table might already exist
-                    error_log("SecurityShield migration warning: " . $e->getMessage());
+                    // Table might already exist - this is OK
+                    if ($this->logger) {
+                        $this->logger->debug('SecurityShield migration notice', [
+                            'file' => basename($file),
+                            'message' => $e->getMessage(),
+                        ]);
+                    }
                 }
             }
         }
+
+        if ($this->logger) {
+            $this->logger->info('SecurityShield: Database migrations completed');
+        }
+    }
+
+    /**
+     * Parse SQL file into individual statements
+     *
+     * @param string $sql
+     * @return array<string>
+     */
+    private function parseSqlStatements(string $sql): array
+    {
+        // Remove DELIMITER statements and handle MySQL stored procedures
+        $sql = preg_replace('/DELIMITER\s+\/\/.*?\/\/\s*DELIMITER\s*;/s', '', $sql);
+        $sql = preg_replace('/DELIMITER\s+[^\s]+/', '', $sql);
+
+        // Split by semicolon (but not inside strings or comments)
+        $statements = [];
+        $current = '';
+        $inString = false;
+        $stringChar = '';
+        $length = strlen($sql);
+
+        for ($i = 0; $i < $length; $i++) {
+            $char = $sql[$i];
+
+            // Track string state
+            if (!$inString && ($char === '"' || $char === "'")) {
+                $inString = true;
+                $stringChar = $char;
+            } elseif ($inString && $char === $stringChar && ($i === 0 || $sql[$i - 1] !== '\\')) {
+                $inString = false;
+            }
+
+            // Check for statement end
+            if (!$inString && $char === ';') {
+                $statements[] = trim($current);
+                $current = '';
+            } else {
+                $current .= $char;
+            }
+        }
+
+        if (trim($current) !== '') {
+            $statements[] = trim($current);
+        }
+
+        return array_filter($statements, fn($s) => !empty(trim($s)));
     }
 
     public function uninstall(): void
@@ -375,6 +470,6 @@ final class SecurityShieldAdminModule implements AdminModuleInterface
 
     public function getAssetsPath(): ?string
     {
-        return null;
+        return dirname(__DIR__, 2) . '/assets';
     }
 }

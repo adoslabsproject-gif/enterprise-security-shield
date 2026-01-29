@@ -3,10 +3,40 @@
  * Security Shield Dashboard View
  *
  * @var array $stats Security statistics
- * @var array $recentThreats Recent threat events
- * @var array $topAttackers Top attacking IPs
- * @var string $csrfToken CSRF token
+ * @var array $recent_threats Recent threat events
+ * @var array $banned_ips Banned IPs
+ * @var array $honeypot_stats Honeypot statistics
+ * @var string $csrf_token CSRF token (from BaseController)
  */
+
+// Helper functions for badge classes (wrapped to prevent redefinition)
+if (!function_exists('essThreatBadgeClass')) {
+    function essThreatBadgeClass(string $type): string {
+        return match (strtolower($type)) {
+            'auto_ban', 'ban' => 'danger',
+            'honeypot', 'honeypot_access' => 'warning',
+            'rate_limit', 'rate_limit_exceeded' => 'info',
+            'sqli', 'sqli_detected' => 'danger',
+            'xss', 'xss_detected' => 'danger',
+            'scanner', 'scanner_detected' => 'warning',
+            default => 'secondary',
+        };
+    }
+}
+
+if (!function_exists('essScoreClass')) {
+    function essScoreClass(int $score): string {
+        if ($score >= 80) return 'danger';
+        if ($score >= 50) return 'warning';
+        if ($score >= 20) return 'info';
+        return 'success';
+    }
+}
+
+// Normalize variable names (controller uses snake_case)
+$recentThreats = $recent_threats ?? [];
+$bannedIps = $banned_ips ?? [];
+$csrfToken = $csrf_token ?? '';
 
 // Pass data to JavaScript via data attributes
 $chartData = [
@@ -111,7 +141,7 @@ $chartData = [
                             <?php endif; ?>
                         </td>
                         <td class="ess-table__td">
-                            <span class="ess-badge ess-badge--<?= htmlspecialchars($this->getThreatBadgeClass($threat['type'] ?? '')) ?>">
+                            <span class="ess-badge ess-badge--<?= htmlspecialchars(essThreatBadgeClass($threat['type'] ?? '')) ?>">
                                 <?= htmlspecialchars($threat['type'] ?? 'unknown') ?>
                             </span>
                         </td>
@@ -141,67 +171,73 @@ $chartData = [
         </div>
     </div>
 
-    <!-- Top Attackers -->
+    <!-- Banned IPs -->
     <div class="ess-table-card">
         <div class="ess-table-card__header">
-            <h3 class="ess-table-card__title">Top Attackers (24h)</h3>
+            <h3 class="ess-table-card__title">Currently Banned IPs</h3>
+            <a href="/security/ips" class="ess-btn ess-btn--sm ess-btn--secondary">Manage IPs</a>
         </div>
         <div class="ess-table-card__wrapper">
             <table class="ess-table">
                 <thead class="ess-table__head">
                     <tr class="ess-table__row">
                         <th class="ess-table__th">IP Address</th>
-                        <th class="ess-table__th">Country</th>
-                        <th class="ess-table__th">Attack Count</th>
-                        <th class="ess-table__th">Score</th>
-                        <th class="ess-table__th">Status</th>
+                        <th class="ess-table__th">Reason</th>
+                        <th class="ess-table__th">Banned At</th>
+                        <th class="ess-table__th">Expires</th>
                         <th class="ess-table__th">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="ess-table__body">
-                    <?php foreach ($topAttackers ?? [] as $attacker): ?>
+                    <?php foreach ($bannedIps as $ban): ?>
                     <tr class="ess-table__row">
-                        <td class="ess-table__td"><code class="ess-code"><?= htmlspecialchars($attacker['ip'] ?? '') ?></code></td>
-                        <td class="ess-table__td"><?= htmlspecialchars($attacker['country'] ?? 'Unknown') ?></td>
-                        <td class="ess-table__td"><?= number_format($attacker['attack_count'] ?? 0) ?></td>
+                        <td class="ess-table__td"><code class="ess-code"><?= htmlspecialchars($ban['ip'] ?? '') ?></code></td>
+                        <td class="ess-table__td"><?= htmlspecialchars(substr($ban['reason'] ?? 'Manual', 0, 50)) ?></td>
+                        <td class="ess-table__td ess-table__td--muted"><?= htmlspecialchars($ban['banned_at'] ?? '') ?></td>
+                        <td class="ess-table__td ess-table__td--muted"><?= htmlspecialchars($ban['expires_at'] ?? '') ?></td>
                         <td class="ess-table__td">
-                            <div class="ess-score-bar">
-                                <div class="ess-score-bar__fill ess-score-bar__fill--<?= $this->getScoreClass($attacker['score'] ?? 0) ?>"
-                                     data-score="<?= min(100, ($attacker['score'] ?? 0) / 10) ?>"></div>
-                                <span class="ess-score-bar__value"><?= $attacker['score'] ?? 0 ?></span>
-                            </div>
-                        </td>
-                        <td class="ess-table__td">
-                            <?php if ($attacker['is_banned'] ?? false): ?>
-                            <span class="ess-badge ess-badge--danger">Banned</span>
-                            <?php else: ?>
-                            <span class="ess-badge ess-badge--warning">Active</span>
-                            <?php endif; ?>
-                        </td>
-                        <td class="ess-table__td">
-                            <?php if (!($attacker['is_banned'] ?? false)): ?>
-                            <form method="POST" action="/security/ips/ban" class="ess-form--inline">
-                                <input type="hidden" name="ip" value="<?= htmlspecialchars($attacker['ip'] ?? '') ?>">
-                                <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken ?? '') ?>">
-                                <span class="ess-btn ess-btn--sm ess-btn--danger" data-ess-submit>Ban</span>
-                            </form>
-                            <?php else: ?>
                             <form method="POST" action="/security/ips/unban" class="ess-form--inline">
-                                <input type="hidden" name="ip" value="<?= htmlspecialchars($attacker['ip'] ?? '') ?>">
-                                <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken ?? '') ?>">
-                                <span class="ess-btn ess-btn--sm ess-btn--success" data-ess-submit>Unban</span>
+                                <input type="hidden" name="ip" value="<?= htmlspecialchars($ban['ip'] ?? '') ?>">
+                                <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken) ?>">
+                                <button type="submit" class="ess-btn ess-btn--sm ess-btn--success">Unban</button>
                             </form>
-                            <?php endif; ?>
                         </td>
                     </tr>
                     <?php endforeach; ?>
-                    <?php if (empty($topAttackers)): ?>
+                    <?php if (empty($bannedIps)): ?>
                     <tr class="ess-table__row">
-                        <td class="ess-table__td ess-table__td--empty" colspan="6">No attackers in the last 24 hours</td>
+                        <td class="ess-table__td ess-table__td--empty" colspan="5">No currently banned IPs</td>
                     </tr>
                     <?php endif; ?>
                 </tbody>
             </table>
         </div>
     </div>
+
+    <!-- Honeypot Stats -->
+    <?php if (!empty($honeypot_stats)): ?>
+    <div class="ess-table-card">
+        <div class="ess-table-card__header">
+            <h3 class="ess-table-card__title">Top Honeypot Paths</h3>
+        </div>
+        <div class="ess-table-card__wrapper">
+            <table class="ess-table">
+                <thead class="ess-table__head">
+                    <tr class="ess-table__row">
+                        <th class="ess-table__th">Path</th>
+                        <th class="ess-table__th">Hits</th>
+                    </tr>
+                </thead>
+                <tbody class="ess-table__body">
+                    <?php foreach ($honeypot_stats as $hp): ?>
+                    <tr class="ess-table__row">
+                        <td class="ess-table__td"><code class="ess-code"><?= htmlspecialchars($hp['path'] ?? '') ?></code></td>
+                        <td class="ess-table__td"><?= number_format($hp['hits'] ?? 0) ?></td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <?php endif; ?>
 </div>
