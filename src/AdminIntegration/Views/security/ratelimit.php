@@ -1,6 +1,6 @@
 <?php
 /**
- * Rate Limiting View - Matrix Theme
+ * Rate Limiting View - Matrix Theme.
  *
  * @var array $config
  * @var array $endpoints
@@ -129,8 +129,8 @@
                             '/contact' => 'Prevents contact form spam',
                             default => 'Custom endpoint protection',
                         };
-                        echo htmlspecialchars($desc);
-                        ?>
+                    echo htmlspecialchars($desc);
+                    ?>
                     </td>
                 </tr>
                 <?php endforeach; ?>

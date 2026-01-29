@@ -104,6 +104,7 @@ final class SecurityController extends BaseController
         // Fallback to database storage
         // DatabaseStorage requires PDO, extract from DatabasePool
         $connection = $this->db->acquire();
+
         try {
             $pdo = $connection->getPdo();
             $this->storage = new DatabaseStorage($pdo);

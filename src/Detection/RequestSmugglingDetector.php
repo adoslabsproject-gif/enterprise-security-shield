@@ -117,7 +117,7 @@ final class RequestSmugglingDetector
             if ($count > 1) {
                 if ($name === 'content-length') {
                     $confidence = max($confidence, 0.90);
-                    $attackType = $attackType ?? 'DUPLICATE_CL';
+                    $attackType ??= 'DUPLICATE_CL';
                     $findings[] = [
                         'type' => 'DUPLICATE_CL',
                         'severity' => 'HIGH',
@@ -125,7 +125,7 @@ final class RequestSmugglingDetector
                     ];
                 } elseif ($name === 'transfer-encoding') {
                     $confidence = max($confidence, 0.90);
-                    $attackType = $attackType ?? 'DUPLICATE_TE';
+                    $attackType ??= 'DUPLICATE_TE';
                     $findings[] = [
                         'type' => 'DUPLICATE_TE',
                         'severity' => 'HIGH',
@@ -143,7 +143,7 @@ final class RequestSmugglingDetector
             // Check for obfuscation
             if ($this->isObfuscatedTE($teString)) {
                 $confidence = max($confidence, 0.85);
-                $attackType = $attackType ?? 'TE_OBFUSCATION';
+                $attackType ??= 'TE_OBFUSCATION';
                 $findings[] = [
                     'type' => 'TE_OBFUSCATION',
                     'severity' => 'HIGH',

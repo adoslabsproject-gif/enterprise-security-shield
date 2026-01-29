@@ -1,6 +1,6 @@
 <?php
 /**
- * WAF Rules View - Matrix Theme
+ * WAF Rules View - Matrix Theme.
  *
  * @var array $rules
  * @var array $detection_stats
@@ -142,9 +142,9 @@
                             'lfi' => 'secondary',
                             'scanner' => 'purple',
                         ];
-                        $category = $rule['category'] ?? 'default';
-                        $color = $categoryColors[$category] ?? 'secondary';
-                        ?>
+                    $category = $rule['category'] ?? 'default';
+                    $color = $categoryColors[$category] ?? 'secondary';
+                    ?>
                         <span class="eap-badge eap-badge--<?= $color ?>"><?= htmlspecialchars(strtoupper($category)) ?></span>
                     </td>
                     <td class="eap-table__cell--muted">

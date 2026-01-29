@@ -145,7 +145,7 @@ final class DDoSProtector
             $collectedMetrics['headers_per_second'] = $slowlorisResult['rate'];
 
             if ($slowlorisResult['detected']) {
-                $attackType = $attackType ?? 'SLOWLORIS';
+                $attackType ??= 'SLOWLORIS';
                 $confidence = max($confidence, $slowlorisResult['confidence']);
                 $reasons[] = $slowlorisResult['reason'];
             }
@@ -160,7 +160,7 @@ final class DDoSProtector
             $collectedMetrics['body_bytes_per_second'] = $rudyResult['rate'];
 
             if ($rudyResult['detected']) {
-                $attackType = $attackType ?? 'RUDY';
+                $attackType ??= 'RUDY';
                 $confidence = max($confidence, $rudyResult['confidence']);
                 $reasons[] = $rudyResult['reason'];
             }
@@ -172,7 +172,7 @@ final class DDoSProtector
             $collectedMetrics['request_duration'] = $duration;
 
             if ($duration > $this->maxRequestDuration) {
-                $attackType = $attackType ?? 'SLOW_REQUEST';
+                $attackType ??= 'SLOW_REQUEST';
                 $confidence = max($confidence, 0.7);
                 $reasons[] = "Request duration ({$duration}s) exceeds maximum ({$this->maxRequestDuration}s)";
             }
@@ -184,7 +184,7 @@ final class DDoSProtector
             $collectedMetrics['concurrent_connections'] = $connections;
 
             if ($connections > $this->maxConcurrentConnections) {
-                $attackType = $attackType ?? 'CONNECTION_FLOOD';
+                $attackType ??= 'CONNECTION_FLOOD';
                 $confidence = max($confidence, 0.85);
                 $reasons[] = "Concurrent connections ({$connections}) exceeds maximum ({$this->maxConcurrentConnections})";
             }
@@ -197,7 +197,7 @@ final class DDoSProtector
         if ($endpointCost > 1) {
             $effectiveRequests = $floodResult['count'] * $endpointCost;
             if ($effectiveRequests > $this->maxRequestsPerWindow) {
-                $attackType = $attackType ?? 'RESOURCE_EXHAUSTION';
+                $attackType ??= 'RESOURCE_EXHAUSTION';
                 $confidence = max($confidence, 0.75);
                 $reasons[] = "Expensive endpoint abuse (cost: {$endpointCost}x, effective requests: {$effectiveRequests})";
             }

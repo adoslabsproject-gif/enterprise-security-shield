@@ -343,31 +343,31 @@ final class HTTP2Protector
     public function getNginxConfig(): string
     {
         return <<<'NGINX'
-# HTTP/2 Security Configuration
-# Add this to your nginx.conf http{} block
+            # HTTP/2 Security Configuration
+            # Add this to your nginx.conf http{} block
 
-# Limit concurrent streams per connection
-http2_max_concurrent_streams 100;
+            # Limit concurrent streams per connection
+            http2_max_concurrent_streams 100;
 
-# Limit header size
-http2_max_header_size 16k;
+            # Limit header size
+            http2_max_header_size 16k;
 
-# Limit total size of request headers
-large_client_header_buffers 4 16k;
+            # Limit total size of request headers
+            large_client_header_buffers 4 16k;
 
-# Connection timeout
-http2_idle_timeout 60s;
+            # Connection timeout
+            http2_idle_timeout 60s;
 
-# Limit receiving timeout
-http2_recv_timeout 30s;
+            # Limit receiving timeout
+            http2_recv_timeout 30s;
 
-# For CVE-2023-44487 (Rapid Reset) mitigation:
-# Upgrade to nginx 1.25.3+ or apply the patch
-# limit_req_zone $binary_remote_addr zone=h2reset:10m rate=10r/s;
+            # For CVE-2023-44487 (Rapid Reset) mitigation:
+            # Upgrade to nginx 1.25.3+ or apply the patch
+            # limit_req_zone $binary_remote_addr zone=h2reset:10m rate=10r/s;
 
-# For CVE-2024-27983 (CONTINUATION Flood):
-# Upgrade your HTTP/2 implementation to latest version
-NGINX;
+            # For CVE-2024-27983 (CONTINUATION Flood):
+            # Upgrade your HTTP/2 implementation to latest version
+            NGINX;
     }
 
     /**
@@ -378,24 +378,24 @@ NGINX;
     public function getApacheConfig(): string
     {
         return <<<'APACHE'
-# HTTP/2 Security Configuration for Apache
-# Requires mod_http2
+            # HTTP/2 Security Configuration for Apache
+            # Requires mod_http2
 
-# Maximum concurrent streams per connection
-H2MaxSessionStreams 100
+            # Maximum concurrent streams per connection
+            H2MaxSessionStreams 100
 
-# Maximum size for a request header
-LimitRequestFieldSize 8190
+            # Maximum size for a request header
+            LimitRequestFieldSize 8190
 
-# Maximum total size of request headers
-LimitRequestFields 100
+            # Maximum total size of request headers
+            LimitRequestFields 100
 
-# Connection timeout
-H2SessionExtraFiles 5
+            # Connection timeout
+            H2SessionExtraFiles 5
 
-# For CVE-2023-44487 mitigation, upgrade to Apache 2.4.58+
-# For CVE-2024-27983 mitigation, upgrade to latest version
-APACHE;
+            # For CVE-2023-44487 mitigation, upgrade to Apache 2.4.58+
+            # For CVE-2024-27983 mitigation, upgrade to latest version
+            APACHE;
     }
 
     /**

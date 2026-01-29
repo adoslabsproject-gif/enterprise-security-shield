@@ -1,6 +1,6 @@
 <?php
 /**
- * Security Shield IP Management View - Matrix Theme
+ * Security Shield IP Management View - Matrix Theme.
  *
  * @var array $bannedIps List of banned IPs
  * @var array $whitelistedIps List of whitelisted IPs

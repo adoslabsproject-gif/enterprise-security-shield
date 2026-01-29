@@ -1,6 +1,6 @@
 <?php
 /**
- * Security Shield Dashboard View - Matrix Theme
+ * Security Shield Dashboard View - Matrix Theme.
  *
  * @var array $stats Security statistics
  * @var array $recent_threats Recent threat events
@@ -118,17 +118,17 @@ $honeypotStats = $honeypot_stats ?? [];
                     <?php foreach ($recentThreats as $threat): ?>
                     <?php
                     $type = strtolower($threat['type'] ?? '');
-                    $badgeClass = match(true) {
-                        str_contains($type, 'ban') => 'danger',
-                        str_contains($type, 'sqli') || str_contains($type, 'xss') => 'danger',
-                        str_contains($type, 'honeypot') => 'warning',
-                        str_contains($type, 'rate') => 'info',
-                        str_contains($type, 'scanner') => 'warning',
-                        default => 'secondary',
-                    };
-                    $score = (int) ($threat['score'] ?? 0);
-                    $scoreClass = $score >= 80 ? 'danger' : ($score >= 50 ? 'warning' : ($score >= 20 ? 'info' : 'success'));
-                    ?>
+                        $badgeClass = match(true) {
+                            str_contains($type, 'ban') => 'danger',
+                            str_contains($type, 'sqli') || str_contains($type, 'xss') => 'danger',
+                            str_contains($type, 'honeypot') => 'warning',
+                            str_contains($type, 'rate') => 'info',
+                            str_contains($type, 'scanner') => 'warning',
+                            default => 'secondary',
+                        };
+                        $score = (int) ($threat['score'] ?? 0);
+                        $scoreClass = $score >= 80 ? 'danger' : ($score >= 50 ? 'warning' : ($score >= 20 ? 'info' : 'success'));
+                        ?>
                     <tr>
                         <td class="eap-table__cell--mono"><?= htmlspecialchars($threat['time'] ?? '') ?></td>
                         <td>

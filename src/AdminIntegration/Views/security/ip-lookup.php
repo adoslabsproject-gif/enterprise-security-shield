@@ -1,6 +1,6 @@
 <?php
 /**
- * IP Lookup View - Matrix Theme
+ * IP Lookup View - Matrix Theme.
  *
  * @var array $ipInfo IP information
  * @var string $csrf_input CSRF input field
@@ -228,25 +228,25 @@ $ip = $ipInfo['ip'] ?? '';
                     <?php foreach ($ipInfo['events'] as $event): ?>
                     <?php
                     $type = strtolower($event['type'] ?? '');
-                    $badgeClass = match(true) {
-                        str_contains($type, 'ban') => 'danger',
-                        str_contains($type, 'sqli') || str_contains($type, 'sql') => 'danger',
-                        str_contains($type, 'xss') => 'danger',
-                        str_contains($type, 'honeypot') => 'warning',
-                        str_contains($type, 'rate') => 'info',
-                        str_contains($type, 'scanner') => 'warning',
-                        default => 'secondary',
-                    };
-                    $score = (int) ($event['score'] ?? 0);
-                    $scoreClass = $score >= 80 ? 'danger' : ($score >= 50 ? 'warning' : ($score >= 20 ? 'info' : 'success'));
-                    $action = strtolower($event['action'] ?? 'allow');
-                    $actionClass = match($action) {
-                        'block', 'ban' => 'danger',
-                        'allow' => 'success',
-                        'challenge' => 'warning',
-                        default => 'secondary',
-                    };
-                    ?>
+                        $badgeClass = match(true) {
+                            str_contains($type, 'ban') => 'danger',
+                            str_contains($type, 'sqli') || str_contains($type, 'sql') => 'danger',
+                            str_contains($type, 'xss') => 'danger',
+                            str_contains($type, 'honeypot') => 'warning',
+                            str_contains($type, 'rate') => 'info',
+                            str_contains($type, 'scanner') => 'warning',
+                            default => 'secondary',
+                        };
+                        $score = (int) ($event['score'] ?? 0);
+                        $scoreClass = $score >= 80 ? 'danger' : ($score >= 50 ? 'warning' : ($score >= 20 ? 'info' : 'success'));
+                        $action = strtolower($event['action'] ?? 'allow');
+                        $actionClass = match($action) {
+                            'block', 'ban' => 'danger',
+                            'allow' => 'success',
+                            'challenge' => 'warning',
+                            default => 'secondary',
+                        };
+                        ?>
                     <tr>
                         <td class="eap-table__cell--mono"><?= htmlspecialchars($event['time'] ?? '') ?></td>
                         <td>

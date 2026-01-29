@@ -1,6 +1,6 @@
 <?php
 /**
- * ML Threat Detection View - Matrix Theme
+ * ML Threat Detection View - Matrix Theme.
  *
  * @var array $ml_stats
  * @var array $classifications
@@ -166,24 +166,24 @@
                         <td>
                             <?php
                             $classification = $event['data']['classification'] ?? 'unknown';
-                            $badgeClass = match($classification) {
-                                'SCANNER' => 'danger',
-                                'BOT_SPOOF' => 'warning',
-                                'CMS_PROBE' => 'info',
-                                'SQLI_ATTEMPT' => 'purple',
-                                'XSS_ATTEMPT' => 'cyan',
-                                'LEGITIMATE' => 'success',
-                                default => 'secondary',
-                            };
-                            ?>
+                        $badgeClass = match($classification) {
+                            'SCANNER' => 'danger',
+                            'BOT_SPOOF' => 'warning',
+                            'CMS_PROBE' => 'info',
+                            'SQLI_ATTEMPT' => 'purple',
+                            'XSS_ATTEMPT' => 'cyan',
+                            'LEGITIMATE' => 'success',
+                            default => 'secondary',
+                        };
+                        ?>
                             <span class="eap-badge eap-badge--<?= $badgeClass ?>"><?= htmlspecialchars($classification) ?></span>
                         </td>
                         <td class="eap-table__cell--center">
                             <?php
-                            $confidence = $event['data']['confidence'] ?? 0;
-                            $confPercent = round($confidence * 100, 1);
-                            $confClass = $confidence >= 0.8 ? 'danger' : ($confidence >= 0.6 ? 'warning' : 'info');
-                            ?>
+                        $confidence = $event['data']['confidence'] ?? 0;
+                        $confPercent = round($confidence * 100, 1);
+                        $confClass = $confidence >= 0.8 ? 'danger' : ($confidence >= 0.6 ? 'warning' : 'info');
+                        ?>
                             <span class="eap-badge eap-badge--<?= $confClass ?>"><?= $confPercent ?>%</span>
                         </td>
                         <td class="eap-table__cell--truncate">

@@ -141,7 +141,7 @@ final class WebSocketProtector
             }
 
             if (!$validProtocol) {
-                $errors[] = "No allowed subprotocol requested. Allowed: " . implode(', ', $this->allowedSubprotocols);
+                $errors[] = 'No allowed subprotocol requested. Allowed: ' . implode(', ', $this->allowedSubprotocols);
                 $riskScore += 20;
             }
         }

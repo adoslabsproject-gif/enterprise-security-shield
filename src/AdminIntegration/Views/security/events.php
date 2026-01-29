@@ -1,6 +1,6 @@
 <?php
 /**
- * Security Shield Events View - Matrix Theme
+ * Security Shield Events View - Matrix Theme.
  *
  * @var array $events Security events list
  * @var array $filters Current filters
@@ -147,29 +147,29 @@ $pagination = [
                     <?php foreach ($events as $event): ?>
                     <?php
                     $type = strtolower($event['type'] ?? '');
-                    $badgeClass = match(true) {
-                        str_contains($type, 'ban') => 'danger',
-                        str_contains($type, 'sqli') || str_contains($type, 'sql') => 'danger',
-                        str_contains($type, 'xss') => 'danger',
-                        str_contains($type, 'honeypot') => 'warning',
-                        str_contains($type, 'rate') => 'info',
-                        str_contains($type, 'scanner') => 'warning',
-                        str_contains($type, 'cms') => 'info',
-                        str_contains($type, 'path') => 'purple',
-                        str_contains($type, 'config') => 'secondary',
-                        default => 'secondary',
-                    };
-                    $score = (int) ($event['score'] ?? 0);
-                    $scoreClass = $score >= 80 ? 'danger' : ($score >= 50 ? 'warning' : ($score >= 20 ? 'info' : 'success'));
-                    $action = strtolower($event['action'] ?? 'allow');
-                    $actionClass = match($action) {
-                        'block', 'ban' => 'danger',
-                        'allow' => 'success',
-                        'challenge' => 'warning',
-                        'rate_limit' => 'info',
-                        default => 'secondary',
-                    };
-                    ?>
+                        $badgeClass = match(true) {
+                            str_contains($type, 'ban') => 'danger',
+                            str_contains($type, 'sqli') || str_contains($type, 'sql') => 'danger',
+                            str_contains($type, 'xss') => 'danger',
+                            str_contains($type, 'honeypot') => 'warning',
+                            str_contains($type, 'rate') => 'info',
+                            str_contains($type, 'scanner') => 'warning',
+                            str_contains($type, 'cms') => 'info',
+                            str_contains($type, 'path') => 'purple',
+                            str_contains($type, 'config') => 'secondary',
+                            default => 'secondary',
+                        };
+                        $score = (int) ($event['score'] ?? 0);
+                        $scoreClass = $score >= 80 ? 'danger' : ($score >= 50 ? 'warning' : ($score >= 20 ? 'info' : 'success'));
+                        $action = strtolower($event['action'] ?? 'allow');
+                        $actionClass = match($action) {
+                            'block', 'ban' => 'danger',
+                            'allow' => 'success',
+                            'challenge' => 'warning',
+                            'rate_limit' => 'info',
+                            default => 'secondary',
+                        };
+                        ?>
                     <tr>
                         <td class="eap-table__cell--mono"><?= htmlspecialchars($event['time'] ?? '') ?></td>
                         <td>

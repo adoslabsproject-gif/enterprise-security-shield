@@ -1,6 +1,6 @@
 <?php
 /**
- * Security Shield Configuration View - Matrix Theme
+ * Security Shield Configuration View - Matrix Theme.
  *
  * @var array $config Current configuration
  * @var array $presets Available presets
