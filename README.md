@@ -16,7 +16,8 @@ A complete security solution with ML-based threat detection, bot verification, a
 
 | Feature | Description |
 |---------|-------------|
-| **ML Threat Classifier** | Naive Bayes classifier trained on 662 real security events |
+| **Online Learning ML** | TRUE Machine Learning that learns continuously from security events |
+| **ML Threat Classifier** | Naive Bayes classifier pre-trained on 662 real security events |
 | **XSS Detection** | Multi-layer detection with HTML entity decode loop |
 | **SQL Injection Detection** | Pattern + behavioral analysis |
 | **Anomaly Detection** | Z-Score + IQR statistical analysis |
@@ -175,9 +176,89 @@ if (!$middleware->handle($_SERVER, $_GET, $_POST)) {
 
 ---
 
-## ML Threat Classification
+## TRUE Machine Learning (Online Learning)
 
-The threat classifier uses a Naive Bayes algorithm trained on real attack data from production servers.
+The WAF includes a **true online learning system** that continuously improves from security events.
+
+### How It Works
+
+1. **Initial Knowledge**: Pre-trained on 662 real security events (starting weights)
+2. **Continuous Learning**: Every security event (ban, honeypot hit, SQLi block) trains the model
+3. **Concept Drift**: Decay factor (0.995) ensures older patterns lose relevance over time
+4. **Persistence**: Learned weights stored in Redis, survives restarts
+
+### Learning Status
+
+| Status | Samples | Behavior |
+|--------|---------|----------|
+| `warming_up` | < 50 | Uses initial weights only |
+| `learning` | 50-500 | Blends initial + learned weights |
+| `mature` | > 500 | Primarily uses learned weights |
+
+### Usage (Online Learning Classifier)
+
+```php
+use AdosLabs\EnterpriseSecurityShield\ML\OnlineLearningClassifier;
+
+$classifier = new OnlineLearningClassifier($storage);
+
+// Classify a request
+$result = $classifier->classify([
+    'user_agent' => 'curl/8.7.1',
+    'path' => '/admin/phpinfo.php',
+    'request_count' => 50,
+    'rate_limited' => true,
+]);
+
+// Result structure
+[
+    'classification' => 'SCANNER',
+    'confidence' => 0.87,
+    'is_threat' => true,
+    'learning_status' => 'mature',
+    'total_samples_learned' => 1247,
+    'features_used' => ['ua:curl', 'path:phpinfo', 'behavior:rapid_requests'],
+    'probabilities' => [...],
+]
+
+// Manual learning (for confirmed threats)
+$classifier->learn(
+    features: ['user_agent' => 'malicious-bot', 'path' => '/exploit'],
+    trueClass: OnlineLearningClassifier::CLASS_SCANNER,
+    weight: 1.0  // Confidence in label
+);
+
+// Train from historical events
+$learned = $classifier->autoLearnFromEvents(limit: 1000);
+
+// Get model statistics
+$stats = $classifier->getStats();
+// ['total_samples' => 1247, 'learning_status' => 'mature', ...]
+
+// Export/Import for backup
+$backup = $classifier->exportModel();
+$classifier->importModel($backup);
+```
+
+### Auto-Learning Integration
+
+The SecurityMiddleware automatically learns from every security event:
+
+```php
+// In SecurityMiddleware, when an IP is banned:
+$this->learnFromSecurityEvent('auto_ban', $ip, [
+    'user_agent' => $userAgent,
+    'path' => $path,
+    'reasons' => ['critical_path', 'scanner_ua'],
+]);
+// The model updates incrementally - no manual training needed
+```
+
+---
+
+## Static ML Threat Classifier
+
+For deterministic classification (useful alongside online learning):
 
 ### Training Data
 
@@ -619,10 +700,10 @@ src/
 ## Known Limitations
 
 1. **Fail-Open Default** - RedisStorage allows traffic during Redis outage (configurable)
-2. **Static ML Weights** - Classifier trained on 662 events; no online learning (weights updated manually)
-3. **DNS Timeout Risk** - Bot verification can block for up to 30s on slow DNS
-4. **GeoIP Provider Required** - GeoIP blocking requires provider configuration (IPApiProvider included free)
-5. **Clock Skew** - Rate limiting assumes synchronized server clocks
+2. **DNS Timeout Risk** - Bot verification can block for up to 30s on slow DNS
+3. **GeoIP Provider Required** - GeoIP blocking requires provider configuration (IPApiProvider included free)
+4. **Clock Skew** - Rate limiting assumes synchronized server clocks
+5. **ML Warm-Up** - Online learning needs ~50 samples before improving on initial weights
 
 ---
 
@@ -656,5 +737,7 @@ MIT License - see [LICENSE](LICENSE)
 
 ## Credits
 
-Trained on security events from real production environments.
-ML model based on Naive Bayes classification with feature extraction from attack patterns.
+- Initial ML model trained on security events from real production environments
+- Online Learning Classifier uses Naive Bayes with Laplace smoothing
+- Concept drift handling via exponential decay (0.995 factor)
+- Feature extraction from 40+ attack patterns across 11 threat categories

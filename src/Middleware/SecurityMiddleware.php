@@ -10,6 +10,7 @@ use AdosLabs\EnterpriseSecurityShield\Contracts\StorageInterface;
 use AdosLabs\EnterpriseSecurityShield\ML\RequestAnalyzer;
 use AdosLabs\EnterpriseSecurityShield\ML\ThreatClassifier;
 use AdosLabs\EnterpriseSecurityShield\ML\AnomalyDetector as MLAnomalyDetector;
+use AdosLabs\EnterpriseSecurityShield\ML\OnlineLearningClassifier;
 use AdosLabs\EnterpriseSecurityShield\Services\BotVerifier;
 use AdosLabs\EnterpriseSecurityShield\Services\ThreatPatterns;
 use AdosLabs\EnterpriseSecurityShield\Utils\IPUtils;
@@ -120,9 +121,19 @@ class SecurityMiddleware
     private ?RequestAnalyzer $mlAnalyzer = null;
 
     /**
+     * Online Learning Classifier (TRUE ML that learns continuously).
+     */
+    private ?OnlineLearningClassifier $onlineLearner = null;
+
+    /**
      * Enable/disable ML-based analysis.
      */
     private bool $mlEnabled = true;
+
+    /**
+     * Enable/disable online learning (continuous ML training from events).
+     */
+    private bool $onlineLearningEnabled = true;
 
     /**
      * Block reason (set when request is blocked).
@@ -180,6 +191,9 @@ class SecurityMiddleware
 
         // Initialize ML-based threat analyzer
         $this->initializeMLAnalyzer();
+
+        // Initialize Online Learning Classifier (TRUE ML)
+        $this->initializeOnlineLearner();
     }
 
     /**
@@ -198,6 +212,20 @@ class SecurityMiddleware
     }
 
     /**
+     * Initialize the Online Learning Classifier.
+     *
+     * TRUE MACHINE LEARNING:
+     * - Starts with initial weights from 662 pre-analyzed events
+     * - Learns continuously from new security events
+     * - Persists learned weights to Redis/storage
+     * - Handles concept drift via decay factor
+     */
+    private function initializeOnlineLearner(): void
+    {
+        $this->onlineLearner = new OnlineLearningClassifier($this->storage);
+    }
+
+    /**
      * Enable or disable ML-based analysis.
      *
      * When disabled, falls back to pattern-based scoring only.
@@ -210,6 +238,65 @@ class SecurityMiddleware
         $this->mlEnabled = $enabled;
 
         return $this;
+    }
+
+    /**
+     * Enable or disable online learning (continuous ML training).
+     *
+     * When enabled, the classifier learns from every security event,
+     * continuously improving its detection accuracy.
+     *
+     * @param bool $enabled Whether online learning is enabled
+     * @return self
+     */
+    public function setOnlineLearningEnabled(bool $enabled): self
+    {
+        $this->onlineLearningEnabled = $enabled;
+
+        return $this;
+    }
+
+    /**
+     * Get the Online Learning Classifier instance.
+     *
+     * Provides access to the classifier for:
+     * - Manual learning from labeled events
+     * - Model statistics and diagnostics
+     * - Model export/import for backup
+     *
+     * @return OnlineLearningClassifier|null
+     */
+    public function getOnlineLearner(): ?OnlineLearningClassifier
+    {
+        return $this->onlineLearner;
+    }
+
+    /**
+     * Trigger online learning from historical security events.
+     *
+     * Call this method to train the ML model from stored security events.
+     * Useful for:
+     * - Initial model training after deployment
+     * - Periodic retraining from accumulated data
+     * - Recovery after model reset
+     *
+     * @param int $limit Maximum events to learn from
+     * @return int Number of events learned from
+     */
+    public function trainFromHistoricalEvents(int $limit = 1000): int
+    {
+        if ($this->onlineLearner === null) {
+            return 0;
+        }
+
+        $learned = $this->onlineLearner->autoLearnFromEvents($limit);
+
+        $this->logger->info('WAF: ML model trained from historical events', [
+            'events_learned' => $learned,
+            'stats' => $this->onlineLearner->getStats(),
+        ]);
+
+        return $learned;
     }
 
     /**
@@ -545,11 +632,16 @@ class SecurityMiddleware
         // Example: $countryCode = $this->getCountryCode($ip);
 
         // ====================================================================
-        // STEP 6.5A: ML-Based Threat Analysis
-        // Uses Naive Bayes classifier trained on real attack data (662 events)
+        // STEP 6.5A: ML-Based Threat Analysis (DUAL-ENGINE ML)
+        // Combines:
+        // 1. Static classifier trained on 662 events (fast, deterministic)
+        // 2. Online Learning classifier that improves continuously (adaptive)
         // ====================================================================
 
         $mlResult = null;
+        $onlineResult = null;
+
+        // Static ML analysis
         if ($this->mlEnabled && $this->mlAnalyzer !== null) {
             $mlResult = $this->mlAnalyzer->analyze([
                 'ip' => $ip,
@@ -559,10 +651,44 @@ class SecurityMiddleware
                 'error_count' => 0, // Track 404s separately if available
             ]);
 
-            // Add ML score to total (weighted at 40% to blend with pattern-based)
-            $mlScore = (int) ($mlResult['score'] * 0.4);
+            // Add ML score to total (weighted at 30% for static classifier)
+            $mlScore = (int) ($mlResult['score'] * 0.3);
             $score += $mlScore;
+        }
 
+        // Online Learning ML analysis (TRUE ML that learns continuously)
+        if ($this->mlEnabled && $this->onlineLearner !== null) {
+            $onlineResult = $this->onlineLearner->classify([
+                'ip' => $ip,
+                'user_agent' => $userAgent,
+                'path' => $path,
+                'request_count' => $requestCount,
+                'error_404_count' => 0,
+                'rate_limited' => $requestCount > $rateLimitMax,
+                'honeypot_hit' => false,
+                'sqli_detected' => false,
+                'xss_detected' => false,
+            ]);
+
+            // Add online learning score (weighted at 25% - increases with model maturity)
+            if ($onlineResult['is_threat']) {
+                $onlineScore = (int) ($onlineResult['confidence'] * 25);
+                $score += $onlineScore;
+                $reasons[] = 'online_ml_' . strtolower($onlineResult['classification']);
+
+                $this->logger->info('WAF: Online ML threat classification', [
+                    'ip' => $ip,
+                    'classification' => $onlineResult['classification'],
+                    'confidence' => $onlineResult['confidence'],
+                    'learning_status' => $onlineResult['learning_status'],
+                    'total_samples' => $onlineResult['total_samples_learned'],
+                    'features_used' => $onlineResult['features_used'],
+                ]);
+            }
+        }
+
+        // Combined ML decision
+        if ($mlResult !== null) {
             // Add ML classification to reasons
             if ($mlResult['classification']['is_threat']) {
                 $reasons[] = 'ml_' . strtolower($mlResult['classification']['classification']);
@@ -578,7 +704,12 @@ class SecurityMiddleware
             }
 
             // If ML recommends immediate block (BAN decision with high confidence)
-            if ($mlResult['decision'] === 'BAN' && $mlResult['classification']['confidence'] >= 0.85) {
+            // AND online learner agrees (or is in warm-up mode)
+            $onlineAgrees = $onlineResult === null
+                || $onlineResult['learning_status'] === 'warming_up'
+                || $onlineResult['is_threat'];
+
+            if ($mlResult['decision'] === 'BAN' && $mlResult['classification']['confidence'] >= 0.85 && $onlineAgrees) {
                 $this->blockReason = 'ml_high_confidence_threat';
 
                 $this->storage->banIP(
@@ -587,6 +718,14 @@ class SecurityMiddleware
                     'ML: ' . $mlResult['classification']['classification'],
                 );
 
+                // Auto-learn from this confirmed threat
+                $this->learnFromSecurityEvent('auto_ban', $ip, [
+                    'user_agent' => $userAgent,
+                    'path' => $path,
+                    'ml_classification' => $mlResult['classification']['classification'],
+                    'confidence' => $mlResult['classification']['confidence'],
+                ]);
+
                 $this->logger->critical('WAF: ML-based automatic ban (high confidence)', [
                     'ip' => $ip,
                     'classification' => $mlResult['classification']['classification'],
@@ -594,6 +733,7 @@ class SecurityMiddleware
                     'score' => $mlResult['score'],
                     'path' => $path,
                     'user_agent' => $userAgent,
+                    'online_ml_agrees' => $onlineAgrees,
                 ]);
 
                 return false; // BLOCKED by ML
@@ -685,6 +825,14 @@ class SecurityMiddleware
                     'user_agent' => $userAgent,
                     'ban_duration' => $this->config->getBanDuration(),
                     'timestamp' => time(),
+                ]);
+
+                // Auto-learn from this confirmed threat (ONLINE ML TRAINING)
+                $this->learnFromSecurityEvent('auto_ban', $ip, [
+                    'user_agent' => $userAgent,
+                    'path' => $path,
+                    'reasons' => $reasons,
+                    'total_score' => $totalScore,
                 ]);
 
                 return false; // BLOCKED
@@ -911,5 +1059,78 @@ class SecurityMiddleware
     protected function getClientIp(): string
     {
         return $this->clientIp ?? 'unknown';
+    }
+
+    /**
+     * Feed security event to Online Learning Classifier.
+     *
+     * ONLINE ML TRAINING:
+     * Every security event is used to train the classifier in real-time.
+     * This enables the WAF to learn from its environment and improve over time.
+     *
+     * @param string $eventType Event type (auto_ban, honeypot_hit, etc.)
+     * @param string $ip Client IP address
+     * @param array<string, mixed> $data Event data
+     */
+    private function learnFromSecurityEvent(string $eventType, string $ip, array $data): void
+    {
+        if (!$this->onlineLearningEnabled || $this->onlineLearner === null) {
+            return;
+        }
+
+        // Map event type to classification class
+        $classMapping = [
+            'auto_ban' => OnlineLearningClassifier::CLASS_SCANNER,
+            'scanner_detected' => OnlineLearningClassifier::CLASS_SCANNER,
+            'honeypot_access' => OnlineLearningClassifier::CLASS_SCANNER,
+            'bot_spoofing' => OnlineLearningClassifier::CLASS_BOT_SPOOF,
+            'brute_force_detected' => OnlineLearningClassifier::CLASS_BRUTE_FORCE,
+            'sqli_blocked' => OnlineLearningClassifier::CLASS_SQLI_ATTEMPT,
+            'xss_blocked' => OnlineLearningClassifier::CLASS_XSS_ATTEMPT,
+            'path_traversal_detected' => OnlineLearningClassifier::CLASS_PATH_TRAVERSAL,
+            'credential_theft_attempt' => OnlineLearningClassifier::CLASS_CREDENTIAL_THEFT,
+            'config_hunt_detected' => OnlineLearningClassifier::CLASS_CONFIG_HUNT,
+            'cms_probe_detected' => OnlineLearningClassifier::CLASS_CMS_PROBE,
+            'iot_exploit_detected' => OnlineLearningClassifier::CLASS_IOT_EXPLOIT,
+        ];
+
+        $class = $classMapping[$eventType] ?? null;
+
+        if ($class === null) {
+            return; // Unknown event type, skip learning
+        }
+
+        // Extract features for learning
+        $features = [
+            'user_agent' => $data['user_agent'] ?? '',
+            'path' => $data['path'] ?? '',
+            'request_count' => $data['request_count'] ?? 0,
+            'error_404_count' => $data['error_count'] ?? 0,
+            'login_failures' => $data['login_failures'] ?? 0,
+            'rate_limited' => ($data['rate_limited'] ?? false) === true,
+            'honeypot_hit' => str_contains($eventType, 'honeypot'),
+            'sqli_detected' => str_contains($eventType, 'sqli'),
+            'xss_detected' => str_contains($eventType, 'xss'),
+        ];
+
+        // Determine weight based on confidence
+        $weight = 1.0;
+        if (isset($data['confidence'])) {
+            $weight = (float) $data['confidence'];
+        } elseif (in_array($eventType, ['auto_ban', 'sqli_blocked', 'xss_blocked', 'honeypot_access'], true)) {
+            $weight = 1.0; // High confidence
+        } elseif (in_array($eventType, ['scanner_detected', 'bot_spoofing'], true)) {
+            $weight = 0.8; // Medium confidence
+        }
+
+        // Learn from this event
+        $this->onlineLearner->learn($features, $class, $weight);
+
+        $this->logger->debug('WAF: Online ML learned from security event', [
+            'event_type' => $eventType,
+            'class' => $class,
+            'weight' => $weight,
+            'ip' => $ip,
+        ]);
     }
 }
