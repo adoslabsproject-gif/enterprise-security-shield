@@ -81,3 +81,7 @@ parameters:
 
         # Parameter type mismatches for complex array structures
         - '#Parameter .+ of method .+ expects array\{#'
+
+        # array_key_first may return null
+        - '#expects string, int\|string\|null given#'
+        - '#expects string, string\|null given#'

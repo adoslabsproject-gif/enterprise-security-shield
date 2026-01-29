@@ -163,6 +163,21 @@ final class SecurityShieldAdminModule implements AdminModuleInterface
                         'icon' => 'chart-bar',
                     ],
                     [
+                        'label' => 'WAF Rules',
+                        'url' => '/security/waf',
+                        'icon' => 'shield-alt',
+                    ],
+                    [
+                        'label' => 'ML Threats',
+                        'url' => '/security/ml',
+                        'icon' => 'brain',
+                    ],
+                    [
+                        'label' => 'Rate Limiting',
+                        'url' => '/security/ratelimit',
+                        'icon' => 'tachometer-alt',
+                    ],
+                    [
                         'label' => 'IP Management',
                         'url' => '/security/ips',
                         'icon' => 'ban',
@@ -241,6 +256,42 @@ final class SecurityShieldAdminModule implements AdminModuleInterface
                 'method' => 'POST',
                 'path' => '/security/config/save',
                 'handler' => [SecurityController::class, 'saveConfig'],
+            ],
+
+            // WAF Rules
+            [
+                'method' => 'GET',
+                'path' => '/security/waf',
+                'handler' => [SecurityController::class, 'wafRules'],
+            ],
+            [
+                'method' => 'POST',
+                'path' => '/security/waf/toggle',
+                'handler' => [SecurityController::class, 'toggleWafRule'],
+            ],
+
+            // ML Threats
+            [
+                'method' => 'GET',
+                'path' => '/security/ml',
+                'handler' => [SecurityController::class, 'mlThreats'],
+            ],
+            [
+                'method' => 'POST',
+                'path' => '/security/ml/retrain',
+                'handler' => [SecurityController::class, 'retrainModel'],
+            ],
+
+            // Rate Limiting
+            [
+                'method' => 'GET',
+                'path' => '/security/ratelimit',
+                'handler' => [SecurityController::class, 'rateLimiting'],
+            ],
+            [
+                'method' => 'POST',
+                'path' => '/security/ratelimit/save',
+                'handler' => [SecurityController::class, 'saveRateLimits'],
             ],
 
             // API endpoints for AJAX
