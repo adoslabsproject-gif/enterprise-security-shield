@@ -215,11 +215,14 @@ final class ThreatMatcher
             $cached = $this->storage->get($cacheKey);
 
             if ($cached !== null) {
-                $result = json_decode($cached, true);
-                if (is_array($result)) {
-                    $result['cached'] = true;
-
-                    return $result;
+                $decoded = json_decode($cached, true);
+                if (is_array($decoded) && isset($decoded['match'])) {
+                    return [
+                        'match' => (bool) $decoded['match'],
+                        'feed' => $decoded['feed'] ?? null,
+                        'type' => $decoded['type'] ?? null,
+                        'cached' => true,
+                    ];
                 }
             }
         }
@@ -328,11 +331,14 @@ final class ThreatMatcher
             $cached = $this->storage->get($cacheKey);
 
             if ($cached !== null) {
-                $result = json_decode($cached, true);
-                if (is_array($result)) {
-                    $result['cached'] = true;
-
-                    return $result;
+                $decoded = json_decode($cached, true);
+                if (is_array($decoded) && isset($decoded['match'])) {
+                    return [
+                        'match' => (bool) $decoded['match'],
+                        'feed' => $decoded['feed'] ?? null,
+                        'type' => $decoded['type'] ?? null,
+                        'cached' => true,
+                    ];
                 }
             }
         }

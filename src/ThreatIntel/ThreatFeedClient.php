@@ -123,10 +123,14 @@ final class ThreatFeedClient
 
         // Merge custom feeds
         foreach ($customFeeds as $name => $config) {
-            $this->feeds[$name] = array_merge(
-                $this->feeds[$name] ?? [],
-                $config,
-            );
+            if (isset($config['url'])) {
+                $this->feeds[$name] = [
+                    'url' => $config['url'],
+                    'type' => $config['type'] ?? ($this->feeds[$name]['type'] ?? 'ip_list'),
+                    'refresh_hours' => $config['refresh_hours'] ?? ($this->feeds[$name]['refresh_hours'] ?? 6),
+                    'enabled' => $config['enabled'] ?? ($this->feeds[$name]['enabled'] ?? true),
+                ];
+            }
         }
     }
 
@@ -502,15 +506,16 @@ final class ThreatFeedClient
     /**
      * Add a custom feed.
      *
-     * @param array<string, mixed> $config
+     * @param array{url: string, type?: string, refresh_hours?: int, enabled?: bool} $config
      */
     public function addFeed(string $name, array $config): self
     {
-        $this->feeds[$name] = array_merge([
-            'enabled' => true,
-            'refresh_hours' => 6,
-            'type' => 'ip_list',
-        ], $config);
+        $this->feeds[$name] = [
+            'url' => $config['url'],
+            'type' => $config['type'] ?? 'ip_list',
+            'refresh_hours' => $config['refresh_hours'] ?? 6,
+            'enabled' => $config['enabled'] ?? true,
+        ];
 
         return $this;
     }

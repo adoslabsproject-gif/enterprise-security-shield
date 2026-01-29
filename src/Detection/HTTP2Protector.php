@@ -214,7 +214,7 @@ final class HTTP2Protector
         }
 
         // Check $_SERVER['SERVER_PROTOCOL'] equivalent
-        if (isset($headers['x-forwarded-proto-version'])) {
+        if (isset($headers['x-forwarded-proto-version']) && is_string($headers['x-forwarded-proto-version'])) {
             return str_contains($headers['x-forwarded-proto-version'], '2');
         }
 

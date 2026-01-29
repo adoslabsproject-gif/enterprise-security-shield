@@ -366,13 +366,13 @@ final class RequestSmugglingDetector
             }
 
             // Use first value if array
-            $stringValue = is_array($value) ? $value[0] : $value;
+            $stringValue = is_array($value) ? ($value[0] ?? '') : $value;
 
             // Remove null bytes and control characters
-            $stringValue = preg_replace('/[\x00-\x08\x0b\x0c\x0e-\x1f]/', '', $stringValue);
+            $stringValue = preg_replace('/[\x00-\x08\x0b\x0c\x0e-\x1f]/', '', $stringValue) ?? '';
 
             // Normalize whitespace
-            $stringValue = preg_replace('/\s+/', ' ', trim($stringValue));
+            $stringValue = preg_replace('/\s+/', ' ', trim($stringValue)) ?? '';
 
             $sanitized[$lowerName] = $stringValue;
         }

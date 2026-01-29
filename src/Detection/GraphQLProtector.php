@@ -112,8 +112,8 @@ final class GraphQLProtector
         // Parse the query
         $parsed = $this->parseQuery($query);
 
-        if ($parsed === null) {
-            $errors[] = 'Failed to parse GraphQL query';
+        if (empty($parsed['operations']) && empty($parsed['fields'])) {
+            $errors[] = 'Invalid or empty GraphQL query';
 
             return [
                 'allowed' => false,
@@ -276,9 +276,9 @@ final class GraphQLProtector
      *
      * Note: This is a simplified parser. For production, use graphql-php library.
      *
-     * @return array<mixed>|null
+     * @return array<mixed>
      */
-    private function parseQuery(string $query): ?array
+    private function parseQuery(string $query): array
     {
         // Remove comments
         $query = preg_replace('/#[^\n]*/', '', $query);
@@ -321,13 +321,13 @@ final class GraphQLProtector
         // Extract fields with aliases
         if (preg_match_all('/(\w+)\s*:\s*(\w+)|(\w+)\s*(?:\([^)]*\))?\s*\{/i', $query, $matches, PREG_SET_ORDER)) {
             foreach ($matches as $match) {
-                if (!empty($match[1])) {
+                if (!empty($match[1]) && isset($match[2])) {
                     // Aliased field
                     $structure['fields'][] = [
                         'alias' => $match[1],
                         'name' => $match[2],
                     ];
-                } elseif (!empty($match[3])) {
+                } elseif (isset($match[3]) && !empty($match[3])) {
                     // Regular field
                     $structure['fields'][] = [
                         'alias' => null,

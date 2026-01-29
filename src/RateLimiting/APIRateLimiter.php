@@ -487,13 +487,17 @@ final class APIRateLimiter
 
     /**
      * Register an API key with a tier.
+     *
+     * @param array{limit?: int, window?: int} $overrides
      */
     public function registerApiKey(string $apiKey, string $tier, array $overrides = []): self
     {
-        $this->apiKeyLimits[$apiKey] = array_merge(
-            ['tier' => $tier],
-            $overrides,
-        );
+        $tierConfig = $this->tiers[$tier] ?? $this->tiers['free'];
+        $this->apiKeyLimits[$apiKey] = [
+            'limit' => $overrides['limit'] ?? $tierConfig['limit'],
+            'window' => $overrides['window'] ?? $tierConfig['window'],
+            'tier' => $tier,
+        ];
 
         return $this;
     }
@@ -505,7 +509,11 @@ final class APIRateLimiter
      */
     public function setEndpointLimit(string $pattern, array $config): self
     {
-        $this->endpointLimits[$pattern] = $config;
+        $this->endpointLimits[$pattern] = [
+            'limit' => $config['limit'] ?? $this->defaultLimit,
+            'window' => $config['window'] ?? $this->defaultWindow,
+            'cost' => $config['cost'] ?? 1,
+        ];
 
         return $this;
     }
