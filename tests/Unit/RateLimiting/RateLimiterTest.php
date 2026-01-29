@@ -105,16 +105,20 @@ class RateLimiterTest extends TestCase
 
     public function testLeakyBucketBlocksWhenFull(): void
     {
-        // Use a very low leak rate (0.01 req/sec) to ensure bucket doesn't drain
-        // during test execution. This makes the test timing-independent.
-        $limiter = RateLimiter::leakyBucket($this->storage, 5, 0.01);
+        // Use an extremely low leak rate (0.0001 req/sec = 1 req every 10000s)
+        // to ensure bucket doesn't drain during test execution.
+        // With 5 requests and bucket size 5, the 6th request must be blocked.
+        $limiter = RateLimiter::leakyBucket($this->storage, 5, 0.0001);
 
+        // Fill the bucket completely
         for ($i = 0; $i < 5; $i++) {
-            $limiter->attempt('user:123');
+            $result = $limiter->attempt('user:123');
+            $this->assertTrue($result->allowed, "Request $i should be allowed");
         }
 
+        // 6th request should be blocked (bucket is full)
         $result = $limiter->attempt('user:123');
-        $this->assertFalse($result->allowed);
+        $this->assertFalse($result->allowed, 'Bucket is full, request should be blocked');
     }
 
     public function testDifferentIdentifiersAreIndependent(): void
