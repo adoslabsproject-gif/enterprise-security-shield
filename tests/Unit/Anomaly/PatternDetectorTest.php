@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace AdosLabs\EnterpriseSecurityShield\Tests\Unit\Anomaly;
 
-use PHPUnit\Framework\TestCase;
 use AdosLabs\EnterpriseSecurityShield\Anomaly\AnomalyType;
 use AdosLabs\EnterpriseSecurityShield\Anomaly\Detectors\PatternDetector;
+use PHPUnit\Framework\TestCase;
 
 class PatternDetectorTest extends TestCase
 {

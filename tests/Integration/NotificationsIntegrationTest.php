@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace AdosLabs\EnterpriseSecurityShield\Tests\Integration;
 
-use PHPUnit\Framework\TestCase;
 use AdosLabs\EnterpriseSecurityShield\Notifications\DiscordNotifier;
 use AdosLabs\EnterpriseSecurityShield\Notifications\NotificationManager;
 use AdosLabs\EnterpriseSecurityShield\Notifications\SlackNotifier;
 use AdosLabs\EnterpriseSecurityShield\Notifications\TelegramNotifier;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Integration tests for notification channels.

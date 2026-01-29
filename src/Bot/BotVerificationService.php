@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace AdosLabs\EnterpriseSecurityShield\Bot;
 
 /**
- * Advanced Bot Verification Service
+ * Advanced Bot Verification Service.
  *
  * Enterprise-grade legitimate bot verification using:
  * 1. Reverse DNS + Forward DNS verification (most reliable)
@@ -33,7 +33,8 @@ namespace AdosLabs\EnterpriseSecurityShield\Bot;
 final class BotVerificationService
 {
     /**
-     * Bot definitions with verification methods
+     * Bot definitions with verification methods.
+     *
      * @var array<string, array{
      *     name: string,
      *     ua_patterns: array<string>,
@@ -432,35 +433,38 @@ final class BotVerificationService
     ];
 
     /**
-     * Verification cache
+     * Verification cache.
+     *
      * @var array<string, array>
      */
     private array $cache = [];
 
     /**
-     * DNS cache TTL in seconds
+     * DNS cache TTL in seconds.
      */
     private int $dnsCacheTTL = 3600;
 
     /**
-     * Enable/disable DNS verification
+     * Enable/disable DNS verification.
      */
     private bool $dnsVerificationEnabled = true;
 
     public function setDNSCacheTTL(int $seconds): self
     {
         $this->dnsCacheTTL = max(60, $seconds);
+
         return $this;
     }
 
     public function enableDNSVerification(bool $enable): self
     {
         $this->dnsVerificationEnabled = $enable;
+
         return $this;
     }
 
     /**
-     * Verify if a request is from a legitimate bot
+     * Verify if a request is from a legitimate bot.
      *
      * @return array{
      *     is_bot: bool,
@@ -494,6 +498,7 @@ final class BotVerificationService
                 'reason' => 'No bot pattern detected in User-Agent',
             ]);
             $this->cacheResult($cacheKey, $result);
+
             return $result;
         }
 
@@ -511,15 +516,16 @@ final class BotVerificationService
             $verificationResult['method'],
             $botDef['respect_robots'],
             $verificationResult['confidence'],
-            $verificationResult['details']
+            $verificationResult['details'],
         );
 
         $this->cacheResult($cacheKey, $result);
+
         return $result;
     }
 
     /**
-     * Quick check if User-Agent claims to be a bot
+     * Quick check if User-Agent claims to be a bot.
      */
     public function isClaimedBot(string $userAgent): bool
     {
@@ -527,7 +533,7 @@ final class BotVerificationService
     }
 
     /**
-     * Check if IP is in a known bot range (without DNS)
+     * Check if IP is in a known bot range (without DNS).
      */
     public function isKnownBotIP(string $ip): ?array
     {
@@ -542,11 +548,12 @@ final class BotVerificationService
                 }
             }
         }
+
         return null;
     }
 
     /**
-     * Get all supported bot definitions
+     * Get all supported bot definitions.
      */
     public function getSupportedBots(): array
     {
@@ -559,11 +566,12 @@ final class BotVerificationService
                 'verification_method' => $botDef['verify_dns'] ? 'dns' : 'ip_range',
             ];
         }
+
         return $bots;
     }
 
     /**
-     * Get bots by category
+     * Get bots by category.
      */
     public function getBotsByCategory(string $category): array
     {
@@ -573,11 +581,12 @@ final class BotVerificationService
                 $bots[$botId] = $botDef['name'];
             }
         }
+
         return $bots;
     }
 
     /**
-     * Clear verification cache
+     * Clear verification cache.
      */
     public function clearCache(): void
     {
@@ -585,7 +594,7 @@ final class BotVerificationService
     }
 
     /**
-     * Identify bot from User-Agent
+     * Identify bot from User-Agent.
      */
     private function identifyBotFromUA(string $userAgent): ?string
     {
@@ -603,7 +612,7 @@ final class BotVerificationService
     }
 
     /**
-     * Verify bot identity
+     * Verify bot identity.
      */
     private function verifyBot(string $ip, string $botId, array $botDef): array
     {
@@ -664,7 +673,7 @@ final class BotVerificationService
     }
 
     /**
-     * Verify IP via reverse DNS
+     * Verify IP via reverse DNS.
      */
     private function verifyDNS(string $ip, array $allowedDomains): array
     {
@@ -724,7 +733,7 @@ final class BotVerificationService
     }
 
     /**
-     * Check if IP is in CIDR range
+     * Check if IP is in CIDR range.
      */
     private function ipInRange(string $ip, string $range): bool
     {
@@ -744,11 +753,12 @@ final class BotVerificationService
         }
 
         $mask = -1 << (32 - $bits);
+
         return ($ipLong & $mask) === ($subnetLong & $mask);
     }
 
     /**
-     * Check IPv6 in range
+     * Check IPv6 in range.
      */
     private function ipv6InRange(string $ip, string $subnet, int $bits): bool
     {
@@ -779,7 +789,7 @@ final class BotVerificationService
     }
 
     /**
-     * Build result array
+     * Build result array.
      */
     private function buildResult(
         bool $isBot,
@@ -790,7 +800,7 @@ final class BotVerificationService
         ?string $verificationMethod,
         bool $respectRobots,
         float $confidence,
-        array $details
+        array $details,
     ): array {
         return [
             'is_bot' => $isBot,
@@ -806,7 +816,7 @@ final class BotVerificationService
     }
 
     /**
-     * Cache result
+     * Cache result.
      */
     private function cacheResult(string $key, array $result): void
     {

@@ -5,10 +5,9 @@ declare(strict_types=1);
 namespace AdosLabs\EnterpriseSecurityShield\Detection;
 
 use Psr\Log\LoggerInterface;
-use Psr\Log\NullLogger;
 
 /**
- * SQL Injection Detector
+ * SQL Injection Detector.
  *
  * Enterprise-grade SQLi detection inspired by libinjection.
  * Uses tokenization and fingerprint matching instead of regex.
@@ -31,21 +30,29 @@ use Psr\Log\NullLogger;
 final class SQLiDetector
 {
     /**
-     * SQL Token Types
+     * SQL Token Types.
      */
     private const TOKEN_KEYWORD = 'k';      // SELECT, UNION, INSERT
+
     private const TOKEN_FUNCTION = 'f';     // CONCAT, CHAR, SLEEP
+
     private const TOKEN_OPERATOR = 'o';     // =, <>, LIKE, AND, OR
+
     private const TOKEN_NUMBER = 'n';       // 123, 0x1F
+
     private const TOKEN_STRING = 's';       // 'value', "value"
+
     private const TOKEN_COMMENT = 'c';      // --, /*, #
+
     private const TOKEN_VARIABLE = 'v';     // @var, @@global
+
     private const TOKEN_PUNCTUATION = 'p';  // (, ), ;, ,
+
     private const TOKEN_UNKNOWN = 'u';
 
     /**
      * Known SQLi fingerprints (libinjection-compatible)
-     * Each fingerprint represents a malicious token sequence
+     * Each fingerprint represents a malicious token sequence.
      */
     private const SQLI_FINGERPRINTS = [
         // UNION-based injection
@@ -90,7 +97,7 @@ final class SQLiDetector
     ];
 
     /**
-     * SQL Keywords (case-insensitive)
+     * SQL Keywords (case-insensitive).
      */
     private const SQL_KEYWORDS = [
         'select', 'insert', 'update', 'delete', 'drop', 'truncate',
@@ -105,7 +112,7 @@ final class SQLiDetector
     ];
 
     /**
-     * Dangerous SQL Functions
+     * Dangerous SQL Functions.
      */
     private const SQL_FUNCTIONS = [
         // String manipulation (often used to bypass filters)
@@ -137,7 +144,7 @@ final class SQLiDetector
     ];
 
     /**
-     * SQL Operators
+     * SQL Operators.
      */
     private const SQL_OPERATORS = [
         '=', '<>', '!=', '<', '>', '<=', '>=', '||', '&&',
@@ -146,7 +153,7 @@ final class SQLiDetector
     ];
 
     /**
-     * Common false positive patterns to whitelist
+     * Common false positive patterns to whitelist.
      */
     private const WHITELIST_PATTERNS = [
         // Common form values
@@ -162,7 +169,9 @@ final class SQLiDetector
     ];
 
     private bool $strictMode = false;
+
     private int $minConfidence = 60;
+
     private ?LoggerInterface $logger = null;
 
     /**
@@ -178,29 +187,32 @@ final class SQLiDetector
     }
 
     /**
-     * Enable strict mode (lower threshold, more detections)
+     * Enable strict mode (lower threshold, more detections).
      */
     public function setStrictMode(bool $strict): self
     {
         $this->strictMode = $strict;
         $this->minConfidence = $strict ? 40 : 60;
+
         return $this;
     }
 
     /**
-     * Set minimum confidence threshold
+     * Set minimum confidence threshold.
      */
     public function setMinConfidence(int $confidence): self
     {
         $this->minConfidence = max(0, min(100, $confidence));
+
         return $this;
     }
 
     /**
-     * Detect SQL injection in input
+     * Detect SQL injection in input.
      *
      * @param string $input Input to analyze
      * @param string $context Context: 'url', 'body', 'header', 'cookie'
+     *
      * @return array{detected: bool, confidence: int, fingerprint: string, details: array}
      */
     public function detect(string $input, string $context = 'body'): array
@@ -250,7 +262,7 @@ final class SQLiDetector
             $fingerprintScore,
             $semanticScore,
             $syntaxScore,
-            $context
+            $context,
         );
 
         $detected = $confidence >= $this->minConfidence;
@@ -285,10 +297,11 @@ final class SQLiDetector
     }
 
     /**
-     * Batch detect multiple inputs
+     * Batch detect multiple inputs.
      *
      * @param array<string, string> $inputs Key-value pairs (field => value)
      * @param string $context Context for all inputs
+     *
      * @return array<string, array> Results keyed by field name
      */
     public function detectBatch(array $inputs, string $context = 'body'): array
@@ -300,11 +313,12 @@ final class SQLiDetector
             }
             $results[$field] = $this->detect($value, $context);
         }
+
         return $results;
     }
 
     /**
-     * Check if any input in batch is detected as SQLi
+     * Check if any input in batch is detected as SQLi.
      */
     public function hasInjection(array $inputs, string $context = 'body'): bool
     {
@@ -317,11 +331,12 @@ final class SQLiDetector
                 return true;
             }
         }
+
         return false;
     }
 
     /**
-     * Normalize input for analysis
+     * Normalize input for analysis.
      */
     private function normalize(string $input): string
     {
@@ -348,7 +363,7 @@ final class SQLiDetector
     }
 
     /**
-     * Quick heuristics check (fast path)
+     * Quick heuristics check (fast path).
      */
     private function quickHeuristics(string $input): int
     {
@@ -391,7 +406,7 @@ final class SQLiDetector
     }
 
     /**
-     * Tokenize input into SQL tokens
+     * Tokenize input into SQL tokens.
      *
      * @return array<array{type: string, value: string}>
      */
@@ -547,7 +562,7 @@ final class SQLiDetector
     }
 
     /**
-     * Generate fingerprint from tokens
+     * Generate fingerprint from tokens.
      */
     private function generateFingerprint(array $tokens): string
     {
@@ -555,11 +570,12 @@ final class SQLiDetector
         foreach ($tokens as $token) {
             $fingerprint .= $token['type'];
         }
+
         return $fingerprint;
     }
 
     /**
-     * Match fingerprint against known SQLi patterns
+     * Match fingerprint against known SQLi patterns.
      */
     private function matchFingerprint(string $fingerprint): int
     {
@@ -575,7 +591,7 @@ final class SQLiDetector
     }
 
     /**
-     * Semantic analysis of tokens
+     * Semantic analysis of tokens.
      */
     private function semanticAnalysis(array $tokens, string $input): int
     {
@@ -638,7 +654,7 @@ final class SQLiDetector
     }
 
     /**
-     * Syntax analysis (quote balancing, etc.)
+     * Syntax analysis (quote balancing, etc.).
      */
     private function syntaxAnalysis(string $input): int
     {
@@ -680,14 +696,14 @@ final class SQLiDetector
     }
 
     /**
-     * Calculate final confidence score
+     * Calculate final confidence score.
      */
     private function calculateConfidence(
         int $heuristicScore,
         int $fingerprintScore,
         int $semanticScore,
         int $syntaxScore,
-        string $context
+        string $context,
     ): int {
         // Weighted average
         $weights = [
@@ -725,7 +741,7 @@ final class SQLiDetector
     }
 
     /**
-     * Check if input matches whitelist patterns
+     * Check if input matches whitelist patterns.
      */
     private function isWhitelisted(string $input): bool
     {

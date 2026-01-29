@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace AdosLabs\EnterpriseSecurityShield\ML;
 
 /**
- * Statistical Anomaly Detector
+ * Statistical Anomaly Detector.
  *
  * Uses statistical methods to detect anomalous behavior patterns.
  * Trained on baseline metrics from need2talk.it normal traffic.
@@ -29,7 +29,7 @@ final class AnomalyDetector
 {
     /**
      * Baseline statistics from need2talk normal traffic
-     * These represent "normal" user behavior
+     * These represent "normal" user behavior.
      */
     private const BASELINE_STATS = [
         // Requests per minute from single IP (normal user)
@@ -98,7 +98,7 @@ final class AnomalyDetector
 
     /**
      * Attack patterns timing (from log analysis)
-     * Attacks in need2talk logs clustered around certain hours
+     * Attacks in need2talk logs clustered around certain hours.
      */
     private const ATTACK_HOUR_DISTRIBUTION = [
         // Percentage of attacks per hour (UTC)
@@ -112,44 +112,49 @@ final class AnomalyDetector
 
     /**
      * Path entropy thresholds
-     * Scanners often have very low entropy (sequential paths)
+     * Scanners often have very low entropy (sequential paths).
      */
     private const PATH_ENTROPY_THRESHOLD = 2.0; // Below this is suspicious
 
     private float $zScoreThreshold = 3.0;
+
     private float $iqrMultiplier = 1.5;
 
     /**
-     * Per-IP metrics storage for time-series analysis
+     * Per-IP metrics storage for time-series analysis.
+     *
      * @var array<string, array>
      */
     private array $ipMetrics = [];
 
     /**
-     * Time window for metrics collection (seconds)
+     * Time window for metrics collection (seconds).
      */
     private int $timeWindow = 300; // 5 minutes
 
     public function setZScoreThreshold(float $threshold): self
     {
         $this->zScoreThreshold = max(1.0, $threshold);
+
         return $this;
     }
 
     public function setIQRMultiplier(float $multiplier): self
     {
         $this->iqrMultiplier = max(1.0, $multiplier);
+
         return $this;
     }
 
     public function setTimeWindow(int $seconds): self
     {
         $this->timeWindow = max(60, $seconds);
+
         return $this;
     }
 
     /**
-     * Analyze request for anomalies
+     * Analyze request for anomalies.
      *
      * @return array{
      *     is_anomaly: bool,
@@ -166,13 +171,13 @@ final class AnomalyDetector
         int $errorCount404 = 0,
         ?int $sessionDuration = null,
         ?int $payloadSize = null,
-        ?int $hour = null
+        ?int $hour = null,
     ): array {
         $anomalies = [];
         $riskFactors = [];
         $anomalyScore = 0.0;
 
-        $hour = $hour ?? (int) date('G');
+        $hour ??= (int) date('G');
 
         // 1. Request frequency anomaly (Z-Score)
         $requestsPerMinute = $requestCount / ($this->timeWindow / 60);
@@ -291,7 +296,7 @@ final class AnomalyDetector
 
     /**
      * Calculate path entropy (measure of randomness)
-     * Low entropy = likely scanning (similar paths like /admin1, /admin2, etc.)
+     * Low entropy = likely scanning (similar paths like /admin1, /admin2, etc.).
      */
     public function calculatePathEntropy(array $paths): float
     {
@@ -330,7 +335,7 @@ final class AnomalyDetector
     }
 
     /**
-     * Detect scanning behavior based on paths visited
+     * Detect scanning behavior based on paths visited.
      */
     public function detectScanning(array $paths): array
     {
@@ -384,7 +389,7 @@ final class AnomalyDetector
     }
 
     /**
-     * Calculate Z-Score for a value
+     * Calculate Z-Score for a value.
      */
     private function calculateZScore(float $value, string $metric): float
     {
@@ -401,7 +406,7 @@ final class AnomalyDetector
     }
 
     /**
-     * Check if value is an IQR outlier
+     * Check if value is an IQR outlier.
      */
     private function isIQROutlier(float $value, string $metric): bool
     {
@@ -418,7 +423,7 @@ final class AnomalyDetector
     }
 
     /**
-     * Track IP metrics over time
+     * Track IP metrics over time.
      */
     private function trackIPMetrics(string $ip, int $requestCount, int $errorCount): void
     {
@@ -439,11 +444,11 @@ final class AnomalyDetector
         $cutoff = $now - $this->timeWindow;
         $this->ipMetrics[$ip]['requests'] = array_filter(
             $this->ipMetrics[$ip]['requests'],
-            fn($point) => $point['time'] >= $cutoff
+            fn ($point) => $point['time'] >= $cutoff,
         );
         $this->ipMetrics[$ip]['errors'] = array_filter(
             $this->ipMetrics[$ip]['errors'],
-            fn($point) => $point['time'] >= $cutoff
+            fn ($point) => $point['time'] >= $cutoff,
         );
 
         // Limit memory usage
@@ -454,7 +459,7 @@ final class AnomalyDetector
     }
 
     /**
-     * Detect request burst for an IP
+     * Detect request burst for an IP.
      */
     private function detectRequestBurst(string $ip): ?array
     {
@@ -490,7 +495,7 @@ final class AnomalyDetector
     }
 
     /**
-     * Detect sequential path patterns (common in scanners)
+     * Detect sequential path patterns (common in scanners).
      */
     private function detectSequentialPaths(array $paths): array
     {
@@ -530,7 +535,7 @@ final class AnomalyDetector
     }
 
     /**
-     * Build recommendation based on analysis
+     * Build recommendation based on analysis.
      */
     private function buildRecommendation(float $score, array $anomalies): string
     {
@@ -554,7 +559,7 @@ final class AnomalyDetector
     }
 
     /**
-     * Get baseline statistics
+     * Get baseline statistics.
      */
     public function getBaselineStats(): array
     {
@@ -562,7 +567,7 @@ final class AnomalyDetector
     }
 
     /**
-     * Clear tracked metrics (for testing or memory management)
+     * Clear tracked metrics (for testing or memory management).
      */
     public function clearMetrics(): void
     {

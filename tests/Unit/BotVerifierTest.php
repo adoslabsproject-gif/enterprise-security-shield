@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace AdosLabs\EnterpriseSecurityShield\Tests\Unit;
 
-use PHPUnit\Framework\TestCase;
 use AdosLabs\EnterpriseSecurityShield\Services\BotVerifier;
 use AdosLabs\EnterpriseSecurityShield\Storage\NullLogger;
 use AdosLabs\EnterpriseSecurityShield\Storage\NullStorage;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Test Suite for BotVerifier.

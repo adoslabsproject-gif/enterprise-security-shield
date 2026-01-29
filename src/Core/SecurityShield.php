@@ -19,7 +19,7 @@ use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 
 /**
- * Security Shield - Enterprise WAF Core
+ * Security Shield - Enterprise WAF Core.
  *
  * Unified entry point for all security functionality.
  * Coordinates all security components for comprehensive request protection.
@@ -39,18 +39,28 @@ use Psr\Log\NullLogger;
 final class SecurityShield
 {
     private StorageInterface $storage;
+
     private SecurityConfig $config;
+
     private LoggerInterface $logger;
 
     // Components (lazy loaded)
     private ?ThreatClassifier $threatClassifier = null;
+
     private ?OnlineLearningClassifier $onlineLearner = null;
+
     private ?AnomalyDetector $anomalyDetector = null;
+
     private ?RequestAnalyzer $requestAnalyzer = null;
+
     private ?BotVerificationService $botVerifier = null;
+
     private ?GeoIPService $geoIP = null;
+
     private ?SQLiDetector $sqliDetector = null;
+
     private ?XSSDetector $xssDetector = null;
+
     private ?RateLimiter $rateLimiter = null;
 
     // ML configuration
@@ -68,7 +78,7 @@ final class SecurityShield
     public function __construct(
         StorageInterface $storage,
         ?SecurityConfig $config = null,
-        ?LoggerInterface $logger = null
+        ?LoggerInterface $logger = null,
     ) {
         $this->storage = $storage;
         $this->config = $config ?? new SecurityConfig();
@@ -76,7 +86,7 @@ final class SecurityShield
     }
 
     /**
-     * Analyze a request and return security decision
+     * Analyze a request and return security decision.
      *
      * @return array{
      *     allowed: bool,
@@ -97,7 +107,7 @@ final class SecurityShield
         string $method = 'GET',
         array $headers = [],
         ?string $queryString = null,
-        ?string $body = null
+        ?string $body = null,
     ): array {
         $this->stats['requests_analyzed']++;
 
@@ -110,12 +120,31 @@ final class SecurityShield
         $ipCheck = $this->checkIPReputation($ip);
         if ($ipCheck['blocked']) {
             $this->stats['threats_blocked']++;
-            return $this->buildResponse(false, 'BLOCK', 100, [$ipCheck['reason']], null, null, [], null,
-                'Request blocked: ' . $ipCheck['reason']);
+
+            return $this->buildResponse(
+                false,
+                'BLOCK',
+                100,
+                [$ipCheck['reason']],
+                null,
+                null,
+                [],
+                null,
+                'Request blocked: ' . $ipCheck['reason'],
+            );
         }
         if ($ipCheck['whitelisted']) {
-            return $this->buildResponse(true, 'ALLOW', 0, ['IP whitelisted'], null, null, [], null,
-                'IP is whitelisted - bypassing all checks');
+            return $this->buildResponse(
+                true,
+                'ALLOW',
+                0,
+                ['IP whitelisted'],
+                null,
+                null,
+                [],
+                null,
+                'IP is whitelisted - bypassing all checks',
+            );
         }
 
         // === LAYER 2: Bot Verification ===
@@ -151,8 +180,17 @@ final class SecurityShield
                 $totalScore += 40;
                 $reasons[] = 'Rate limit exceeded';
                 if ($rateLimitResult['remaining'] <= 0) {
-                    return $this->buildResponse(false, 'RATE_LIMIT', $totalScore, $reasons, $botResult, null, $threats, $rateLimitResult,
-                        'Rate limit exceeded. Retry after ' . $rateLimitResult['retry_after'] . ' seconds');
+                    return $this->buildResponse(
+                        false,
+                        'RATE_LIMIT',
+                        $totalScore,
+                        $reasons,
+                        $botResult,
+                        null,
+                        $threats,
+                        $rateLimitResult,
+                        'Rate limit exceeded. Retry after ' . $rateLimitResult['retry_after'] . ' seconds',
+                    );
                 }
             }
         }
@@ -164,8 +202,18 @@ final class SecurityShield
             if ($geoResult['is_blocked']) {
                 $this->stats['threats_blocked']++;
                 $reasons[] = $geoResult['block_reason'];
-                return $this->buildResponse(false, 'BLOCK', 100, $reasons, $botResult, $geoResult, $threats, $rateLimitResult,
-                    'Request blocked: ' . $geoResult['block_reason']);
+
+                return $this->buildResponse(
+                    false,
+                    'BLOCK',
+                    100,
+                    $reasons,
+                    $botResult,
+                    $geoResult,
+                    $threats,
+                    $rateLimitResult,
+                    'Request blocked: ' . $geoResult['block_reason'],
+                );
             }
             // Add geo risk to score
             $totalScore += $geoResult['risk_score'];
@@ -227,7 +275,7 @@ final class SecurityShield
         }
 
         // === LAYER 6: Payload Analysis (SQLi, XSS) ===
-        $payloadsToCheck = array_filter([$queryString, $body], fn($v) => !empty($v));
+        $payloadsToCheck = array_filter([$queryString, $body], fn ($v) => !empty($v));
 
         foreach ($payloadsToCheck as $payload) {
             // SQLi Detection
@@ -289,7 +337,7 @@ final class SecurityShield
                 $ip,
                 $path,
                 $ipMetrics['request_count'],
-                $ipMetrics['error_count']
+                $ipMetrics['error_count'],
             );
 
             if ($anomalyResult['is_anomaly']) {
@@ -332,21 +380,22 @@ final class SecurityShield
             $geoResult,
             $threats,
             $rateLimitResult,
-            $recommendation
+            $recommendation,
         );
     }
 
     /**
-     * Quick check if IP should be blocked (for early blocking)
+     * Quick check if IP should be blocked (for early blocking).
      */
     public function shouldBlock(string $ip): bool
     {
         $ipCheck = $this->checkIPReputation($ip);
+
         return $ipCheck['blocked'];
     }
 
     /**
-     * Ban an IP
+     * Ban an IP.
      */
     public function banIP(string $ip, int $duration = 86400, string $reason = 'Manual ban'): bool
     {
@@ -366,7 +415,7 @@ final class SecurityShield
     }
 
     /**
-     * Unban an IP
+     * Unban an IP.
      */
     public function unbanIP(string $ip): bool
     {
@@ -378,7 +427,7 @@ final class SecurityShield
     }
 
     /**
-     * Whitelist an IP
+     * Whitelist an IP.
      */
     public function whitelistIP(string $ip): bool
     {
@@ -390,25 +439,27 @@ final class SecurityShield
     }
 
     /**
-     * Remove from whitelist
+     * Remove from whitelist.
      */
     public function removeFromWhitelist(string $ip): bool
     {
         $this->storage->delete("security:whitelist:{$ip}");
+
         return true;
     }
 
     /**
-     * Get IP score
+     * Get IP score.
      */
     public function getIPScore(string $ip): int
     {
         $data = $this->storage->get("security:score:{$ip}");
+
         return $data['score'] ?? 0;
     }
 
     /**
-     * Get banned IPs
+     * Get banned IPs.
      */
     public function getBannedIPs(int $limit = 100): array
     {
@@ -418,7 +469,7 @@ final class SecurityShield
     }
 
     /**
-     * Get statistics
+     * Get statistics.
      */
     public function getStats(): array
     {
@@ -426,7 +477,7 @@ final class SecurityShield
     }
 
     /**
-     * Get component instances (for testing/advanced use)
+     * Get component instances (for testing/advanced use).
      */
     public function getThreatClassifier(): ThreatClassifier
     {
@@ -463,14 +514,15 @@ final class SecurityShield
         if ($this->requestAnalyzer === null) {
             $this->requestAnalyzer = new RequestAnalyzer(
                 $this->getThreatClassifier(),
-                $this->getAnomalyDetector()
+                $this->getAnomalyDetector(),
             );
         }
+
         return $this->requestAnalyzer;
     }
 
     /**
-     * Get Online Learning Classifier (TRUE ML with continuous learning)
+     * Get Online Learning Classifier (TRUE ML with continuous learning).
      */
     public function getOnlineLearner(): OnlineLearningClassifier
     {
@@ -478,18 +530,20 @@ final class SecurityShield
     }
 
     /**
-     * Enable or disable online learning
+     * Enable or disable online learning.
      */
     public function setOnlineLearningEnabled(bool $enabled): self
     {
         $this->onlineLearningEnabled = $enabled;
+
         return $this;
     }
 
     /**
-     * Train the online learning model from historical security events
+     * Train the online learning model from historical security events.
      *
      * @param int $limit Maximum events to learn from
+     *
      * @return int Number of events learned from
      */
     public function trainFromHistoricalEvents(int $limit = 1000): int
@@ -505,7 +559,7 @@ final class SecurityShield
     }
 
     /**
-     * Get ML model statistics
+     * Get ML model statistics.
      */
     public function getMLStats(): array
     {
@@ -561,7 +615,7 @@ final class SecurityShield
             $this->rateLimiter = RateLimiter::slidingWindow(
                 $this->storage,
                 $maxRequests,
-                $windowSeconds
+                $windowSeconds,
             );
         }
 
@@ -577,6 +631,7 @@ final class SecurityShield
     private function getIPMetrics(string $ip): array
     {
         $data = $this->storage->get("security:metrics:{$ip}");
+
         return [
             'request_count' => $data['requests'] ?? 1,
             'error_count' => $data['errors'] ?? 0,
@@ -627,11 +682,12 @@ final class SecurityShield
     private function getRequestCount(string $ip): int
     {
         $data = $this->storage->get("security:metrics:{$ip}");
+
         return $data['requests'] ?? 1;
     }
 
     /**
-     * Learn from a security event (feeds online ML classifier)
+     * Learn from a security event (feeds online ML classifier).
      */
     private function learnFromSecurityEvent(string $eventType, string $ip, array $data): void
     {
@@ -692,6 +748,7 @@ final class SecurityShield
         if ($score >= $this->config->get('monitor_threshold', 20)) {
             return 'MONITOR';
         }
+
         return 'ALLOW';
     }
 
@@ -724,7 +781,7 @@ final class SecurityShield
         ?array $geo,
         array $threats,
         ?array $rateLimit,
-        string $recommendation
+        string $recommendation,
     ): array {
         return [
             'allowed' => $allowed,

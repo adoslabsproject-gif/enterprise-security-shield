@@ -5,10 +5,8 @@ declare(strict_types=1);
 namespace AdosLabs\EnterpriseSecurityShield\Tests\Unit\Middleware;
 
 use AdosLabs\EnterpriseSecurityShield\Middleware\RequestSizeLimiter;
-use Nyholm\Psr7\Factory\Psr17Factory;
-use Nyholm\Psr7\ServerRequest;
 use Nyholm\Psr7\Response;
-use Nyholm\Psr7\Uri;
+use Nyholm\Psr7\ServerRequest;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -20,6 +18,7 @@ use Psr\Http\Server\RequestHandlerInterface;
 final class RequestSizeLimiterTest extends TestCase
 {
     private RequestSizeLimiter $limiter;
+
     private RequestHandlerInterface $handler;
 
     protected function setUp(): void
@@ -27,7 +26,7 @@ final class RequestSizeLimiterTest extends TestCase
         $this->limiter = new RequestSizeLimiter();
 
         // Create a mock handler that returns 200 OK
-        $this->handler = new class implements RequestHandlerInterface {
+        $this->handler = new class () implements RequestHandlerInterface {
             public function handle(ServerRequestInterface $request): ResponseInterface
             {
                 return new Response(200, [], 'OK');
@@ -443,7 +442,7 @@ final class RequestSizeLimiterTest extends TestCase
             return new Response(
                 400,
                 ['Content-Type' => 'text/plain'],
-                'Custom error'
+                'Custom error',
             );
         });
 
@@ -483,8 +482,8 @@ final class RequestSizeLimiterTest extends TestCase
             ->setEndpointLimit('/api/upload', 50000)
             ->setContentTypeLimit('text/xml', 5000)
             ->addAllowedContentType('custom/type')
-            ->setResponseFactory(fn($v) => new Response(400))
-            ->setViolationCallback(fn($t, $d) => null);
+            ->setResponseFactory(fn ($v) => new Response(400))
+            ->setViolationCallback(fn ($t, $d) => null);
 
         $this->assertInstanceOf(RequestSizeLimiter::class, $result);
     }

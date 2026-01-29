@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace AdosLabs\EnterpriseSecurityShield\Tests\Unit\Services\GeoIP;
 
-use PHPUnit\Framework\TestCase;
 use AdosLabs\EnterpriseSecurityShield\Services\GeoIP\GeoIPInterface;
 use AdosLabs\EnterpriseSecurityShield\Services\GeoIP\GeoIPService;
 use AdosLabs\EnterpriseSecurityShield\Storage\RedisStorage;
+use PHPUnit\Framework\TestCase;
 
 /**
  * GeoIP Service Test Suite.

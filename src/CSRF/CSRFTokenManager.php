@@ -7,7 +7,7 @@ namespace AdosLabs\EnterpriseSecurityShield\CSRF;
 use AdosLabs\EnterpriseSecurityShield\Contracts\StorageInterface;
 
 /**
- * Enterprise CSRF Token Manager
+ * Enterprise CSRF Token Manager.
  *
  * Production-grade CSRF protection with multiple strategies:
  * - Synchronizer Token Pattern (session-based)
@@ -30,11 +30,15 @@ use AdosLabs\EnterpriseSecurityShield\Contracts\StorageInterface;
 final class CSRFTokenManager
 {
     private const TOKEN_LENGTH = 32;
+
     private const TOKEN_LIFETIME = 3600; // 1 hour
+
     private const MAX_TOKENS_PER_SESSION = 100;
 
     private StorageInterface $storage;
+
     private array $config;
+
     private ?string $sessionId = null;
 
     /**
@@ -82,19 +86,21 @@ final class CSRFTokenManager
     }
 
     /**
-     * Set session ID
+     * Set session ID.
      */
     public function setSessionId(string $sessionId): self
     {
         $this->sessionId = $sessionId;
+
         return $this;
     }
 
     /**
-     * Generate a new CSRF token
+     * Generate a new CSRF token.
      *
      * @param string|null $formId Optional form identifier for per-form tokens
      * @param array<string, mixed> $context Additional context (IP, user agent, user ID)
+     *
      * @return string The generated token
      */
     public function generate(?string $formId = null, array $context = []): string
@@ -144,11 +150,12 @@ final class CSRFTokenManager
     }
 
     /**
-     * Validate a CSRF token
+     * Validate a CSRF token.
      *
      * @param string $token Token to validate
      * @param string|null $formId Optional form identifier
      * @param array<string, mixed> $context Validation context (IP, user agent, user ID)
+     *
      * @return ValidationResult
      */
     public function validate(string $token, ?string $formId = null, array $context = []): ValidationResult
@@ -195,6 +202,7 @@ final class CSRFTokenManager
         // Check expiration
         if (isset($tokenData['expires_at']) && time() > $tokenData['expires_at']) {
             $this->storage->delete($storageKey);
+
             return new ValidationResult(false, 'Token expired');
         }
 
@@ -241,7 +249,7 @@ final class CSRFTokenManager
     }
 
     /**
-     * Validate Origin header
+     * Validate Origin header.
      */
     private function validateOrigin(string $origin): ValidationResult
     {
@@ -261,6 +269,7 @@ final class CSRFTokenManager
                     return new ValidationResult(true, 'Origin allowed');
                 }
             }
+
             return new ValidationResult(false, 'Origin not allowed');
         }
 
@@ -268,7 +277,7 @@ final class CSRFTokenManager
     }
 
     /**
-     * Validate Referer header
+     * Validate Referer header.
      */
     private function validateReferer(string $referer): ValidationResult
     {
@@ -289,6 +298,7 @@ final class CSRFTokenManager
                     return new ValidationResult(true, 'Referer allowed');
                 }
             }
+
             return new ValidationResult(false, 'Referer not allowed');
         }
 
@@ -296,7 +306,7 @@ final class CSRFTokenManager
     }
 
     /**
-     * Check if origin matches allowed pattern
+     * Check if origin matches allowed pattern.
      */
     private function originMatches(string $origin, string $allowed): bool
     {
@@ -314,6 +324,7 @@ final class CSRFTokenManager
         // Wildcard support (*.example.com)
         if (str_starts_with($allowedHost, '*.')) {
             $domain = substr($allowedHost, 2);
+
             return str_ends_with($originHost, $domain) || $originHost === ltrim($domain, '.');
         }
 
@@ -321,7 +332,7 @@ final class CSRFTokenManager
     }
 
     /**
-     * Revoke a token
+     * Revoke a token.
      */
     public function revoke(?string $formId = null): bool
     {
@@ -332,7 +343,7 @@ final class CSRFTokenManager
     }
 
     /**
-     * Revoke all tokens for current session
+     * Revoke all tokens for current session.
      */
     public function revokeAll(): bool
     {
@@ -345,7 +356,7 @@ final class CSRFTokenManager
     }
 
     /**
-     * Get HTML hidden field
+     * Get HTML hidden field.
      */
     public function getField(?string $formId = null, array $context = []): string
     {
@@ -356,12 +367,12 @@ final class CSRFTokenManager
         return sprintf(
             '<input type="hidden" name="%s" value="%s">',
             $fieldName,
-            $tokenValue
+            $tokenValue,
         );
     }
 
     /**
-     * Get meta tag for AJAX requests
+     * Get meta tag for AJAX requests.
      */
     public function getMetaTag(?string $formId = null, array $context = []): string
     {
@@ -370,12 +381,12 @@ final class CSRFTokenManager
 
         return sprintf(
             '<meta name="csrf-token" content="%s">',
-            $tokenValue
+            $tokenValue,
         );
     }
 
     /**
-     * Set CSRF cookie (for Double Submit Cookie pattern)
+     * Set CSRF cookie (for Double Submit Cookie pattern).
      */
     public function setCookie(?string $formId = null, array $context = []): string
     {
@@ -399,9 +410,10 @@ final class CSRFTokenManager
     }
 
     /**
-     * Extract token from request
+     * Extract token from request.
      *
      * @param array<string, mixed> $request Request data (headers, POST, GET)
+     *
      * @return string|null
      */
     public function extractToken(array $request): ?string
@@ -433,10 +445,11 @@ final class CSRFTokenManager
     }
 
     /**
-     * Validate request (convenience method)
+     * Validate request (convenience method).
      *
      * @param array<string, mixed> $request Request data
      * @param string|null $formId Optional form identifier
+     *
      * @return ValidationResult
      */
     public function validateRequest(array $request, ?string $formId = null): ValidationResult
@@ -459,7 +472,7 @@ final class CSRFTokenManager
     }
 
     /**
-     * Encrypt token for stateless validation
+     * Encrypt token for stateless validation.
      */
     private function encryptToken(string $token, array $data): string
     {
@@ -487,7 +500,7 @@ final class CSRFTokenManager
     }
 
     /**
-     * Decrypt token
+     * Decrypt token.
      *
      * @return array<string, mixed>|null
      */
@@ -530,7 +543,7 @@ final class CSRFTokenManager
     }
 
     /**
-     * Get storage key for token
+     * Get storage key for token.
      */
     private function getStorageKey(string $sessionId, ?string $formId): string
     {
@@ -538,11 +551,12 @@ final class CSRFTokenManager
         if ($this->config['per_form_tokens'] && $formId !== null) {
             $key .= ":{$formId}";
         }
+
         return $key;
     }
 
     /**
-     * Track token count to prevent flooding
+     * Track token count to prevent flooding.
      */
     private function trackTokenCount(string $sessionId): void
     {
@@ -557,7 +571,7 @@ final class CSRFTokenManager
     }
 
     /**
-     * Get session ID
+     * Get session ID.
      */
     private function getSessionId(): string
     {
@@ -578,7 +592,7 @@ final class CSRFTokenManager
     }
 
     /**
-     * Get token field name
+     * Get token field name.
      */
     public function getFieldName(): string
     {
@@ -586,7 +600,7 @@ final class CSRFTokenManager
     }
 
     /**
-     * Get token header name
+     * Get token header name.
      */
     public function getHeaderName(): string
     {
@@ -594,7 +608,7 @@ final class CSRFTokenManager
     }
 
     /**
-     * Get cookie name
+     * Get cookie name.
      */
     public function getCookieName(): string
     {

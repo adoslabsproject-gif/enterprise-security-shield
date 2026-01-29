@@ -8,7 +8,7 @@ use AdosLabs\EnterpriseSecurityShield\Detection\SQLiDetector;
 use AdosLabs\EnterpriseSecurityShield\Detection\XSSDetector;
 
 /**
- * Unified Request Analyzer
+ * Unified Request Analyzer.
  *
  * Combines all ML and detection components for comprehensive request analysis.
  * This is the main entry point for the ML-based threat detection system.
@@ -34,21 +34,28 @@ use AdosLabs\EnterpriseSecurityShield\Detection\XSSDetector;
 final class RequestAnalyzer
 {
     private ThreatClassifier $threatClassifier;
+
     private AnomalyDetector $anomalyDetector;
+
     private ?SQLiDetector $sqliDetector = null;
+
     private ?XSSDetector $xssDetector = null;
 
     /**
-     * Score thresholds for decisions
+     * Score thresholds for decisions.
      */
     private int $monitorThreshold = 20;
+
     private int $challengeThreshold = 40;
+
     private int $rateLimitThreshold = 55;
+
     private int $blockThreshold = 70;
+
     private int $banThreshold = 85;
 
     /**
-     * Weight factors for different analyzers
+     * Weight factors for different analyzers.
      */
     private const ANALYZER_WEIGHTS = [
         'threat_classifier' => 0.35,
@@ -59,14 +66,14 @@ final class RequestAnalyzer
 
     public function __construct(
         ?ThreatClassifier $threatClassifier = null,
-        ?AnomalyDetector $anomalyDetector = null
+        ?AnomalyDetector $anomalyDetector = null,
     ) {
         $this->threatClassifier = $threatClassifier ?? new ThreatClassifier();
         $this->anomalyDetector = $anomalyDetector ?? new AnomalyDetector();
     }
 
     /**
-     * Enable SQL injection detection
+     * Enable SQL injection detection.
      */
     public function enableSQLiDetection(): self
     {
@@ -74,11 +81,12 @@ final class RequestAnalyzer
             throw new \RuntimeException('SQLiDetector class not available');
         }
         $this->sqliDetector = new SQLiDetector();
+
         return $this;
     }
 
     /**
-     * Enable XSS detection
+     * Enable XSS detection.
      */
     public function enableXSSDetection(): self
     {
@@ -86,29 +94,31 @@ final class RequestAnalyzer
             throw new \RuntimeException('XSSDetector class not available');
         }
         $this->xssDetector = new XSSDetector();
+
         return $this;
     }
 
     /**
-     * Set decision thresholds
+     * Set decision thresholds.
      */
     public function setThresholds(
         int $monitor = 20,
         int $challenge = 40,
         int $rateLimit = 55,
         int $block = 70,
-        int $ban = 85
+        int $ban = 85,
     ): self {
         $this->monitorThreshold = $monitor;
         $this->challengeThreshold = $challenge;
         $this->rateLimitThreshold = $rateLimit;
         $this->blockThreshold = $block;
         $this->banThreshold = $ban;
+
         return $this;
     }
 
     /**
-     * Analyze a request
+     * Analyze a request.
      *
      * @param array{
      *     ip: string,
@@ -162,7 +172,7 @@ final class RequestAnalyzer
             [
                 '404_count' => $errorCount,
                 'has_session' => $sessionDuration !== null,
-            ]
+            ],
         );
 
         $classificationScore = $classification['is_threat']
@@ -174,7 +184,7 @@ final class RequestAnalyzer
             $reasons[] = sprintf(
                 'Classified as %s (%.0f%% confidence)',
                 $classification['classification'],
-                $classification['confidence'] * 100
+                $classification['confidence'] * 100,
             );
         }
 
@@ -184,7 +194,7 @@ final class RequestAnalyzer
             $path,
             $requestCount,
             $errorCount,
-            $sessionDuration
+            $sessionDuration,
         );
 
         $componentScores['anomaly_detector'] = (int) $anomalies['anomaly_score'];
@@ -197,7 +207,7 @@ final class RequestAnalyzer
         $sqliResult = null;
         if ($this->sqliDetector !== null) {
             // Check query string and body
-            $sqliInputs = array_filter([$queryString, $body], fn($v) => !empty($v));
+            $sqliInputs = array_filter([$queryString, $body], fn ($v) => !empty($v));
             $maxSqliScore = 0;
 
             foreach ($sqliInputs as $input) {
@@ -214,7 +224,7 @@ final class RequestAnalyzer
                 $reasons[] = sprintf(
                     'SQL injection detected (%.0f%% confidence, fingerprint: %s)',
                     $sqliResult['confidence'],
-                    $sqliResult['fingerprint'] ?? 'unknown'
+                    $sqliResult['fingerprint'] ?? 'unknown',
                 );
             }
         } else {
@@ -224,7 +234,7 @@ final class RequestAnalyzer
         // 4. XSS Detection (if enabled)
         $xssResult = null;
         if ($this->xssDetector !== null) {
-            $xssInputs = array_filter([$queryString, $body], fn($v) => !empty($v));
+            $xssInputs = array_filter([$queryString, $body], fn ($v) => !empty($v));
             $maxXssScore = 0;
 
             foreach ($xssInputs as $input) {
@@ -240,7 +250,7 @@ final class RequestAnalyzer
             if ($xssResult !== null && $xssResult['detected']) {
                 $reasons[] = sprintf(
                     'XSS detected (%.0f%% confidence)',
-                    $xssResult['confidence']
+                    $xssResult['confidence'],
                 );
             }
         } else {
@@ -299,16 +309,17 @@ final class RequestAnalyzer
     }
 
     /**
-     * Quick check if request should be blocked
+     * Quick check if request should be blocked.
      */
     public function shouldBlock(array $request): bool
     {
         $result = $this->analyze($request);
+
         return in_array($result['decision'], ['BLOCK', 'BAN'], true);
     }
 
     /**
-     * Get threat score only (faster than full analysis)
+     * Get threat score only (faster than full analysis).
      */
     public function getQuickScore(string $ip, string $userAgent, string $path): int
     {
@@ -322,9 +333,10 @@ final class RequestAnalyzer
     }
 
     /**
-     * Analyze batch of requests
+     * Analyze batch of requests.
      *
      * @param array<array> $requests
+     *
      * @return array<array>
      */
     public function analyzeBatch(array $requests): array
@@ -333,11 +345,12 @@ final class RequestAnalyzer
         foreach ($requests as $key => $request) {
             $results[$key] = $this->analyze($request);
         }
+
         return $results;
     }
 
     /**
-     * Get analyzer statistics
+     * Get analyzer statistics.
      */
     public function getStats(): array
     {
@@ -359,7 +372,7 @@ final class RequestAnalyzer
     }
 
     /**
-     * Determine decision based on score
+     * Determine decision based on score.
      */
     private function determineDecision(int $score): string
     {
@@ -378,11 +391,12 @@ final class RequestAnalyzer
         if ($score >= $this->monitorThreshold) {
             return 'MONITOR';
         }
+
         return 'ALLOW';
     }
 
     /**
-     * Build recommendation message
+     * Build recommendation message.
      */
     private function buildRecommendation(string $decision, int $score, array $reasons): string
     {

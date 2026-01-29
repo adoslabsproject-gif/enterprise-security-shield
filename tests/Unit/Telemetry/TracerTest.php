@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace AdosLabs\EnterpriseSecurityShield\Tests\Unit\Telemetry;
 
-use PHPUnit\Framework\TestCase;
 use AdosLabs\EnterpriseSecurityShield\Telemetry\NoOpSpan;
 use AdosLabs\EnterpriseSecurityShield\Telemetry\Samplers\AlwaysOffSampler;
 use AdosLabs\EnterpriseSecurityShield\Telemetry\Samplers\AlwaysOnSampler;
 use AdosLabs\EnterpriseSecurityShield\Telemetry\Samplers\RatioBasedSampler;
 use AdosLabs\EnterpriseSecurityShield\Telemetry\SpanKind;
 use AdosLabs\EnterpriseSecurityShield\Telemetry\Tracer;
+use PHPUnit\Framework\TestCase;
 
 class TracerTest extends TestCase
 {

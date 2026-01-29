@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace AdosLabs\EnterpriseSecurityShield\Tests\Unit\Config;
 
-use PHPUnit\Framework\TestCase;
 use AdosLabs\EnterpriseSecurityShield\Config\ConfigValidator;
+use PHPUnit\Framework\TestCase;
 
 class ConfigValidatorTest extends TestCase
 {

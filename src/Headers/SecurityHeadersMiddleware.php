@@ -10,7 +10,7 @@ use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 
 /**
- * Security Headers Middleware (PSR-15)
+ * Security Headers Middleware (PSR-15).
  *
  * Enterprise-grade HTTP security headers implementation.
  * Follows OWASP recommendations and browser best practices.
@@ -129,7 +129,7 @@ final class SecurityHeadersMiddleware implements MiddlewareInterface
     }
 
     /**
-     * Process request and add security headers
+     * Process request and add security headers.
      */
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
@@ -152,7 +152,7 @@ final class SecurityHeadersMiddleware implements MiddlewareInterface
     }
 
     /**
-     * Add HSTS header
+     * Add HSTS header.
      */
     private function addHstsHeader(ResponseInterface $response, ServerRequestInterface $request): ResponseInterface
     {
@@ -186,7 +186,7 @@ final class SecurityHeadersMiddleware implements MiddlewareInterface
     }
 
     /**
-     * Add CSP header
+     * Add CSP header.
      */
     private function addCspHeader(ResponseInterface $response): ResponseInterface
     {
@@ -218,7 +218,7 @@ final class SecurityHeadersMiddleware implements MiddlewareInterface
     }
 
     /**
-     * Add X-Frame-Options header
+     * Add X-Frame-Options header.
      */
     private function addFrameOptionsHeader(ResponseInterface $response): ResponseInterface
     {
@@ -232,7 +232,7 @@ final class SecurityHeadersMiddleware implements MiddlewareInterface
     }
 
     /**
-     * Add X-Content-Type-Options header
+     * Add X-Content-Type-Options header.
      */
     private function addContentTypeOptionsHeader(ResponseInterface $response): ResponseInterface
     {
@@ -244,7 +244,7 @@ final class SecurityHeadersMiddleware implements MiddlewareInterface
     }
 
     /**
-     * Add X-XSS-Protection header
+     * Add X-XSS-Protection header.
      */
     private function addXssProtectionHeader(ResponseInterface $response): ResponseInterface
     {
@@ -256,7 +256,7 @@ final class SecurityHeadersMiddleware implements MiddlewareInterface
     }
 
     /**
-     * Add Referrer-Policy header
+     * Add Referrer-Policy header.
      */
     private function addReferrerPolicyHeader(ResponseInterface $response): ResponseInterface
     {
@@ -270,7 +270,7 @@ final class SecurityHeadersMiddleware implements MiddlewareInterface
     }
 
     /**
-     * Add Permissions-Policy header
+     * Add Permissions-Policy header.
      */
     private function addPermissionsPolicyHeader(ResponseInterface $response): ResponseInterface
     {
@@ -289,8 +289,8 @@ final class SecurityHeadersMiddleware implements MiddlewareInterface
             } elseif ($allowlist === ['self']) {
                 $directives[] = "{$feature}=(self)";
             } else {
-                $quoted = array_map(fn($v) => $v === 'self' ? 'self' : "\"{$v}\"", $allowlist);
-                $directives[] = "{$feature}=(" . implode(' ', $quoted) . ")";
+                $quoted = array_map(fn ($v) => $v === 'self' ? 'self' : "\"{$v}\"", $allowlist);
+                $directives[] = "{$feature}=(" . implode(' ', $quoted) . ')';
             }
         }
 
@@ -298,7 +298,7 @@ final class SecurityHeadersMiddleware implements MiddlewareInterface
     }
 
     /**
-     * Add Cross-Origin headers
+     * Add Cross-Origin headers.
      */
     private function addCrossOriginHeaders(ResponseInterface $response): ResponseInterface
     {
@@ -321,7 +321,7 @@ final class SecurityHeadersMiddleware implements MiddlewareInterface
     }
 
     /**
-     * Add Cache-Control header
+     * Add Cache-Control header.
      */
     private function addCacheControlHeader(ResponseInterface $response): ResponseInterface
     {
@@ -335,7 +335,7 @@ final class SecurityHeadersMiddleware implements MiddlewareInterface
     }
 
     /**
-     * Add custom headers
+     * Add custom headers.
      */
     private function addCustomHeaders(ResponseInterface $response): ResponseInterface
     {
@@ -347,7 +347,7 @@ final class SecurityHeadersMiddleware implements MiddlewareInterface
     }
 
     /**
-     * Remove unsafe headers
+     * Remove unsafe headers.
      */
     private function removeUnsafeHeaders(ResponseInterface $response): ResponseInterface
     {
@@ -359,7 +359,7 @@ final class SecurityHeadersMiddleware implements MiddlewareInterface
     }
 
     /**
-     * Create preset configurations
+     * Create preset configurations.
      */
     public static function strict(): self
     {
@@ -396,7 +396,7 @@ final class SecurityHeadersMiddleware implements MiddlewareInterface
     }
 
     /**
-     * Create balanced preset
+     * Create balanced preset.
      */
     public static function balanced(): self
     {
@@ -430,7 +430,7 @@ final class SecurityHeadersMiddleware implements MiddlewareInterface
     }
 
     /**
-     * Create API preset (no CSP, optimized for APIs)
+     * Create API preset (no CSP, optimized for APIs).
      */
     public static function api(): self
     {
@@ -452,7 +452,7 @@ final class SecurityHeadersMiddleware implements MiddlewareInterface
     }
 
     /**
-     * Generate nonce for CSP
+     * Generate nonce for CSP.
      */
     public static function generateNonce(): string
     {
@@ -460,7 +460,7 @@ final class SecurityHeadersMiddleware implements MiddlewareInterface
     }
 
     /**
-     * Add nonce to CSP script-src
+     * Add nonce to CSP script-src.
      */
     public function withNonce(string $nonce): self
     {
@@ -476,7 +476,7 @@ final class SecurityHeadersMiddleware implements MiddlewareInterface
     }
 
     /**
-     * Add hash to CSP script-src
+     * Add hash to CSP script-src.
      */
     public function withScriptHash(string $script, string $algorithm = 'sha256'): self
     {
@@ -493,7 +493,7 @@ final class SecurityHeadersMiddleware implements MiddlewareInterface
     }
 
     /**
-     * Get current configuration
+     * Get current configuration.
      */
     public function getConfig(): array
     {

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace AdosLabs\EnterpriseSecurityShield\Tests\Unit\Storage;
 
-use PHPUnit\Framework\TestCase;
 use AdosLabs\EnterpriseSecurityShield\Storage\RedisStorage;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Redis Storage Test Suite.

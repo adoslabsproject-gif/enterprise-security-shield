@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace AdosLabs\EnterpriseSecurityShield\CSRF;
 
 /**
- * CSRF Validation Result
+ * CSRF Validation Result.
  */
 final class ValidationResult
 {

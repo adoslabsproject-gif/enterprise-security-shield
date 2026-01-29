@@ -7,7 +7,7 @@ namespace AdosLabs\EnterpriseSecurityShield\Detection;
 use AdosLabs\EnterpriseSecurityShield\Detection\Parser\XSSAnalyzer;
 
 /**
- * Advanced XSS Detector
+ * Advanced XSS Detector.
  *
  * Enterprise-grade XSS detection using real HTML/JS parsing.
  * This replaces regex-based detection with actual context-aware analysis.
@@ -26,6 +26,7 @@ use AdosLabs\EnterpriseSecurityShield\Detection\Parser\XSSAnalyzer;
 final class AdvancedXSSDetector
 {
     private XSSAnalyzer $analyzer;
+
     private float $threshold;
 
     public function __construct(float $threshold = 0.5)
@@ -35,9 +36,10 @@ final class AdvancedXSSDetector
     }
 
     /**
-     * Detect XSS in input
+     * Detect XSS in input.
      *
      * @param string $input User input to analyze
+     *
      * @return array{
      *     detected: bool,
      *     confidence: float,
@@ -62,9 +64,10 @@ final class AdvancedXSSDetector
     }
 
     /**
-     * Detect XSS in multiple inputs (batch)
+     * Detect XSS in multiple inputs (batch).
      *
      * @param array<string, string> $inputs Key => value pairs to check
+     *
      * @return array{
      *     detected: bool,
      *     total_checked: int,
@@ -105,9 +108,10 @@ final class AdvancedXSSDetector
     }
 
     /**
-     * Quick check (for high-performance scenarios)
+     * Quick check (for high-performance scenarios).
      *
      * @param string $input Input to check
+     *
      * @return bool True if XSS detected
      */
     public function isXSS(string $input): bool
@@ -116,12 +120,13 @@ final class AdvancedXSSDetector
     }
 
     /**
-     * Sanitize input by removing dangerous content
+     * Sanitize input by removing dangerous content.
      *
      * WARNING: Sanitization is NOT recommended as primary defense.
      * Use output encoding instead. This is for legacy compatibility only.
      *
      * @param string $input Input to sanitize
+     *
      * @return string Sanitized input
      */
     public function sanitize(string $input): string
@@ -144,18 +149,19 @@ final class AdvancedXSSDetector
     }
 
     /**
-     * Set detection threshold
+     * Set detection threshold.
      *
      * @param float $threshold 0.0 to 1.0
      */
     public function setThreshold(float $threshold): self
     {
         $this->threshold = max(0.0, min(1.0, $threshold));
+
         return $this;
     }
 
     /**
-     * Get analyzer instance (for advanced use)
+     * Get analyzer instance (for advanced use).
      */
     public function getAnalyzer(): XSSAnalyzer
     {

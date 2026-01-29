@@ -7,10 +7,10 @@ namespace AdosLabs\EnterpriseSecurityShield\Middleware;
 use AdosLabs\EnterpriseSecurityShield\Config\SecurityConfig;
 use AdosLabs\EnterpriseSecurityShield\Contracts\LoggerInterface;
 use AdosLabs\EnterpriseSecurityShield\Contracts\StorageInterface;
-use AdosLabs\EnterpriseSecurityShield\ML\RequestAnalyzer;
-use AdosLabs\EnterpriseSecurityShield\ML\ThreatClassifier;
 use AdosLabs\EnterpriseSecurityShield\ML\AnomalyDetector as MLAnomalyDetector;
 use AdosLabs\EnterpriseSecurityShield\ML\OnlineLearningClassifier;
+use AdosLabs\EnterpriseSecurityShield\ML\RequestAnalyzer;
+use AdosLabs\EnterpriseSecurityShield\ML\ThreatClassifier;
 use AdosLabs\EnterpriseSecurityShield\Services\BotVerifier;
 use AdosLabs\EnterpriseSecurityShield\Services\ThreatPatterns;
 use AdosLabs\EnterpriseSecurityShield\Utils\IPUtils;
@@ -231,6 +231,7 @@ class SecurityMiddleware
      * When disabled, falls back to pattern-based scoring only.
      *
      * @param bool $enabled Whether ML analysis is enabled
+     *
      * @return self
      */
     public function setMLEnabled(bool $enabled): self
@@ -247,6 +248,7 @@ class SecurityMiddleware
      * continuously improving its detection accuracy.
      *
      * @param bool $enabled Whether online learning is enabled
+     *
      * @return self
      */
     public function setOnlineLearningEnabled(bool $enabled): self
@@ -281,6 +283,7 @@ class SecurityMiddleware
      * - Recovery after model reset
      *
      * @param int $limit Maximum events to learn from
+     *
      * @return int Number of events learned from
      */
     public function trainFromHistoricalEvents(int $limit = 1000): int

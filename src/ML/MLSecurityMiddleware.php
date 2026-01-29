@@ -13,7 +13,7 @@ use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 
 /**
- * Machine Learning Security Middleware (PSR-15)
+ * Machine Learning Security Middleware (PSR-15).
  *
  * Integrates ML threat classification into the request pipeline.
  * Provides real-time threat detection with online learning feedback loop.
@@ -36,29 +36,38 @@ use Psr\Log\NullLogger;
 final class MLSecurityMiddleware implements MiddlewareInterface
 {
     /**
-     * Request attribute keys for classification results
+     * Request attribute keys for classification results.
      */
     public const ATTR_CLASSIFICATION = 'ml.classification';
+
     public const ATTR_CONFIDENCE = 'ml.confidence';
+
     public const ATTR_IS_THREAT = 'ml.is_threat';
+
     public const ATTR_FEATURES = 'ml.features';
 
     private OnlineLearningClassifier $classifier;
+
     private ThreatClassifier $threatClassifier;
+
     private StorageInterface $storage;
+
     private LoggerInterface $logger;
 
     /**
-     * Configuration
+     * Configuration.
+     *
      * @var array<string, mixed>
      */
     private array $config;
 
     /**
-     * Action to take on threat detection
+     * Action to take on threat detection.
      */
     public const ACTION_LOG = 'log';
+
     public const ACTION_CHALLENGE = 'challenge';
+
     public const ACTION_BLOCK = 'block';
 
     /**
@@ -78,7 +87,7 @@ final class MLSecurityMiddleware implements MiddlewareInterface
         ThreatClassifier $threatClassifier,
         StorageInterface $storage,
         ?LoggerInterface $logger = null,
-        array $config = []
+        array $config = [],
     ) {
         $this->classifier = $classifier;
         $this->threatClassifier = $threatClassifier;
@@ -131,7 +140,7 @@ final class MLSecurityMiddleware implements MiddlewareInterface
     }
 
     /**
-     * Process request through ML classification
+     * Process request through ML classification.
      */
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
@@ -158,7 +167,7 @@ final class MLSecurityMiddleware implements MiddlewareInterface
                 $path,
                 $request->getMethod(),
                 $requestData['headers'] ?? [],
-                $requestData['behavior'] ?? []
+                $requestData['behavior'] ?? [],
             );
         }
 
@@ -216,10 +225,11 @@ final class MLSecurityMiddleware implements MiddlewareInterface
     }
 
     /**
-     * Merge classifications from both classifiers
+     * Merge classifications from both classifiers.
      *
      * @param array<string, mixed> $onlineResult
      * @param array<string, mixed>|null $staticResult
+     *
      * @return array<string, mixed>
      */
     private function mergeClassifications(array $onlineResult, ?array $staticResult): array
@@ -236,7 +246,7 @@ final class MLSecurityMiddleware implements MiddlewareInterface
                 'is_threat' => $onlineResult['is_threat'] || $staticResult['is_threat'],
                 'features_used' => array_merge(
                     $onlineResult['features_used'] ?? [],
-                    $staticResult['features_detected'] ?? []
+                    $staticResult['features_detected'] ?? [],
                 ),
                 'online_confidence' => $onlineResult['confidence'],
                 'static_confidence' => $staticResult['confidence'],
@@ -272,6 +282,7 @@ final class MLSecurityMiddleware implements MiddlewareInterface
             if ($onlineResult['confidence'] >= $staticResult['confidence']) {
                 return array_merge($onlineResult, ['source' => 'online']);
             }
+
             return [
                 'classification' => $staticResult['classification'],
                 'confidence' => $staticResult['confidence'],
@@ -286,7 +297,7 @@ final class MLSecurityMiddleware implements MiddlewareInterface
     }
 
     /**
-     * Determine action based on classification
+     * Determine action based on classification.
      */
     private function determineAction(array $classification): string
     {
@@ -310,7 +321,7 @@ final class MLSecurityMiddleware implements MiddlewareInterface
     }
 
     /**
-     * Extract request data for classification
+     * Extract request data for classification.
      *
      * @return array<string, mixed>
      */
@@ -355,7 +366,7 @@ final class MLSecurityMiddleware implements MiddlewareInterface
     }
 
     /**
-     * Get behavior metrics for IP from storage
+     * Get behavior metrics for IP from storage.
      *
      * @return array<string, mixed>
      */
@@ -370,6 +381,7 @@ final class MLSecurityMiddleware implements MiddlewareInterface
 
         if (is_string($stored)) {
             $decoded = json_decode($stored, true);
+
             return is_array($decoded) ? $decoded : [];
         }
 
@@ -377,7 +389,7 @@ final class MLSecurityMiddleware implements MiddlewareInterface
     }
 
     /**
-     * Learn from a blocked request
+     * Learn from a blocked request.
      *
      * @param array<string, mixed> $requestData
      * @param array<string, mixed> $classification
@@ -388,7 +400,7 @@ final class MLSecurityMiddleware implements MiddlewareInterface
         $this->classifier->learn(
             $requestData,
             $classification['classification'],
-            1.0 // Full weight for blocked threats
+            1.0, // Full weight for blocked threats
         );
 
         $this->logger->info('ML model learned from block', [
@@ -398,7 +410,7 @@ final class MLSecurityMiddleware implements MiddlewareInterface
     }
 
     /**
-     * Learn from response (post-request feedback)
+     * Learn from response (post-request feedback).
      *
      * @param array<string, mixed> $requestData
      * @param array<string, mixed> $classification
@@ -414,7 +426,7 @@ final class MLSecurityMiddleware implements MiddlewareInterface
                 $this->classifier->learn(
                     $requestData,
                     $classification['classification'],
-                    0.5 // Lower weight for indirect confirmation
+                    0.5, // Lower weight for indirect confirmation
                 );
             }
         }
@@ -438,7 +450,7 @@ final class MLSecurityMiddleware implements MiddlewareInterface
     }
 
     /**
-     * Increment a behavior metric for IP
+     * Increment a behavior metric for IP.
      */
     private function incrementMetric(string $ip, string $metric): void
     {
@@ -460,7 +472,7 @@ final class MLSecurityMiddleware implements MiddlewareInterface
     }
 
     /**
-     * Log threat detection
+     * Log threat detection.
      */
     private function logThreat(ServerRequestInterface $request, array $classification): void
     {
@@ -484,7 +496,7 @@ final class MLSecurityMiddleware implements MiddlewareInterface
     }
 
     /**
-     * Log blocked threat
+     * Log blocked threat.
      */
     private function logThreatBlocked(ServerRequestInterface $request, array $classification): void
     {
@@ -505,7 +517,7 @@ final class MLSecurityMiddleware implements MiddlewareInterface
     }
 
     /**
-     * Create block response
+     * Create block response.
      */
     private function createBlockResponse(array $classification): ResponseInterface
     {
@@ -533,12 +545,12 @@ final class MLSecurityMiddleware implements MiddlewareInterface
         return new $responseClass(
             403,
             ['Content-Type' => 'application/json'],
-            $body
+            $body,
         );
     }
 
     /**
-     * Get client IP address
+     * Get client IP address.
      */
     private function getClientIp(ServerRequestInterface $request): string
     {
@@ -548,16 +560,18 @@ final class MLSecurityMiddleware implements MiddlewareInterface
             $value = $request->getHeaderLine($header);
             if (!empty($value)) {
                 $ips = explode(',', $value);
+
                 return trim($ips[0]);
             }
         }
 
         $serverParams = $request->getServerParams();
+
         return $serverParams['REMOTE_ADDR'] ?? 'unknown';
     }
 
     /**
-     * Check if path/IP is excluded
+     * Check if path/IP is excluded.
      */
     private function isExcluded(string $path, string $ip): bool
     {
@@ -575,7 +589,7 @@ final class MLSecurityMiddleware implements MiddlewareInterface
     }
 
     /**
-     * Trigger periodic learning from events
+     * Trigger periodic learning from events.
      *
      * Call this from a cron job or scheduled task
      */
@@ -587,12 +601,12 @@ final class MLSecurityMiddleware implements MiddlewareInterface
 
         return $this->classifier->autoLearnFromEvents(
             $this->config['feedback_batch_size'],
-            $since
+            $since,
         );
     }
 
     /**
-     * Get ML model statistics
+     * Get ML model statistics.
      *
      * @return array<string, mixed>
      */
@@ -611,7 +625,7 @@ final class MLSecurityMiddleware implements MiddlewareInterface
     }
 
     /**
-     * Export models for backup/analysis
+     * Export models for backup/analysis.
      *
      * @return array<string, mixed>
      */
@@ -624,11 +638,11 @@ final class MLSecurityMiddleware implements MiddlewareInterface
     }
 
     /**
-     * Create with default configuration
+     * Create with default configuration.
      */
     public static function create(
         StorageInterface $storage,
-        ?LoggerInterface $logger = null
+        ?LoggerInterface $logger = null,
     ): self {
         $onlineClassifier = new OnlineLearningClassifier($storage, $logger);
         $threatClassifier = new ThreatClassifier();
@@ -637,16 +651,16 @@ final class MLSecurityMiddleware implements MiddlewareInterface
             $onlineClassifier,
             $threatClassifier,
             $storage,
-            $logger
+            $logger,
         );
     }
 
     /**
-     * Create with strict blocking mode
+     * Create with strict blocking mode.
      */
     public static function strict(
         StorageInterface $storage,
-        ?LoggerInterface $logger = null
+        ?LoggerInterface $logger = null,
     ): self {
         $onlineClassifier = new OnlineLearningClassifier($storage, $logger);
         $threatClassifier = new ThreatClassifier();
@@ -660,16 +674,16 @@ final class MLSecurityMiddleware implements MiddlewareInterface
                 'action' => self::ACTION_BLOCK,
                 'confidence_threshold' => 0.75,
                 'enable_feedback' => true,
-            ]
+            ],
         );
     }
 
     /**
-     * Create for monitoring only (no blocking)
+     * Create for monitoring only (no blocking).
      */
     public static function monitoring(
         StorageInterface $storage,
-        ?LoggerInterface $logger = null
+        ?LoggerInterface $logger = null,
     ): self {
         $onlineClassifier = new OnlineLearningClassifier($storage, $logger);
         $threatClassifier = new ThreatClassifier();
@@ -684,7 +698,7 @@ final class MLSecurityMiddleware implements MiddlewareInterface
                 'block_classes' => [], // Never block
                 'challenge_classes' => [], // Never challenge
                 'enable_feedback' => true,
-            ]
+            ],
         );
     }
 }

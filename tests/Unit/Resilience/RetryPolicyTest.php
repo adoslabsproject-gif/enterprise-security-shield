@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace AdosLabs\EnterpriseSecurityShield\Tests\Unit\Resilience;
 
-use PHPUnit\Framework\TestCase;
 use AdosLabs\EnterpriseSecurityShield\Resilience\RetryPolicy;
+use PHPUnit\Framework\TestCase;
 
 class RetryPolicyTest extends TestCase
 {

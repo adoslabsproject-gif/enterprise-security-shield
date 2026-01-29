@@ -8,13 +8,13 @@ use AdosLabs\AdminPanel\Core\AdminModuleInterface;
 use AdosLabs\AdminPanel\Database\Pool\DatabasePool;
 use AdosLabs\EnterpriseSecurityShield\AdminIntegration\Controllers\SecurityController;
 use AdosLabs\EnterpriseSecurityShield\Config\SecurityConfig;
+use AdosLabs\EnterpriseSecurityShield\Contracts\StorageInterface;
 use AdosLabs\EnterpriseSecurityShield\Storage\DatabaseStorage;
 use AdosLabs\EnterpriseSecurityShield\Storage\RedisStorage;
-use AdosLabs\EnterpriseSecurityShield\Contracts\StorageInterface;
 use Psr\Log\LoggerInterface;
 
 /**
- * Security Shield Admin Module
+ * Security Shield Admin Module.
  *
  * Integrates Enterprise Security Shield with Enterprise Admin Panel.
  *
@@ -32,8 +32,11 @@ use Psr\Log\LoggerInterface;
 final class SecurityShieldAdminModule implements AdminModuleInterface
 {
     private ?StorageInterface $storage = null;
+
     private ?SecurityConfig $config = null;
+
     private ?DatabasePool $db = null;
+
     private ?LoggerInterface $logger = null;
 
     /**
@@ -49,7 +52,7 @@ final class SecurityShieldAdminModule implements AdminModuleInterface
     public function __construct(
         DatabasePool|StorageInterface|null $dbOrStorage = null,
         LoggerInterface|SecurityConfig|null $loggerOrConfig = null,
-        ?DatabasePool $db = null
+        ?DatabasePool $db = null,
     ) {
         // Handle ModuleRegistry signature: new Module($db, $logger)
         if ($dbOrStorage instanceof DatabasePool) {
@@ -69,34 +72,37 @@ final class SecurityShieldAdminModule implements AdminModuleInterface
     }
 
     /**
-     * Set storage backend
+     * Set storage backend.
      */
     public function setStorage(StorageInterface $storage): self
     {
         $this->storage = $storage;
+
         return $this;
     }
 
     /**
-     * Set security configuration
+     * Set security configuration.
      */
     public function setConfig(SecurityConfig $config): self
     {
         $this->config = $config;
+
         return $this;
     }
 
     /**
-     * Set database pool for DatabaseStorage
+     * Set database pool for DatabaseStorage.
      */
     public function setDatabasePool(DatabasePool $db): self
     {
         $this->db = $db;
+
         return $this;
     }
 
     /**
-     * Get storage (lazy initialization)
+     * Get storage (lazy initialization).
      */
     public function getStorage(): StorageInterface
     {
@@ -108,7 +114,7 @@ final class SecurityShieldAdminModule implements AdminModuleInterface
                     $redis->connect(
                         $_ENV['REDIS_HOST'],
                         (int) ($_ENV['REDIS_PORT'] ?? 6379),
-                        2.0
+                        2.0,
                     );
                     if (!empty($_ENV['REDIS_PASSWORD'])) {
                         $redis->auth($_ENV['REDIS_PASSWORD']);
@@ -125,7 +131,7 @@ final class SecurityShieldAdminModule implements AdminModuleInterface
 
             if ($this->storage === null) {
                 throw new \RuntimeException(
-                    'No storage backend available. Configure REDIS_HOST or provide DatabasePool.'
+                    'No storage backend available. Configure REDIS_HOST or provide DatabasePool.',
                 );
             }
         }
@@ -321,6 +327,7 @@ final class SecurityShieldAdminModule implements AdminModuleInterface
 
         // Determine database driver
         $driver = 'postgresql';
+
         try {
             $driverMethod = method_exists($this->db, 'getConfig')
                 ? $this->db->getConfig()->getDriver()
@@ -348,6 +355,7 @@ final class SecurityShieldAdminModule implements AdminModuleInterface
                     'path' => $migrationPath,
                 ]);
             }
+
             return;
         }
 
@@ -393,9 +401,10 @@ final class SecurityShieldAdminModule implements AdminModuleInterface
     }
 
     /**
-     * Parse SQL file into individual statements
+     * Parse SQL file into individual statements.
      *
      * @param string $sql
+     *
      * @return array<string>
      */
     private function parseSqlStatements(string $sql): array
@@ -435,7 +444,7 @@ final class SecurityShieldAdminModule implements AdminModuleInterface
             $statements[] = trim($current);
         }
 
-        return array_filter($statements, fn($s) => !empty(trim($s)));
+        return array_filter($statements, fn ($s) => !empty(trim($s)));
     }
 
     public function uninstall(): void

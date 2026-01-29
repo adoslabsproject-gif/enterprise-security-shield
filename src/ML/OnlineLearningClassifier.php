@@ -9,7 +9,7 @@ use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 
 /**
- * Online Learning Threat Classifier
+ * Online Learning Threat Classifier.
  *
  * TRUE MACHINE LEARNING with continuous learning from security events.
  *
@@ -37,53 +37,63 @@ use Psr\Log\NullLogger;
 final class OnlineLearningClassifier
 {
     /**
-     * Storage for persisting learned weights
+     * Storage for persisting learned weights.
      */
     private StorageInterface $storage;
 
     /**
-     * PSR-3 Logger
+     * PSR-3 Logger.
      */
     private LoggerInterface $logger;
 
     /**
-     * Storage key prefix for ML data
+     * Storage key prefix for ML data.
      */
     private const STORAGE_PREFIX = 'ml:classifier:';
 
     /**
-     * Laplace smoothing parameter (prevents zero probabilities)
+     * Laplace smoothing parameter (prevents zero probabilities).
      */
     private const LAPLACE_ALPHA = 1.0;
 
     /**
-     * Minimum samples before using learned weights
+     * Minimum samples before using learned weights.
      */
     private const MIN_SAMPLES_FOR_LEARNING = 50;
 
     /**
      * Decay factor for older observations (concept drift handling)
-     * 0.99 = 1% decay per batch, keeps ~60% weight after 50 batches
+     * 0.99 = 1% decay per batch, keeps ~60% weight after 50 batches.
      */
     private const DECAY_FACTOR = 0.995;
 
     /**
-     * Threat classification categories
+     * Threat classification categories.
      */
     public const CLASS_SCANNER = 'SCANNER';
+
     public const CLASS_BOT_SPOOF = 'BOT_SPOOF';
+
     public const CLASS_CMS_PROBE = 'CMS_PROBE';
+
     public const CLASS_CONFIG_HUNT = 'CONFIG_HUNT';
+
     public const CLASS_PATH_TRAVERSAL = 'PATH_TRAVERSAL';
+
     public const CLASS_CREDENTIAL_THEFT = 'CREDENTIAL_THEFT';
+
     public const CLASS_IOT_EXPLOIT = 'IOT_EXPLOIT';
+
     public const CLASS_BRUTE_FORCE = 'BRUTE_FORCE';
+
     public const CLASS_SQLI_ATTEMPT = 'SQLI_ATTEMPT';
+
     public const CLASS_XSS_ATTEMPT = 'XSS_ATTEMPT';
+
     public const CLASS_LEGITIMATE = 'LEGITIMATE';
 
     /**
-     * All possible classes
+     * All possible classes.
      */
     private const CLASSES = [
         self::CLASS_SCANNER,
@@ -101,7 +111,7 @@ final class OnlineLearningClassifier
 
     /**
      * Initial prior probabilities (from 662 pre-analyzed events)
-     * These serve as starting point before learning kicks in
+     * These serve as starting point before learning kicks in.
      */
     private const INITIAL_PRIORS = [
         self::CLASS_SCANNER => 0.12,
@@ -119,7 +129,7 @@ final class OnlineLearningClassifier
 
     /**
      * Initial feature likelihoods (pre-trained from production logs)
-     * Format: feature => [class => probability]
+     * Format: feature => [class => probability].
      */
     private const INITIAL_LIKELIHOODS = [
         // User-Agent features
@@ -178,28 +188,30 @@ final class OnlineLearningClassifier
     ];
 
     /**
-     * Cached learned parameters (loaded from storage)
+     * Cached learned parameters (loaded from storage).
+     *
      * @var array<string, mixed>|null
      */
     private ?array $learnedParams = null;
 
     /**
-     * Confidence threshold for classification
+     * Confidence threshold for classification.
      */
     private float $confidenceThreshold = 0.65;
 
     public function __construct(
         StorageInterface $storage,
-        ?LoggerInterface $logger = null
+        ?LoggerInterface $logger = null,
     ) {
         $this->storage = $storage;
         $this->logger = $logger ?? new NullLogger();
     }
 
     /**
-     * Classify a request and return threat assessment
+     * Classify a request and return threat assessment.
      *
      * @param array<string, mixed> $features Extracted features from request
+     *
      * @return array{
      *     classification: string,
      *     confidence: float,
@@ -252,7 +264,7 @@ final class OnlineLearningClassifier
             : ($totalSamples < 500 ? 'learning' : 'mature');
 
         /** @var array<string, float> $roundedProbabilities */
-        $roundedProbabilities = array_map(fn($p) => round((float) $p, 4), $probabilities);
+        $roundedProbabilities = array_map(fn ($p) => round((float) $p, 4), $probabilities);
 
         return [
             'classification' => $classification,
@@ -266,7 +278,7 @@ final class OnlineLearningClassifier
     }
 
     /**
-     * Learn from a labeled security event (ONLINE LEARNING)
+     * Learn from a labeled security event (ONLINE LEARNING).
      *
      * This is the core ML function - it updates the model incrementally
      * without needing to retrain from scratch.
@@ -279,6 +291,7 @@ final class OnlineLearningClassifier
     {
         if (!in_array($trueClass, self::CLASSES, true)) {
             $this->logger->warning('Invalid class for learning', ['class' => $trueClass]);
+
             return;
         }
 
@@ -322,7 +335,7 @@ final class OnlineLearningClassifier
     }
 
     /**
-     * Learn from a batch of labeled events (more efficient for bulk updates)
+     * Learn from a batch of labeled events (more efficient for bulk updates).
      *
      * @param array<int, array{features: array<string, mixed>, class: string, weight?: float}> $samples
      */
@@ -376,13 +389,14 @@ final class OnlineLearningClassifier
     }
 
     /**
-     * Auto-learn from security events in storage
+     * Auto-learn from security events in storage.
      *
      * Reads recent security events and uses them to train the model.
      * Events are labeled based on their type (auto_ban = threat, etc.)
      *
      * @param int $limit Maximum events to process
      * @param int $since Unix timestamp - only process events after this time
+     *
      * @return int Number of events learned from
      */
     public function autoLearnFromEvents(int $limit = 1000, int $since = 0): int
@@ -432,7 +446,7 @@ final class OnlineLearningClassifier
     }
 
     /**
-     * Get model statistics
+     * Get model statistics.
      *
      * @return array{
      *     total_samples: int,
@@ -475,7 +489,7 @@ final class OnlineLearningClassifier
     }
 
     /**
-     * Reset learned parameters (keeps initial weights)
+     * Reset learned parameters (keeps initial weights).
      */
     public function reset(): void
     {
@@ -486,16 +500,17 @@ final class OnlineLearningClassifier
     }
 
     /**
-     * Set confidence threshold for threat classification
+     * Set confidence threshold for threat classification.
      */
     public function setConfidenceThreshold(float $threshold): self
     {
         $this->confidenceThreshold = max(0.0, min(1.0, $threshold));
+
         return $this;
     }
 
     /**
-     * Export model for analysis or backup
+     * Export model for analysis or backup.
      *
      * @return array<string, mixed> Full model state
      */
@@ -512,7 +527,7 @@ final class OnlineLearningClassifier
     }
 
     /**
-     * Import model from backup
+     * Import model from backup.
      *
      * @param array<string, mixed> $model Exported model data
      */
@@ -535,7 +550,7 @@ final class OnlineLearningClassifier
     // =========================================================================
 
     /**
-     * Get learned parameters from storage (with caching)
+     * Get learned parameters from storage (with caching).
      *
      * @return array<string, mixed>
      */
@@ -551,6 +566,7 @@ final class OnlineLearningClassifier
             $params = json_decode($stored, true);
             if (is_array($params)) {
                 $this->learnedParams = $params;
+
                 return $params;
             }
         }
@@ -567,7 +583,7 @@ final class OnlineLearningClassifier
     }
 
     /**
-     * Save learned parameters to storage
+     * Save learned parameters to storage.
      *
      * @param array<string, mixed> $params
      */
@@ -577,12 +593,12 @@ final class OnlineLearningClassifier
         $this->storage->set(
             self::STORAGE_PREFIX . 'params',
             json_encode($params),
-            86400 * 365 // 1 year TTL
+            86400 * 365, // 1 year TTL
         );
     }
 
     /**
-     * Get prior probability for a class (combines initial + learned)
+     * Get prior probability for a class (combines initial + learned).
      *
      * @param array<string, mixed> $params
      */
@@ -605,11 +621,12 @@ final class OnlineLearningClassifier
 
         // Gradually shift from initial to learned as samples increase
         $learnedWeight = min(1.0, $totalSamples / 500);
+
         return $initialPrior * (1 - $learnedWeight) + $learnedPrior * $learnedWeight;
     }
 
     /**
-     * Get likelihood P(feature|class) (combines initial + learned)
+     * Get likelihood P(feature|class) (combines initial + learned).
      *
      * @param array<string, mixed> $params
      */
@@ -630,6 +647,7 @@ final class OnlineLearningClassifier
             if ($initialLikelihood !== null) {
                 return $initialLikelihood;
             }
+
             // Unknown feature - use small probability
             return 0.01;
         }
@@ -642,6 +660,7 @@ final class OnlineLearningClassifier
         // Blend with initial if available
         if ($initialLikelihood !== null) {
             $learnedWeight = min(1.0, $classCount / 100);
+
             return $initialLikelihood * (1 - $learnedWeight) + $learnedLikelihood * $learnedWeight;
         }
 
@@ -649,7 +668,7 @@ final class OnlineLearningClassifier
     }
 
     /**
-     * Apply decay to counts (handles concept drift)
+     * Apply decay to counts (handles concept drift).
      *
      * @param array<string, mixed> $params
      */
@@ -681,9 +700,10 @@ final class OnlineLearningClassifier
     }
 
     /**
-     * Extract feature keys from request data
+     * Extract feature keys from request data.
      *
      * @param array<string, mixed> $features
+     *
      * @return array<string>
      */
     private function extractFeatureKeys(array $features): array
@@ -695,67 +715,147 @@ final class OnlineLearningClassifier
         if (empty($ua)) {
             $keys[] = 'header:missing_ua';
         } else {
-            if (str_contains($ua, 'curl')) $keys[] = 'ua:curl';
-            if (str_contains($ua, 'python')) $keys[] = 'ua:python';
-            if (str_contains($ua, 'wget')) $keys[] = 'ua:wget';
-            if (str_contains($ua, 'go-http')) $keys[] = 'ua:go-http';
-            if (str_contains($ua, 'java')) $keys[] = 'ua:java';
-            if ($ua === 'hello, world') $keys[] = 'ua:hello_world';
-            if (str_contains($ua, 'censys')) $keys[] = 'ua:censys';
-            if (str_contains($ua, 'zgrab')) $keys[] = 'ua:zgrab';
-            if (str_contains($ua, 'masscan')) $keys[] = 'ua:masscan';
-            if (str_contains($ua, 'nmap')) $keys[] = 'ua:nmap';
-            if (str_contains($ua, 'nikto')) $keys[] = 'ua:nikto';
-            if (str_contains($ua, 'sqlmap')) $keys[] = 'ua:sqlmap';
-            if (str_contains($ua, 'gobuster') || str_contains($ua, 'dirbuster')) $keys[] = 'ua:gobuster';
-            if (str_contains($ua, 'wpscan')) $keys[] = 'ua:wpscan';
-            if (str_contains($ua, 'nuclei')) $keys[] = 'ua:nuclei';
+            if (str_contains($ua, 'curl')) {
+                $keys[] = 'ua:curl';
+            }
+            if (str_contains($ua, 'python')) {
+                $keys[] = 'ua:python';
+            }
+            if (str_contains($ua, 'wget')) {
+                $keys[] = 'ua:wget';
+            }
+            if (str_contains($ua, 'go-http')) {
+                $keys[] = 'ua:go-http';
+            }
+            if (str_contains($ua, 'java')) {
+                $keys[] = 'ua:java';
+            }
+            if ($ua === 'hello, world') {
+                $keys[] = 'ua:hello_world';
+            }
+            if (str_contains($ua, 'censys')) {
+                $keys[] = 'ua:censys';
+            }
+            if (str_contains($ua, 'zgrab')) {
+                $keys[] = 'ua:zgrab';
+            }
+            if (str_contains($ua, 'masscan')) {
+                $keys[] = 'ua:masscan';
+            }
+            if (str_contains($ua, 'nmap')) {
+                $keys[] = 'ua:nmap';
+            }
+            if (str_contains($ua, 'nikto')) {
+                $keys[] = 'ua:nikto';
+            }
+            if (str_contains($ua, 'sqlmap')) {
+                $keys[] = 'ua:sqlmap';
+            }
+            if (str_contains($ua, 'gobuster') || str_contains($ua, 'dirbuster')) {
+                $keys[] = 'ua:gobuster';
+            }
+            if (str_contains($ua, 'wpscan')) {
+                $keys[] = 'ua:wpscan';
+            }
+            if (str_contains($ua, 'nuclei')) {
+                $keys[] = 'ua:nuclei';
+            }
 
             // Bot spoofing (requires verification flag)
             if (($features['bot_verified'] ?? true) === false) {
-                if (str_contains($ua, 'googlebot')) $keys[] = 'ua:googlebot_unverified';
-                if (str_contains($ua, 'bingbot')) $keys[] = 'ua:bingbot_unverified';
-                if (str_contains($ua, 'gptbot')) $keys[] = 'ua:gptbot_unverified';
+                if (str_contains($ua, 'googlebot')) {
+                    $keys[] = 'ua:googlebot_unverified';
+                }
+                if (str_contains($ua, 'bingbot')) {
+                    $keys[] = 'ua:bingbot_unverified';
+                }
+                if (str_contains($ua, 'gptbot')) {
+                    $keys[] = 'ua:gptbot_unverified';
+                }
             }
         }
 
         // Path features
         $path = strtolower($features['path'] ?? '');
-        if (str_contains($path, 'wp-admin')) $keys[] = 'path:wp-admin';
-        if (str_contains($path, 'wp-login')) $keys[] = 'path:wp-login';
-        if (str_contains($path, 'wp-config')) $keys[] = 'path:wp-config';
-        if (str_contains($path, 'phpmyadmin')) $keys[] = 'path:phpmyadmin';
-        if (str_contains($path, 'adminer')) $keys[] = 'path:adminer';
-        if (str_contains($path, 'phpinfo')) $keys[] = 'path:phpinfo';
-        if (str_contains($path, '.env')) $keys[] = 'path:env';
-        if (str_contains($path, '.git')) $keys[] = 'path:git';
-        if (str_contains($path, 'aws') && str_contains($path, 'credentials')) $keys[] = 'path:aws_credentials';
-        if (preg_match('/\.(bak|backup|old|orig)$/i', $path)) $keys[] = 'path:backup';
-        if (str_contains($path, 'gponform')) $keys[] = 'path:gponform';
-        if (str_contains($path, 'hnap')) $keys[] = 'path:hnap';
-        if (str_contains($path, '../') || str_contains($path, '..\\')) $keys[] = 'path:traversal';
+        if (str_contains($path, 'wp-admin')) {
+            $keys[] = 'path:wp-admin';
+        }
+        if (str_contains($path, 'wp-login')) {
+            $keys[] = 'path:wp-login';
+        }
+        if (str_contains($path, 'wp-config')) {
+            $keys[] = 'path:wp-config';
+        }
+        if (str_contains($path, 'phpmyadmin')) {
+            $keys[] = 'path:phpmyadmin';
+        }
+        if (str_contains($path, 'adminer')) {
+            $keys[] = 'path:adminer';
+        }
+        if (str_contains($path, 'phpinfo')) {
+            $keys[] = 'path:phpinfo';
+        }
+        if (str_contains($path, '.env')) {
+            $keys[] = 'path:env';
+        }
+        if (str_contains($path, '.git')) {
+            $keys[] = 'path:git';
+        }
+        if (str_contains($path, 'aws') && str_contains($path, 'credentials')) {
+            $keys[] = 'path:aws_credentials';
+        }
+        if (preg_match('/\.(bak|backup|old|orig)$/i', $path)) {
+            $keys[] = 'path:backup';
+        }
+        if (str_contains($path, 'gponform')) {
+            $keys[] = 'path:gponform';
+        }
+        if (str_contains($path, 'hnap')) {
+            $keys[] = 'path:hnap';
+        }
+        if (str_contains($path, '../') || str_contains($path, '..\\')) {
+            $keys[] = 'path:traversal';
+        }
 
         // Behavioral features
-        if (($features['error_404_count'] ?? 0) > 5) $keys[] = 'behavior:high_404_rate';
-        if (($features['request_count'] ?? 0) > 50) $keys[] = 'behavior:rapid_requests';
-        if (($features['login_failures'] ?? 0) >= 3) $keys[] = 'behavior:login_failures';
-        if (($features['rate_limited'] ?? false) === true) $keys[] = 'behavior:rate_limited';
-        if (($features['honeypot_hit'] ?? false) === true) $keys[] = 'behavior:honeypot_hit';
+        if (($features['error_404_count'] ?? 0) > 5) {
+            $keys[] = 'behavior:high_404_rate';
+        }
+        if (($features['request_count'] ?? 0) > 50) {
+            $keys[] = 'behavior:rapid_requests';
+        }
+        if (($features['login_failures'] ?? 0) >= 3) {
+            $keys[] = 'behavior:login_failures';
+        }
+        if (($features['rate_limited'] ?? false) === true) {
+            $keys[] = 'behavior:rate_limited';
+        }
+        if (($features['honeypot_hit'] ?? false) === true) {
+            $keys[] = 'behavior:honeypot_hit';
+        }
 
         // Detection features
-        if (($features['sqli_detected'] ?? false) === true) $keys[] = 'detection:sqli';
-        if (($features['xss_detected'] ?? false) === true) $keys[] = 'detection:xss';
+        if (($features['sqli_detected'] ?? false) === true) {
+            $keys[] = 'detection:sqli';
+        }
+        if (($features['xss_detected'] ?? false) === true) {
+            $keys[] = 'detection:xss';
+        }
 
         // Header features
-        if (($features['missing_accept'] ?? false) === true) $keys[] = 'header:missing_accept';
+        if (($features['missing_accept'] ?? false) === true) {
+            $keys[] = 'header:missing_accept';
+        }
         $forwarded = $features['x_forwarded_for'] ?? '';
-        if ($forwarded === '127.0.0.1' || $forwarded === 'localhost') $keys[] = 'header:localhost_forwarded';
+        if ($forwarded === '127.0.0.1' || $forwarded === 'localhost') {
+            $keys[] = 'header:localhost_forwarded';
+        }
 
         return array_unique($keys);
     }
 
     /**
-     * Map security event type to classification class
+     * Map security event type to classification class.
      *
      * @param array<string, mixed> $data
      */
@@ -780,9 +880,10 @@ final class OnlineLearningClassifier
     }
 
     /**
-     * Extract features from a security event
+     * Extract features from a security event.
      *
      * @param array<string, mixed> $event
+     *
      * @return array<string, mixed>
      */
     private function extractFeaturesFromEvent(array $event): array
@@ -804,7 +905,7 @@ final class OnlineLearningClassifier
     }
 
     /**
-     * Get weight for event based on label confidence
+     * Get weight for event based on label confidence.
      */
     private function getEventWeight(string $eventType): float
     {
@@ -823,9 +924,10 @@ final class OnlineLearningClassifier
     }
 
     /**
-     * Softmax function to convert log probabilities to probabilities
+     * Softmax function to convert log probabilities to probabilities.
      *
      * @param array<string, float> $logProbs
+     *
      * @return array<string, float>
      */
     private function softmax(array $logProbs): array

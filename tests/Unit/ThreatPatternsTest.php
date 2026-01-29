@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace AdosLabs\EnterpriseSecurityShield\Tests\Unit;
 
-use PHPUnit\Framework\TestCase;
 use AdosLabs\EnterpriseSecurityShield\Services\ThreatPatterns;
+use PHPUnit\Framework\TestCase;
 
 /**
  * ENTERPRISE GALAXY: ThreatPatterns Service Comprehensive Test Suite.

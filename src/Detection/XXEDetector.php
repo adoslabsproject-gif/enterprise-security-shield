@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace AdosLabs\EnterpriseSecurityShield\Detection;
 
 /**
- * XXE (XML External Entity) Detector
+ * XXE (XML External Entity) Detector.
  *
  * Detects XML External Entity injection attempts.
  * XXE can lead to:
@@ -29,19 +29,27 @@ namespace AdosLabs\EnterpriseSecurityShield\Detection;
 final class XXEDetector
 {
     public const RISK_NONE = 'NONE';
+
     public const RISK_LOW = 'LOW';
+
     public const RISK_MEDIUM = 'MEDIUM';
+
     public const RISK_HIGH = 'HIGH';
+
     public const RISK_CRITICAL = 'CRITICAL';
 
     public const ATTACK_FILE_DISCLOSURE = 'FILE_DISCLOSURE';
+
     public const ATTACK_SSRF = 'SSRF';
+
     public const ATTACK_DOS = 'DENIAL_OF_SERVICE';
+
     public const ATTACK_RCE = 'REMOTE_CODE_EXECUTION';
+
     public const ATTACK_PARAMETER_ENTITY = 'PARAMETER_ENTITY';
 
     /**
-     * XXE patterns with confidence scores
+     * XXE patterns with confidence scores.
      */
     private const XXE_PATTERNS = [
         // DOCTYPE declarations
@@ -214,7 +222,7 @@ final class XXEDetector
     ];
 
     /**
-     * Sensitive file paths to detect
+     * Sensitive file paths to detect.
      */
     private const SENSITIVE_FILES = [
         '/etc/passwd',
@@ -250,9 +258,10 @@ final class XXEDetector
     }
 
     /**
-     * Detect XXE in XML input
+     * Detect XXE in XML input.
      *
      * @param string $input XML content or user input
+     *
      * @return array{
      *     detected: bool,
      *     confidence: float,
@@ -315,7 +324,7 @@ final class XXEDetector
                 }
                 if ($referencedCount >= 2) {
                     $maxConfidence = max($maxConfidence, 0.95);
-                    $evidence[] = "Multiple self-referencing entities (billion laughs pattern)";
+                    $evidence[] = 'Multiple self-referencing entities (billion laughs pattern)';
                     $attackTypes[] = self::ATTACK_DOS;
                 }
             }
@@ -325,7 +334,7 @@ final class XXEDetector
         if (preg_match('/https?:\/\/(?:localhost|127\.0\.0\.1|0\.0\.0\.0|::1|10\.\d+\.\d+\.\d+|172\.(?:1[6-9]|2\d|3[01])\.\d+\.\d+|192\.168\.\d+\.\d+)/i', $decoded)) {
             if ($hasExternal) {
                 $maxConfidence = max($maxConfidence, 0.95);
-                $evidence[] = "Internal IP address in external reference (SSRF)";
+                $evidence[] = 'Internal IP address in external reference (SSRF)';
                 $attackTypes[] = self::ATTACK_SSRF;
             }
         }
@@ -355,7 +364,7 @@ final class XXEDetector
     }
 
     /**
-     * Quick check
+     * Quick check.
      */
     public function isXXE(string $input): bool
     {
@@ -363,12 +372,13 @@ final class XXEDetector
     }
 
     /**
-     * Sanitize XML to remove XXE vectors
+     * Sanitize XML to remove XXE vectors.
      *
      * WARNING: This should be used with caution. Prefer disabling
      * external entities at the XML parser level.
      *
      * @param string $xml XML content
+     *
      * @return string Sanitized XML
      */
     public function sanitize(string $xml): string
@@ -390,7 +400,7 @@ final class XXEDetector
     }
 
     /**
-     * Get safe XML parser configuration
+     * Get safe XML parser configuration.
      *
      * Returns configuration that should be used when parsing XML
      * to prevent XXE attacks.
@@ -412,7 +422,7 @@ final class XXEDetector
     }
 
     /**
-     * Decode input
+     * Decode input.
      */
     private function decodeInput(string $input): string
     {
@@ -434,11 +444,12 @@ final class XXEDetector
     }
 
     /**
-     * Set threshold
+     * Set threshold.
      */
     public function setThreshold(float $threshold): self
     {
         $this->threshold = max(0.0, min(1.0, $threshold));
+
         return $this;
     }
 }

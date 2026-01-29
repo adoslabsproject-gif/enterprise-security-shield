@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace AdosLabs\EnterpriseSecurityShield\Tests\Integration;
 
-use PHPUnit\Framework\TestCase;
 use AdosLabs\EnterpriseSecurityShield\Storage\RedisStorage;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Redis Integration Tests - REAL Redis Connection Required.

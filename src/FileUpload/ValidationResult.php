@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace AdosLabs\EnterpriseSecurityShield\FileUpload;
 
 /**
- * File Validation Result
+ * File Validation Result.
  *
  * Immutable value object containing validation results.
  */
@@ -26,7 +26,7 @@ final class ValidationResult
     }
 
     /**
-     * Check if validation passed
+     * Check if validation passed.
      */
     public function isValid(): bool
     {
@@ -34,7 +34,7 @@ final class ValidationResult
     }
 
     /**
-     * Check if there are any warnings
+     * Check if there are any warnings.
      */
     public function hasWarnings(): bool
     {
@@ -42,7 +42,7 @@ final class ValidationResult
     }
 
     /**
-     * Get first error message
+     * Get first error message.
      */
     public function getFirstError(): ?string
     {
@@ -50,7 +50,7 @@ final class ValidationResult
     }
 
     /**
-     * Get all error messages as string
+     * Get all error messages as string.
      */
     public function getErrorsAsString(string $separator = '; '): string
     {
@@ -58,7 +58,7 @@ final class ValidationResult
     }
 
     /**
-     * Get metadata value
+     * Get metadata value.
      */
     public function getMeta(string $key, mixed $default = null): mixed
     {
@@ -66,7 +66,7 @@ final class ValidationResult
     }
 
     /**
-     * Convert to array
+     * Convert to array.
      *
      * @return array{valid: bool, errors: array<string>, warnings: array<string>, metadata: array<string, mixed>}
      */
@@ -81,7 +81,7 @@ final class ValidationResult
     }
 
     /**
-     * Convert to JSON
+     * Convert to JSON.
      */
     public function toJson(): string
     {

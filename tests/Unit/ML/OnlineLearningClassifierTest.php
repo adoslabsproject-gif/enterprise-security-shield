@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace AdosLabs\EnterpriseSecurityShield\Tests\Unit\ML;
 
-use AdosLabs\EnterpriseSecurityShield\ML\OnlineLearningClassifier;
 use AdosLabs\EnterpriseSecurityShield\Contracts\StorageInterface;
+use AdosLabs\EnterpriseSecurityShield\ML\OnlineLearningClassifier;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -14,6 +14,7 @@ use PHPUnit\Framework\TestCase;
 final class OnlineLearningClassifierTest extends TestCase
 {
     private OnlineLearningClassifier $classifier;
+
     private StorageInterface $storage;
 
     protected function setUp(): void
@@ -120,7 +121,7 @@ final class OnlineLearningClassifierTest extends TestCase
         $classifier->learn(
             ['user_agent' => 'curl/8.0', 'path' => '/admin'],
             OnlineLearningClassifier::CLASS_SCANNER,
-            1.0
+            1.0,
         );
 
         // Stats should reflect the learned sample
@@ -186,7 +187,7 @@ final class OnlineLearningClassifierTest extends TestCase
         // Learn something
         $classifier->learn(
             ['user_agent' => 'curl/8.0', 'path' => '/admin'],
-            OnlineLearningClassifier::CLASS_SCANNER
+            OnlineLearningClassifier::CLASS_SCANNER,
         );
 
         // Reset
@@ -238,6 +239,7 @@ final class OnlineLearningClassifierTest extends TestCase
         $storage = $this->createMock(StorageInterface::class);
         $storage->method('set')->willReturnCallback(function ($key, $value) use (&$storedData) {
             $storedData = $value;
+
             return true;
         });
         $storage->method('get')->willReturnCallback(function () use (&$storedData) {
@@ -373,7 +375,7 @@ final class OnlineLearningClassifierTest extends TestCase
         foreach ($expectedClasses as $class) {
             $this->assertTrue(
                 $reflection->hasConstant($class),
-                "Missing constant: {$class}"
+                "Missing constant: {$class}",
             );
         }
     }
@@ -400,7 +402,7 @@ final class OnlineLearningClassifierTest extends TestCase
 
         $classifier->learn(
             ['user_agent' => 'curl/8.0'],
-            'INVALID_CLASS'
+            'INVALID_CLASS',
         );
     }
 }

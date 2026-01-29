@@ -10,13 +10,14 @@ use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 
 /**
- * CSRF Protection Middleware (PSR-15)
+ * CSRF Protection Middleware (PSR-15).
  *
  * Automatically validates CSRF tokens on state-changing requests.
  */
 final class CSRFMiddleware implements MiddlewareInterface
 {
     private CSRFTokenManager $tokenManager;
+
     private array $config;
 
     /**
@@ -45,16 +46,17 @@ final class CSRFMiddleware implements MiddlewareInterface
     }
 
     /**
-     * Set response factory for error responses
+     * Set response factory for error responses.
      */
     public function setResponseFactory(callable $factory): self
     {
         $this->responseFactory = $factory;
+
         return $this;
     }
 
     /**
-     * Process request
+     * Process request.
      */
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
@@ -96,7 +98,7 @@ final class CSRFMiddleware implements MiddlewareInterface
     }
 
     /**
-     * Build request data array for validation
+     * Build request data array for validation.
      */
     private function buildRequestData(ServerRequestInterface $request): array
     {
@@ -118,7 +120,7 @@ final class CSRFMiddleware implements MiddlewareInterface
     }
 
     /**
-     * Get client IP
+     * Get client IP.
      */
     private function getClientIp(ServerRequestInterface $request): string
     {
@@ -128,16 +130,18 @@ final class CSRFMiddleware implements MiddlewareInterface
             $value = $request->getHeaderLine($header);
             if (!empty($value)) {
                 $ips = explode(',', $value);
+
                 return trim($ips[0]);
             }
         }
 
         $serverParams = $request->getServerParams();
+
         return $serverParams['REMOTE_ADDR'] ?? 'unknown';
     }
 
     /**
-     * Log validation failure
+     * Log validation failure.
      */
     private function logFailure(ServerRequestInterface $request, ValidationResult $result): void
     {
@@ -150,12 +154,12 @@ final class CSRFMiddleware implements MiddlewareInterface
             $method,
             $path,
             $ip,
-            $result->message
+            $result->message,
         ));
     }
 
     /**
-     * Create error response
+     * Create error response.
      */
     private function createErrorResponse(ValidationResult $result): ResponseInterface
     {
@@ -182,7 +186,7 @@ final class CSRFMiddleware implements MiddlewareInterface
         return new $responseClass(
             403,
             ['Content-Type' => 'application/json'],
-            $body
+            $body,
         );
     }
 }

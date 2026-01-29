@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace AdosLabs\EnterpriseSecurityShield\Tests\Unit\Services\Metrics;
 
-use PHPUnit\Framework\TestCase;
 use AdosLabs\EnterpriseSecurityShield\Services\Metrics\RedisMetricsCollector;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Redis Metrics Collector Test Suite.

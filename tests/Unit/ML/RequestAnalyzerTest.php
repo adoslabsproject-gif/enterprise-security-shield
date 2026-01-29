@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace AdosLabs\EnterpriseSecurityShield\Tests\Unit\ML;
 
+use AdosLabs\EnterpriseSecurityShield\ML\AnomalyDetector;
 use AdosLabs\EnterpriseSecurityShield\ML\RequestAnalyzer;
 use AdosLabs\EnterpriseSecurityShield\ML\ThreatClassifier;
-use AdosLabs\EnterpriseSecurityShield\ML\AnomalyDetector;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -125,8 +125,8 @@ final class RequestAnalyzerTest extends TestCase
         ];
 
         foreach ($testCases as $data) {
-            $data['request_count'] = $data['request_count'] ?? 1;
-            $data['error_count'] = $data['error_count'] ?? 0;
+            $data['request_count'] ??= 1;
+            $data['error_count'] ??= 0;
             $result = $this->analyzer->analyze($data);
             $this->assertContains($result['decision'], $validDecisions);
         }
@@ -216,7 +216,7 @@ final class RequestAnalyzerTest extends TestCase
         $lowScore = $this->analyzer->getQuickScore(
             '192.168.1.1',
             'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0',
-            '/'
+            '/',
         );
         $this->assertEquals(0, $lowScore);
 
@@ -224,7 +224,7 @@ final class RequestAnalyzerTest extends TestCase
         $highScore = $this->analyzer->getQuickScore(
             '185.177.72.51',
             'curl/8.7.1',
-            '/admin/phpinfo.php'
+            '/admin/phpinfo.php',
         );
         $this->assertGreaterThan(0, $highScore);
     }
@@ -268,7 +268,7 @@ final class RequestAnalyzerTest extends TestCase
             challenge: 30,
             rateLimit: 45,
             block: 60,
-            ban: 80
+            ban: 80,
         );
 
         // With lower thresholds, requests are more likely to be blocked

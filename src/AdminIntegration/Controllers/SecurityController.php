@@ -5,19 +5,19 @@ declare(strict_types=1);
 namespace AdosLabs\EnterpriseSecurityShield\AdminIntegration\Controllers;
 
 use AdosLabs\AdminPanel\Controllers\BaseController;
+use AdosLabs\AdminPanel\Core\ModuleRegistry;
 use AdosLabs\AdminPanel\Database\Pool\DatabasePool;
 use AdosLabs\AdminPanel\Http\Response;
 use AdosLabs\AdminPanel\Services\AuditService;
 use AdosLabs\AdminPanel\Services\SessionService;
-use AdosLabs\AdminPanel\Core\ModuleRegistry;
-use AdosLabs\EnterpriseSecurityShield\Contracts\StorageInterface;
 use AdosLabs\EnterpriseSecurityShield\Config\SecurityConfig;
+use AdosLabs\EnterpriseSecurityShield\Contracts\StorageInterface;
 use AdosLabs\EnterpriseSecurityShield\Storage\DatabaseStorage;
 use AdosLabs\EnterpriseSecurityShield\Storage\RedisStorage;
 use Psr\Log\LoggerInterface;
 
 /**
- * Security Controller
+ * Security Controller.
  *
  * Admin panel controller for Security Shield management.
  *
@@ -35,6 +35,7 @@ use Psr\Log\LoggerInterface;
 final class SecurityController extends BaseController
 {
     private ?StorageInterface $storage = null;
+
     private ?SecurityConfig $securityConfig = null;
 
     public function __construct(
@@ -42,13 +43,13 @@ final class SecurityController extends BaseController
         SessionService $sessionService,
         AuditService $auditService,
         ?LoggerInterface $logger = null,
-        ?ModuleRegistry $moduleRegistry = null
+        ?ModuleRegistry $moduleRegistry = null,
     ) {
         parent::__construct($db, $sessionService, $auditService, $logger, $moduleRegistry);
     }
 
     /**
-     * Set security storage
+     * Set security storage.
      */
     public function setStorage(StorageInterface $storage): void
     {
@@ -56,7 +57,7 @@ final class SecurityController extends BaseController
     }
 
     /**
-     * Set security config
+     * Set security config.
      */
     public function setSecurityConfig(SecurityConfig $config): void
     {
@@ -64,7 +65,7 @@ final class SecurityController extends BaseController
     }
 
     /**
-     * Get storage (lazy initialization)
+     * Get storage (lazy initialization).
      */
     private function getStorage(): StorageInterface
     {
@@ -79,12 +80,13 @@ final class SecurityController extends BaseController
                 $redis->connect(
                     $_ENV['REDIS_HOST'],
                     (int) ($_ENV['REDIS_PORT'] ?? 6379),
-                    2.0
+                    2.0,
                 );
                 if (!empty($_ENV['REDIS_PASSWORD'])) {
                     $redis->auth($_ENV['REDIS_PASSWORD']);
                 }
                 $this->storage = new RedisStorage($redis);
+
                 return $this->storage;
             } catch (\Throwable $e) {
                 // Fallback to database
@@ -93,12 +95,13 @@ final class SecurityController extends BaseController
 
         // Fallback to database storage
         $this->storage = new DatabaseStorage($this->db);
+
         return $this->storage;
     }
 
     /**
      * Security dashboard
-     * GET /security
+     * GET /security.
      */
     public function dashboard(): Response
     {
@@ -127,7 +130,7 @@ final class SecurityController extends BaseController
 
     /**
      * IP Management page
-     * GET /security/ips
+     * GET /security/ips.
      */
     public function ipManagement(): Response
     {
@@ -160,7 +163,7 @@ final class SecurityController extends BaseController
 
     /**
      * Ban an IP
-     * POST /security/ips/ban
+     * POST /security/ips/ban.
      */
     public function banIp(): Response
     {
@@ -174,6 +177,7 @@ final class SecurityController extends BaseController
             if ($this->isAjaxRequest()) {
                 return $this->json(['success' => false, 'error' => 'Invalid IP address']);
             }
+
             return $this->withFlash('error', 'Invalid IP address', $this->adminUrl('security/ips'));
         }
 
@@ -198,7 +202,7 @@ final class SecurityController extends BaseController
 
     /**
      * Unban an IP
-     * POST /security/ips/unban
+     * POST /security/ips/unban.
      */
     public function unbanIp(): Response
     {
@@ -209,6 +213,7 @@ final class SecurityController extends BaseController
             if ($this->isAjaxRequest()) {
                 return $this->json(['success' => false, 'error' => 'Invalid IP address']);
             }
+
             return $this->withFlash('error', 'Invalid IP address', $this->adminUrl('security/ips'));
         }
 
@@ -233,7 +238,7 @@ final class SecurityController extends BaseController
 
     /**
      * Add IP to whitelist
-     * POST /security/ips/whitelist
+     * POST /security/ips/whitelist.
      */
     public function addToWhitelist(): Response
     {
@@ -246,6 +251,7 @@ final class SecurityController extends BaseController
             if ($this->isAjaxRequest()) {
                 return $this->json(['success' => false, 'error' => 'Invalid IP address or CIDR']);
             }
+
             return $this->withFlash('error', 'Invalid IP address or CIDR', $this->adminUrl('security/ips'));
         }
 
@@ -253,13 +259,13 @@ final class SecurityController extends BaseController
         try {
             $this->db->execute(
                 'INSERT INTO security_shield_whitelist (ip, note, created_by, created_at) VALUES (?, ?, ?, NOW()) ON CONFLICT (ip) DO UPDATE SET note = EXCLUDED.note',
-                [$ip, $note, $this->getUser()['id'] ?? 0]
+                [$ip, $note, $this->getUser()['id'] ?? 0],
             );
         } catch (\Throwable $e) {
             // Fallback for MySQL
             $this->db->execute(
                 'INSERT INTO security_shield_whitelist (ip, note, created_by, created_at) VALUES (?, ?, ?, NOW()) ON DUPLICATE KEY UPDATE note = VALUES(note)',
-                [$ip, $note, $this->getUser()['id'] ?? 0]
+                [$ip, $note, $this->getUser()['id'] ?? 0],
             );
         }
 
@@ -274,7 +280,7 @@ final class SecurityController extends BaseController
 
     /**
      * Remove IP from whitelist
-     * POST /security/ips/whitelist/remove
+     * POST /security/ips/whitelist/remove.
      */
     public function removeFromWhitelist(): Response
     {
@@ -294,7 +300,7 @@ final class SecurityController extends BaseController
 
     /**
      * Security events log
-     * GET /security/events
+     * GET /security/events.
      */
     public function events(): Response
     {
@@ -338,7 +344,7 @@ final class SecurityController extends BaseController
         try {
             $events = $this->db->query(
                 "SELECT * FROM security_shield_events WHERE {$whereClause} ORDER BY created_at DESC LIMIT ? OFFSET ?",
-                array_merge($params, [$perPage, $offset])
+                array_merge($params, [$perPage, $offset]),
             );
 
             // Decode JSON data
@@ -349,7 +355,7 @@ final class SecurityController extends BaseController
             // Get total count
             $countRows = $this->db->query(
                 "SELECT COUNT(*) as cnt FROM security_shield_events WHERE {$whereClause}",
-                $params
+                $params,
             );
             $total = (int) ($countRows[0]['cnt'] ?? 0);
         } catch (\Throwable $e) {
@@ -379,7 +385,7 @@ final class SecurityController extends BaseController
 
     /**
      * Clear old events
-     * POST /security/events/clear
+     * POST /security/events/clear.
      */
     public function clearEvents(): Response
     {
@@ -394,7 +400,7 @@ final class SecurityController extends BaseController
         $cutoff = date('Y-m-d H:i:s', strtotime("-{$olderThan}"));
         $deleted = $this->db->execute(
             'DELETE FROM security_shield_events WHERE created_at < ?',
-            [$cutoff]
+            [$cutoff],
         );
 
         $this->audit('security.events.clear', ['older_than' => $olderThan, 'deleted' => $deleted]);
@@ -404,7 +410,7 @@ final class SecurityController extends BaseController
 
     /**
      * Configuration page
-     * GET /security/config
+     * GET /security/config.
      */
     public function config(): Response
     {
@@ -418,7 +424,7 @@ final class SecurityController extends BaseController
 
     /**
      * Save configuration
-     * POST /security/config/save
+     * POST /security/config/save.
      */
     public function saveConfig(): Response
     {
@@ -447,7 +453,7 @@ final class SecurityController extends BaseController
 
     /**
      * WAF Rules page
-     * GET /security/waf
+     * GET /security/waf.
      */
     public function wafRules(): Response
     {
@@ -463,7 +469,7 @@ final class SecurityController extends BaseController
 
     /**
      * Toggle WAF rule
-     * POST /security/waf/toggle
+     * POST /security/waf/toggle.
      */
     public function toggleWafRule(): Response
     {
@@ -479,7 +485,7 @@ final class SecurityController extends BaseController
             return $this->json(['success' => true, 'message' => "Rule {$ruleId} " . ($enabled ? 'enabled' : 'disabled')]);
         }
 
-        return $this->withFlash('success', "WAF rule updated", $this->adminUrl('security/waf'));
+        return $this->withFlash('success', 'WAF rule updated', $this->adminUrl('security/waf'));
     }
 
     // =========================================================================
@@ -488,7 +494,7 @@ final class SecurityController extends BaseController
 
     /**
      * ML Threats page
-     * GET /security/ml
+     * GET /security/ml.
      */
     public function mlThreats(): Response
     {
@@ -504,7 +510,7 @@ final class SecurityController extends BaseController
 
     /**
      * Retrain ML model
-     * POST /security/ml/retrain
+     * POST /security/ml/retrain.
      */
     public function retrainModel(): Response
     {
@@ -516,14 +522,14 @@ final class SecurityController extends BaseController
 
         try {
             $events = $this->db->query(
-                "SELECT * FROM security_shield_events WHERE created_at > NOW() - INTERVAL '7 days' ORDER BY created_at DESC LIMIT 1000"
+                "SELECT * FROM security_shield_events WHERE created_at > NOW() - INTERVAL '7 days' ORDER BY created_at DESC LIMIT 1000",
             );
             $eventsLearned = count($events);
         } catch (\Throwable $e) {
             // MySQL fallback
             try {
                 $events = $this->db->query(
-                    "SELECT * FROM security_shield_events WHERE created_at > DATE_SUB(NOW(), INTERVAL 7 DAY) ORDER BY created_at DESC LIMIT 1000"
+                    'SELECT * FROM security_shield_events WHERE created_at > DATE_SUB(NOW(), INTERVAL 7 DAY) ORDER BY created_at DESC LIMIT 1000',
                 );
                 $eventsLearned = count($events);
             } catch (\Throwable $e2) {
@@ -540,7 +546,7 @@ final class SecurityController extends BaseController
 
     /**
      * Rate Limiting page
-     * GET /security/ratelimit
+     * GET /security/ratelimit.
      */
     public function rateLimiting(): Response
     {
@@ -558,7 +564,7 @@ final class SecurityController extends BaseController
 
     /**
      * Save rate limit settings
-     * POST /security/ratelimit/save
+     * POST /security/ratelimit/save.
      */
     public function saveRateLimits(): Response
     {
@@ -584,7 +590,7 @@ final class SecurityController extends BaseController
 
     /**
      * API: Get security statistics
-     * GET /security/api/stats
+     * GET /security/api/stats.
      */
     public function apiStats(): Response
     {
@@ -593,7 +599,7 @@ final class SecurityController extends BaseController
 
     /**
      * API: Get recent threats
-     * GET /security/api/recent-threats
+     * GET /security/api/recent-threats.
      */
     public function apiRecentThreats(): Response
     {
@@ -605,7 +611,7 @@ final class SecurityController extends BaseController
 
     /**
      * API: Get IP score
-     * GET /security/api/ip-score?ip=x.x.x.x
+     * GET /security/api/ip-score?ip=x.x.x.x.
      */
     public function apiIpScore(): Response
     {
@@ -647,6 +653,7 @@ final class SecurityController extends BaseController
         // Check if valid CIDR
         if (preg_match('#^(\d{1,3}\.){3}\d{1,3}/\d{1,2}$#', $value)) {
             [$ip, $mask] = explode('/', $value);
+
             return filter_var($ip, FILTER_VALIDATE_IP) && (int) $mask >= 0 && (int) $mask <= 32;
         }
 
@@ -668,14 +675,14 @@ final class SecurityController extends BaseController
                     COUNT(DISTINCT ip) as unique_ips
                 FROM security_shield_events
                 WHERE DATE(created_at) = ?",
-                [$today]
+                [$today],
             );
 
             $stats = $rows[0] ?? [];
 
             // Active bans count
             $banRows = $this->db->query(
-                "SELECT COUNT(*) as cnt FROM security_shield_bans WHERE expires_at > NOW()"
+                'SELECT COUNT(*) as cnt FROM security_shield_bans WHERE expires_at > NOW()',
             );
             $activeBans = (int) ($banRows[0]['cnt'] ?? 0);
 
@@ -703,8 +710,8 @@ final class SecurityController extends BaseController
     {
         try {
             $events = $this->db->query(
-                "SELECT * FROM security_shield_events ORDER BY created_at DESC LIMIT ?",
-                [$limit]
+                'SELECT * FROM security_shield_events ORDER BY created_at DESC LIMIT ?',
+                [$limit],
             );
 
             foreach ($events as &$event) {
@@ -721,8 +728,8 @@ final class SecurityController extends BaseController
     {
         try {
             return $this->db->query(
-                "SELECT * FROM security_shield_bans WHERE expires_at > NOW() ORDER BY banned_at DESC LIMIT ?",
-                [$limit]
+                'SELECT * FROM security_shield_bans WHERE expires_at > NOW() ORDER BY banned_at DESC LIMIT ?',
+                [$limit],
             );
         } catch (\Throwable $e) {
             return [];
@@ -740,8 +747,9 @@ final class SecurityController extends BaseController
                 WHERE type = 'honeypot'
                 GROUP BY path
                 ORDER BY hits DESC
-                LIMIT 10"
+                LIMIT 10",
             );
+
             return $rows;
         } catch (\Throwable $e) {
             return [];
@@ -768,7 +776,7 @@ final class SecurityController extends BaseController
 
             return $this->db->query(
                 "SELECT * FROM security_shield_bans WHERE {$whereClause} ORDER BY banned_at DESC LIMIT ? OFFSET ?",
-                array_merge($params, [$perPage, $offset])
+                array_merge($params, [$perPage, $offset]),
             );
         } catch (\Throwable $e) {
             return [];
@@ -794,7 +802,7 @@ final class SecurityController extends BaseController
 
             $rows = $this->db->query(
                 "SELECT COUNT(*) as cnt FROM security_shield_bans WHERE {$whereClause}",
-                $params
+                $params,
             );
 
             return (int) ($rows[0]['cnt'] ?? 0);
@@ -807,7 +815,7 @@ final class SecurityController extends BaseController
     {
         try {
             return $this->db->query(
-                "SELECT * FROM security_shield_whitelist ORDER BY created_at DESC"
+                'SELECT * FROM security_shield_whitelist ORDER BY created_at DESC',
             );
         } catch (\Throwable $e) {
             return [];
@@ -818,8 +826,9 @@ final class SecurityController extends BaseController
     {
         try {
             $rows = $this->db->query(
-                "SELECT DISTINCT type FROM security_shield_events ORDER BY type"
+                'SELECT DISTINCT type FROM security_shield_events ORDER BY type',
             );
+
             return array_column($rows, 'type');
         } catch (\Throwable $e) {
             return [];
@@ -830,7 +839,7 @@ final class SecurityController extends BaseController
     {
         try {
             $rows = $this->db->query(
-                "SELECT key, value FROM security_shield_config"
+                'SELECT key, value FROM security_shield_config',
             );
 
             $config = [];
@@ -864,18 +873,19 @@ final class SecurityController extends BaseController
     {
         foreach ($config as $key => $value) {
             $jsonValue = json_encode($value);
+
             try {
                 $this->db->execute(
-                    "INSERT INTO security_shield_config (key, value, updated_at) VALUES (?, ?, NOW())
-                     ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = NOW()",
-                    [$key, $jsonValue]
+                    'INSERT INTO security_shield_config (key, value, updated_at) VALUES (?, ?, NOW())
+                     ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = NOW()',
+                    [$key, $jsonValue],
                 );
             } catch (\Throwable $e) {
                 // Fallback for MySQL
                 $this->db->execute(
-                    "INSERT INTO security_shield_config (`key`, `value`, updated_at) VALUES (?, ?, NOW())
-                     ON DUPLICATE KEY UPDATE `value` = VALUES(`value`), updated_at = NOW()",
-                    [$key, $jsonValue]
+                    'INSERT INTO security_shield_config (`key`, `value`, updated_at) VALUES (?, ?, NOW())
+                     ON DUPLICATE KEY UPDATE `value` = VALUES(`value`), updated_at = NOW()',
+                    [$key, $jsonValue],
                 );
             }
         }
@@ -936,7 +946,7 @@ final class SecurityController extends BaseController
             $counts = $this->db->query(
                 "SELECT type, COUNT(*) as cnt FROM security_shield_events
                  WHERE created_at > NOW() - INTERVAL '30 days'
-                 GROUP BY type"
+                 GROUP BY type",
             );
             foreach ($counts as $row) {
                 $type = str_replace(['_detected', '_attack', '_blocked'], '', $row['type']);
@@ -951,7 +961,7 @@ final class SecurityController extends BaseController
         // Get enabled status from config
         try {
             $configRows = $this->db->query(
-                "SELECT key, value FROM security_shield_config WHERE key LIKE 'rule_%'"
+                "SELECT key, value FROM security_shield_config WHERE key LIKE 'rule_%'",
             );
             foreach ($configRows as $row) {
                 $ruleId = str_replace('rule_', '', $row['key']);
@@ -981,8 +991,9 @@ final class SecurityController extends BaseController
                     SUM(CASE WHEN type LIKE '%traversal%' THEN 1 ELSE 0 END) as traversal,
                     COUNT(*) as total
                 FROM security_shield_events
-                WHERE created_at > NOW() - INTERVAL '24 hours'"
+                WHERE created_at > NOW() - INTERVAL '24 hours'",
             );
+
             return [
                 'sqli_24h' => (int) ($rows[0]['sqli'] ?? 0),
                 'xss_24h' => (int) ($rows[0]['xss'] ?? 0),
@@ -1007,17 +1018,18 @@ final class SecurityController extends BaseController
     {
         $key = "rule_{$ruleId}";
         $value = json_encode($enabled);
+
         try {
             $this->db->execute(
-                "INSERT INTO security_shield_config (key, value, updated_at) VALUES (?, ?, NOW())
-                 ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = NOW()",
-                [$key, $value]
+                'INSERT INTO security_shield_config (key, value, updated_at) VALUES (?, ?, NOW())
+                 ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = NOW()',
+                [$key, $value],
             );
         } catch (\Throwable $e) {
             $this->db->execute(
-                "INSERT INTO security_shield_config (`key`, `value`, updated_at) VALUES (?, ?, NOW())
-                 ON DUPLICATE KEY UPDATE `value` = VALUES(`value`), updated_at = NOW()",
-                [$key, $value]
+                'INSERT INTO security_shield_config (`key`, `value`, updated_at) VALUES (?, ?, NOW())
+                 ON DUPLICATE KEY UPDATE `value` = VALUES(`value`), updated_at = NOW()',
+                [$key, $value],
             );
         }
     }
@@ -1034,8 +1046,9 @@ final class SecurityController extends BaseController
                     SUM(CASE WHEN type LIKE 'ml_%' AND type LIKE '%blocked%' THEN 1 ELSE 0 END) as threats_blocked,
                     SUM(CASE WHEN type LIKE 'ml_%' THEN 1 ELSE 0 END) as total_ml_events
                 FROM security_shield_events
-                WHERE created_at > NOW() - INTERVAL '24 hours'"
+                WHERE created_at > NOW() - INTERVAL '24 hours'",
             );
+
             return [
                 'threats_detected_24h' => (int) ($rows[0]['threats_detected'] ?? 0),
                 'threats_blocked_24h' => (int) ($rows[0]['threats_blocked'] ?? 0),
@@ -1064,11 +1077,12 @@ final class SecurityController extends BaseController
                 "SELECT * FROM security_shield_events
                  WHERE type LIKE 'ml_%'
                  ORDER BY created_at DESC LIMIT ?",
-                [$limit]
+                [$limit],
             );
             foreach ($events as &$event) {
                 $event['data'] = json_decode($event['data'] ?? '{}', true) ?: [];
             }
+
             return $events;
         } catch (\Throwable $e) {
             return [];
@@ -1097,8 +1111,9 @@ final class SecurityController extends BaseController
         try {
             $rows = $this->db->query(
                 "SELECT COUNT(*) as cnt FROM security_shield_events
-                 WHERE type = 'rate_limit' AND created_at > NOW() - INTERVAL '24 hours'"
+                 WHERE type = 'rate_limit' AND created_at > NOW() - INTERVAL '24 hours'",
             );
+
             return [
                 'rate_limit_hits_24h' => (int) ($rows[0]['cnt'] ?? 0),
             ];

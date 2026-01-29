@@ -10,7 +10,7 @@ use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 
 /**
- * Request Size Limiter Middleware
+ * Request Size Limiter Middleware.
  *
  * Enterprise-grade protection against oversized requests.
  * Prevents DoS attacks via large payloads before they consume resources.
@@ -33,52 +33,52 @@ use Psr\Http\Server\RequestHandlerInterface;
 final class RequestSizeLimiter implements MiddlewareInterface
 {
     /**
-     * Default maximum body size (10 MB)
+     * Default maximum body size (10 MB).
      */
     private const DEFAULT_MAX_BODY_SIZE = 10 * 1024 * 1024;
 
     /**
-     * Default maximum URL length
+     * Default maximum URL length.
      */
     private const DEFAULT_MAX_URL_LENGTH = 8192;
 
     /**
-     * Default maximum header size per header
+     * Default maximum header size per header.
      */
     private const DEFAULT_MAX_HEADER_SIZE = 8192;
 
     /**
-     * Default maximum total headers size
+     * Default maximum total headers size.
      */
     private const DEFAULT_MAX_TOTAL_HEADERS_SIZE = 65536;
 
     /**
-     * Default maximum number of headers
+     * Default maximum number of headers.
      */
     private const DEFAULT_MAX_HEADER_COUNT = 100;
 
     /**
-     * Default maximum query string length
+     * Default maximum query string length.
      */
     private const DEFAULT_MAX_QUERY_STRING_LENGTH = 4096;
 
     /**
-     * Default maximum number of query parameters
+     * Default maximum number of query parameters.
      */
     private const DEFAULT_MAX_QUERY_PARAMS = 100;
 
     /**
-     * Default maximum POST field count
+     * Default maximum POST field count.
      */
     private const DEFAULT_MAX_POST_FIELDS = 100;
 
     /**
-     * Default maximum cookie count
+     * Default maximum cookie count.
      */
     private const DEFAULT_MAX_COOKIES = 50;
 
     /**
-     * Configuration
+     * Configuration.
      *
      * @var array{
      *     max_body_size: int,
@@ -100,14 +100,14 @@ final class RequestSizeLimiter implements MiddlewareInterface
     private array $config;
 
     /**
-     * Response factory for error responses
+     * Response factory for error responses.
      *
      * @var callable|null
      */
     private $responseFactory;
 
     /**
-     * Violation callback
+     * Violation callback.
      *
      * @var callable|null
      */
@@ -169,7 +169,7 @@ final class RequestSizeLimiter implements MiddlewareInterface
     }
 
     /**
-     * Set response factory for error responses
+     * Set response factory for error responses.
      *
      * @param callable $factory Function that returns ResponseInterface
      */
@@ -181,7 +181,7 @@ final class RequestSizeLimiter implements MiddlewareInterface
     }
 
     /**
-     * Set violation callback
+     * Set violation callback.
      *
      * @param callable $callback Function called on violations: fn(string $type, array $details)
      */
@@ -193,7 +193,7 @@ final class RequestSizeLimiter implements MiddlewareInterface
     }
 
     /**
-     * Process request through middleware
+     * Process request through middleware.
      */
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
@@ -219,9 +219,10 @@ final class RequestSizeLimiter implements MiddlewareInterface
     }
 
     /**
-     * Validate request against size limits
+     * Validate request against size limits.
      *
      * @param ServerRequestInterface $request
+     *
      * @return array<array{type: string, message: string, limit: int, actual: int}>
      */
     public function validate(ServerRequestInterface $request): array
@@ -278,7 +279,7 @@ final class RequestSizeLimiter implements MiddlewareInterface
     }
 
     /**
-     * Check URL length
+     * Check URL length.
      *
      * @return array{type: string, message: string, limit: int, actual: int}|null
      */
@@ -300,7 +301,7 @@ final class RequestSizeLimiter implements MiddlewareInterface
     }
 
     /**
-     * Check query string length
+     * Check query string length.
      *
      * @return array{type: string, message: string, limit: int, actual: int}|null
      */
@@ -322,7 +323,7 @@ final class RequestSizeLimiter implements MiddlewareInterface
     }
 
     /**
-     * Check query parameter count
+     * Check query parameter count.
      *
      * @return array{type: string, message: string, limit: int, actual: int}|null
      */
@@ -344,7 +345,7 @@ final class RequestSizeLimiter implements MiddlewareInterface
     }
 
     /**
-     * Check headers
+     * Check headers.
      *
      * @return array<array{type: string, message: string, limit: int, actual: int}>
      */
@@ -397,7 +398,7 @@ final class RequestSizeLimiter implements MiddlewareInterface
     }
 
     /**
-     * Check cookie count
+     * Check cookie count.
      *
      * @return array{type: string, message: string, limit: int, actual: int}|null
      */
@@ -419,7 +420,7 @@ final class RequestSizeLimiter implements MiddlewareInterface
     }
 
     /**
-     * Check content type
+     * Check content type.
      *
      * @return array{type: string, message: string, limit: int, actual: int}|null
      */
@@ -463,7 +464,7 @@ final class RequestSizeLimiter implements MiddlewareInterface
     }
 
     /**
-     * Check body size
+     * Check body size.
      *
      * @return array{type: string, message: string, limit: int, actual: int}|null
      */
@@ -499,7 +500,7 @@ final class RequestSizeLimiter implements MiddlewareInterface
     }
 
     /**
-     * Check POST fields count
+     * Check POST fields count.
      *
      * @return array{type: string, message: string, limit: int, actual: int}|null
      */
@@ -529,7 +530,7 @@ final class RequestSizeLimiter implements MiddlewareInterface
     }
 
     /**
-     * Get applicable body size limit for request
+     * Get applicable body size limit for request.
      */
     private function getApplicableBodyLimit(ServerRequestInterface $request): int
     {
@@ -557,7 +558,7 @@ final class RequestSizeLimiter implements MiddlewareInterface
     }
 
     /**
-     * Count array items recursively
+     * Count array items recursively.
      */
     private function countRecursive(array $array): int
     {
@@ -573,7 +574,7 @@ final class RequestSizeLimiter implements MiddlewareInterface
     }
 
     /**
-     * Log violations
+     * Log violations.
      *
      * @param array<array{type: string, message: string}> $violations
      */
@@ -591,13 +592,13 @@ final class RequestSizeLimiter implements MiddlewareInterface
                 $method,
                 $path,
                 $violation['limit'] ?? 0,
-                $violation['actual'] ?? 0
+                $violation['actual'] ?? 0,
             ));
         }
     }
 
     /**
-     * Get client IP from request
+     * Get client IP from request.
      */
     private function getClientIp(ServerRequestInterface $request): string
     {
@@ -620,7 +621,7 @@ final class RequestSizeLimiter implements MiddlewareInterface
     }
 
     /**
-     * Create error response
+     * Create error response.
      *
      * @param array<array{type: string, message: string}> $violations
      */
@@ -640,14 +641,14 @@ final class RequestSizeLimiter implements MiddlewareInterface
 
         if ($responseClass === null) {
             throw new \RuntimeException(
-                'No PSR-7 response implementation found. Install nyholm/psr7 or set a custom response factory.'
+                'No PSR-7 response implementation found. Install nyholm/psr7 or set a custom response factory.',
             );
         }
 
         $body = json_encode([
             'error' => 'Request Too Large',
             'code' => 413,
-            'violations' => array_map(fn($v) => [
+            'violations' => array_map(fn ($v) => [
                 'type' => $v['type'],
                 'message' => $v['message'],
             ], $violations),
@@ -656,12 +657,12 @@ final class RequestSizeLimiter implements MiddlewareInterface
         return new $responseClass(
             413,
             ['Content-Type' => 'application/json'],
-            $body
+            $body,
         );
     }
 
     /**
-     * Update configuration
+     * Update configuration.
      *
      * @param array<string, mixed> $config
      */
@@ -673,7 +674,7 @@ final class RequestSizeLimiter implements MiddlewareInterface
     }
 
     /**
-     * Set endpoint limit
+     * Set endpoint limit.
      *
      * @param string $endpoint Endpoint path or pattern
      * @param int $limit Maximum body size in bytes
@@ -686,7 +687,7 @@ final class RequestSizeLimiter implements MiddlewareInterface
     }
 
     /**
-     * Set content type limit
+     * Set content type limit.
      *
      * @param string $contentType Content type
      * @param int $limit Maximum body size in bytes
@@ -699,7 +700,7 @@ final class RequestSizeLimiter implements MiddlewareInterface
     }
 
     /**
-     * Add allowed content type
+     * Add allowed content type.
      *
      * @param string $contentType Content type to allow
      */
@@ -713,7 +714,7 @@ final class RequestSizeLimiter implements MiddlewareInterface
     }
 
     /**
-     * Get current configuration
+     * Get current configuration.
      *
      * @return array<string, mixed>
      */

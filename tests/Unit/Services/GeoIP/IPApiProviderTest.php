@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace AdosLabs\EnterpriseSecurityShield\Tests\Unit\Services\GeoIP;
 
-use PHPUnit\Framework\TestCase;
 use AdosLabs\EnterpriseSecurityShield\Services\GeoIP\IPApiProvider;
+use PHPUnit\Framework\TestCase;
 
 /**
  * IP-API Provider Test Suite.

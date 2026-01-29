@@ -13,7 +13,7 @@ use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 
 /**
- * Per-Endpoint Rate Limiter Middleware (PSR-15)
+ * Per-Endpoint Rate Limiter Middleware (PSR-15).
  *
  * Enterprise-grade rate limiting with per-endpoint configuration.
  *
@@ -45,10 +45,12 @@ use Psr\Log\NullLogger;
 final class EndpointRateLimiter implements MiddlewareInterface
 {
     private StorageInterface $storage;
+
     private LoggerInterface $logger;
 
     /**
-     * Global default limits
+     * Global default limits.
+     *
      * @var array{requests: int, window: int}
      */
     private array $defaultLimits = [
@@ -57,7 +59,8 @@ final class EndpointRateLimiter implements MiddlewareInterface
     ];
 
     /**
-     * Endpoint-specific configurations
+     * Endpoint-specific configurations.
+     *
      * @var array<int, array{
      *     path: string,
      *     pattern?: string,
@@ -72,7 +75,8 @@ final class EndpointRateLimiter implements MiddlewareInterface
     private array $endpoints = [];
 
     /**
-     * User tier configurations (premium users get higher limits)
+     * User tier configurations (premium users get higher limits).
+     *
      * @var array<string, float>
      */
     private array $tierMultipliers = [
@@ -84,46 +88,50 @@ final class EndpointRateLimiter implements MiddlewareInterface
     ];
 
     /**
-     * Request attribute for user tier
+     * Request attribute for user tier.
      */
     private string $tierAttribute = 'user.tier';
 
     /**
-     * Request attribute for user ID
+     * Request attribute for user ID.
      */
     private string $userIdAttribute = 'user.id';
 
     /**
-     * Request attribute for API key
+     * Request attribute for API key.
      */
     private string $apiKeyAttribute = 'api.key';
 
     /**
-     * Excluded IPs (trusted, not rate limited)
+     * Excluded IPs (trusted, not rate limited).
+     *
      * @var array<string>
      */
     private array $trustedIPs = [];
 
     /**
-     * Excluded paths
+     * Excluded paths.
+     *
      * @var array<string>
      */
     private array $excludedPaths = [];
 
     /**
-     * Rate limiters cache
+     * Rate limiters cache.
+     *
      * @var array<string, RateLimiter>
      */
     private array $limiters = [];
 
     /**
-     * Response factory
+     * Response factory.
+     *
      * @var callable|null
      */
     private $responseFactory = null;
 
     /**
-     * Enable rate limit headers
+     * Enable rate limit headers.
      */
     private bool $includeHeaders = true;
 
@@ -144,7 +152,7 @@ final class EndpointRateLimiter implements MiddlewareInterface
     public function __construct(
         StorageInterface $storage,
         array $config = [],
-        ?LoggerInterface $logger = null
+        ?LoggerInterface $logger = null,
     ) {
         $this->storage = $storage;
         $this->logger = $logger ?? new NullLogger();
@@ -183,7 +191,7 @@ final class EndpointRateLimiter implements MiddlewareInterface
     }
 
     /**
-     * Add endpoint configuration
+     * Add endpoint configuration.
      *
      * @param array{
      *     path: string,
@@ -197,11 +205,12 @@ final class EndpointRateLimiter implements MiddlewareInterface
     public function addEndpoint(array $config): self
     {
         $this->endpoints[] = $config;
+
         return $this;
     }
 
     /**
-     * Configure login endpoint with strict limits
+     * Configure login endpoint with strict limits.
      */
     public function protectLogin(string $path = '/login', int $attemptsPerMinute = 5): self
     {
@@ -217,7 +226,7 @@ final class EndpointRateLimiter implements MiddlewareInterface
     }
 
     /**
-     * Configure API endpoint
+     * Configure API endpoint.
      */
     public function protectAPI(string $pattern = '/api/*', int $requestsPerMinute = 60): self
     {
@@ -231,7 +240,7 @@ final class EndpointRateLimiter implements MiddlewareInterface
     }
 
     /**
-     * Configure expensive operation
+     * Configure expensive operation.
      */
     public function protectExpensiveOperation(string $path, int $requestsPerHour = 10): self
     {
@@ -246,29 +255,31 @@ final class EndpointRateLimiter implements MiddlewareInterface
     }
 
     /**
-     * Set trusted IPs (bypasses rate limiting)
+     * Set trusted IPs (bypasses rate limiting).
      *
      * @param array<string> $ips
      */
     public function setTrustedIPs(array $ips): self
     {
         $this->trustedIPs = $ips;
+
         return $this;
     }
 
     /**
-     * Set tier multipliers
+     * Set tier multipliers.
      *
      * @param array<string, float> $multipliers
      */
     public function setTierMultipliers(array $multipliers): self
     {
         $this->tierMultipliers = array_merge($this->tierMultipliers, $multipliers);
+
         return $this;
     }
 
     /**
-     * Process request
+     * Process request.
      */
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
@@ -341,7 +352,7 @@ final class EndpointRateLimiter implements MiddlewareInterface
     }
 
     /**
-     * Find endpoint configuration matching path and method
+     * Find endpoint configuration matching path and method.
      *
      * @return array<string, mixed>
      */
@@ -379,7 +390,7 @@ final class EndpointRateLimiter implements MiddlewareInterface
     }
 
     /**
-     * Get identifiers from request
+     * Get identifiers from request.
      *
      * @return array<string, string>
      */
@@ -406,7 +417,7 @@ final class EndpointRateLimiter implements MiddlewareInterface
     }
 
     /**
-     * Get or create rate limiter for endpoint/type
+     * Get or create rate limiter for endpoint/type.
      *
      * @param array{requests: int, window: int, algorithm?: string} $config
      */
@@ -432,7 +443,7 @@ final class EndpointRateLimiter implements MiddlewareInterface
     }
 
     /**
-     * Create rate limit exceeded response
+     * Create rate limit exceeded response.
      */
     private function createRateLimitResponse(RateLimitResult $result, string $type): ResponseInterface
     {
@@ -468,7 +479,7 @@ final class EndpointRateLimiter implements MiddlewareInterface
     }
 
     /**
-     * Add rate limit headers to response
+     * Add rate limit headers to response.
      *
      * @param array<string, RateLimitResult> $results
      */
@@ -494,7 +505,7 @@ final class EndpointRateLimiter implements MiddlewareInterface
     }
 
     /**
-     * Get client IP from request
+     * Get client IP from request.
      */
     private function getClientIP(ServerRequestInterface $request): string
     {
@@ -504,26 +515,29 @@ final class EndpointRateLimiter implements MiddlewareInterface
             $value = $request->getHeaderLine($header);
             if (!empty($value)) {
                 $ips = explode(',', $value);
+
                 return trim($ips[0]);
             }
         }
 
         $serverParams = $request->getServerParams();
+
         return $serverParams['REMOTE_ADDR'] ?? 'unknown';
     }
 
     /**
-     * Convert wildcard pattern to regex
+     * Convert wildcard pattern to regex.
      */
     private function wildcardToRegex(string $pattern): string
     {
         $regex = preg_quote($pattern, '/');
         $regex = str_replace('\*', '.*', $regex);
+
         return '/^' . $regex . '$/';
     }
 
     /**
-     * Mask identifier for logging
+     * Mask identifier for logging.
      */
     private function maskIdentifier(string $identifier): string
     {
@@ -540,11 +554,11 @@ final class EndpointRateLimiter implements MiddlewareInterface
     }
 
     /**
-     * Create common presets
+     * Create common presets.
      */
 
     /**
-     * Create for API with standard tiers
+     * Create for API with standard tiers.
      */
     public static function forAPI(StorageInterface $storage, ?LoggerInterface $logger = null): self
     {
@@ -569,7 +583,7 @@ final class EndpointRateLimiter implements MiddlewareInterface
     }
 
     /**
-     * Create for web application with login protection
+     * Create for web application with login protection.
      */
     public static function forWebApp(StorageInterface $storage, ?LoggerInterface $logger = null): self
     {
@@ -604,7 +618,7 @@ final class EndpointRateLimiter implements MiddlewareInterface
     }
 
     /**
-     * Create strict configuration for admin endpoints
+     * Create strict configuration for admin endpoints.
      */
     public static function forAdmin(StorageInterface $storage, ?LoggerInterface $logger = null): self
     {

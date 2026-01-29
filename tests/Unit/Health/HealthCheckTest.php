@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace AdosLabs\EnterpriseSecurityShield\Tests\Unit\Health;
 
-use PHPUnit\Framework\TestCase;
 use AdosLabs\EnterpriseSecurityShield\Health\CallableHealthCheck;
 use AdosLabs\EnterpriseSecurityShield\Health\HealthCheck;
 use AdosLabs\EnterpriseSecurityShield\Health\HealthStatus;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Test Suite for HealthCheck.

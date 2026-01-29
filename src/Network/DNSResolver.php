@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace AdosLabs\EnterpriseSecurityShield\Network;
 
 /**
- * Enterprise DNS Resolver with Timeout Support
+ * Enterprise DNS Resolver with Timeout Support.
  *
  * PHP's built-in DNS functions (gethostbyaddr, gethostbyname, checkdnsrr)
  * have no timeout option, which can cause request blocking under:
@@ -33,36 +33,46 @@ namespace AdosLabs\EnterpriseSecurityShield\Network;
 final class DNSResolver
 {
     /**
-     * DNS query types
+     * DNS query types.
      */
     public const TYPE_A = DNS_A;
+
     public const TYPE_AAAA = DNS_AAAA;
+
     public const TYPE_PTR = DNS_PTR;
+
     public const TYPE_MX = DNS_MX;
+
     public const TYPE_TXT = DNS_TXT;
+
     public const TYPE_NS = DNS_NS;
+
     public const TYPE_CNAME = DNS_CNAME;
+
     public const TYPE_SOA = DNS_SOA;
 
     /**
-     * Resolver strategies
+     * Resolver strategies.
      */
     public const STRATEGY_NATIVE = 'native';
+
     public const STRATEGY_SOCKET = 'socket';
+
     public const STRATEGY_PROCESS = 'process';
 
     /**
-     * Default timeout in seconds
+     * Default timeout in seconds.
      */
     private float $timeout = 3.0;
 
     /**
-     * Retry count for failed lookups
+     * Retry count for failed lookups.
      */
     private int $retries = 2;
 
     /**
-     * Custom DNS servers (IP addresses)
+     * Custom DNS servers (IP addresses).
+     *
      * @var array<string>
      */
     private array $nameservers = [
@@ -73,44 +83,47 @@ final class DNSResolver
     ];
 
     /**
-     * Resolver strategy
+     * Resolver strategy.
      */
     private string $strategy = self::STRATEGY_SOCKET;
 
     /**
-     * Local cache
+     * Local cache.
+     *
      * @var array<string, array{result: mixed, expires: int}>
      */
     private array $cache = [];
 
     /**
-     * Cache TTL in seconds
+     * Cache TTL in seconds.
      */
     private int $cacheTTL = 300;
 
     /**
-     * Enable/disable caching
+     * Enable/disable caching.
      */
     private bool $cacheEnabled = true;
 
     /**
-     * Circuit breaker state per nameserver
+     * Circuit breaker state per nameserver.
+     *
      * @var array<string, array{failures: int, last_failure: int, open: bool}>
      */
     private array $circuitBreaker = [];
 
     /**
-     * Circuit breaker threshold
+     * Circuit breaker threshold.
      */
     private int $circuitBreakerThreshold = 5;
 
     /**
-     * Circuit breaker recovery time in seconds
+     * Circuit breaker recovery time in seconds.
      */
     private int $circuitBreakerRecovery = 60;
 
     /**
-     * Statistics
+     * Statistics.
+     *
      * @var array<string, int>
      */
     private array $stats = [
@@ -146,16 +159,17 @@ final class DNSResolver
     }
 
     /**
-     * Set timeout in seconds
+     * Set timeout in seconds.
      */
     public function setTimeout(float $seconds): self
     {
         $this->timeout = max(0.1, $seconds);
+
         return $this;
     }
 
     /**
-     * Get current timeout
+     * Get current timeout.
      */
     public function getTimeout(): float
     {
@@ -163,7 +177,7 @@ final class DNSResolver
     }
 
     /**
-     * Set custom nameservers
+     * Set custom nameservers.
      *
      * @param array<string> $servers IP addresses of DNS servers
      */
@@ -171,53 +185,58 @@ final class DNSResolver
     {
         $this->nameservers = array_values(array_filter(
             $servers,
-            fn(string $s): bool => filter_var($s, FILTER_VALIDATE_IP) !== false
+            fn (string $s): bool => filter_var($s, FILTER_VALIDATE_IP) !== false,
         ));
+
         return $this;
     }
 
     /**
-     * Set resolver strategy
+     * Set resolver strategy.
      */
     public function setStrategy(string $strategy): self
     {
         if (in_array($strategy, [self::STRATEGY_NATIVE, self::STRATEGY_SOCKET, self::STRATEGY_PROCESS], true)) {
             $this->strategy = $strategy;
         }
+
         return $this;
     }
 
     /**
-     * Enable/disable caching
+     * Enable/disable caching.
      */
     public function enableCache(bool $enable): self
     {
         $this->cacheEnabled = $enable;
+
         return $this;
     }
 
     /**
-     * Set cache TTL
+     * Set cache TTL.
      */
     public function setCacheTTL(int $seconds): self
     {
         $this->cacheTTL = max(1, $seconds);
+
         return $this;
     }
 
     /**
-     * Resolve hostname to IP addresses (A/AAAA records)
+     * Resolve hostname to IP addresses (A/AAAA records).
      *
      * @return array<string>|null IP addresses or null on failure
      */
     public function resolve(string $hostname, bool $ipv6 = false): ?array
     {
         $type = $ipv6 ? self::TYPE_AAAA : self::TYPE_A;
+
         return $this->query($hostname, $type);
     }
 
     /**
-     * Reverse DNS lookup (PTR record)
+     * Reverse DNS lookup (PTR record).
      *
      * @return string|null Hostname or null on failure
      */
@@ -231,6 +250,7 @@ final class DNSResolver
             $cached = $this->getFromCache($cacheKey);
             if ($cached !== null) {
                 $this->stats['cache_hits']++;
+
                 return $cached;
             }
             $this->stats['cache_misses']++;
@@ -240,6 +260,7 @@ final class DNSResolver
         $ptrName = $this->buildPTRName($ip);
         if ($ptrName === null) {
             $this->stats['failures']++;
+
             return null;
         }
 
@@ -248,6 +269,7 @@ final class DNSResolver
 
         if ($result === null) {
             $this->stats['failures']++;
+
             return null;
         }
 
@@ -275,7 +297,7 @@ final class DNSResolver
     }
 
     /**
-     * Forward DNS lookup with timeout
+     * Forward DNS lookup with timeout.
      *
      * @return array<string>|null IP addresses
      */
@@ -285,16 +307,17 @@ final class DNSResolver
     }
 
     /**
-     * Check if DNS record exists (checkdnsrr replacement)
+     * Check if DNS record exists (checkdnsrr replacement).
      */
     public function checkRecord(string $hostname, int $type = self::TYPE_A): bool
     {
         $result = $this->query($hostname, $type);
+
         return $result !== null && count($result) > 0;
     }
 
     /**
-     * Get MX records
+     * Get MX records.
      *
      * @return array<array{host: string, priority: int}>|null
      */
@@ -315,12 +338,13 @@ final class DNSResolver
             }
         }
 
-        usort($result, fn($a, $b) => $a['priority'] <=> $b['priority']);
+        usort($result, fn ($a, $b) => $a['priority'] <=> $b['priority']);
+
         return $result;
     }
 
     /**
-     * Get TXT records
+     * Get TXT records.
      *
      * @return array<string>|null
      */
@@ -342,7 +366,7 @@ final class DNSResolver
     }
 
     /**
-     * DNS query with type
+     * DNS query with type.
      *
      * @return array<mixed>|null
      */
@@ -356,6 +380,7 @@ final class DNSResolver
             $cached = $this->getFromCache($cacheKey);
             if ($cached !== null) {
                 $this->stats['cache_hits']++;
+
                 return $cached;
             }
             $this->stats['cache_misses']++;
@@ -377,7 +402,7 @@ final class DNSResolver
     }
 
     /**
-     * Execute DNS query with strategy
+     * Execute DNS query with strategy.
      *
      * @return array<mixed>|null
      */
@@ -414,7 +439,7 @@ final class DNSResolver
     }
 
     /**
-     * Native PHP DNS query (no real timeout)
+     * Native PHP DNS query (no real timeout).
      */
     private function queryViaNative(string $name, int $type): ?array
     {
@@ -439,7 +464,7 @@ final class DNSResolver
     }
 
     /**
-     * Query via UDP socket with real timeout
+     * Query via UDP socket with real timeout.
      */
     private function queryViaSocket(string $name, int $type): ?array
     {
@@ -454,6 +479,7 @@ final class DNSResolver
             $result = $this->queryDNSServer($server, $name, $type);
             if ($result !== null) {
                 $this->recordSuccess($server);
+
                 return $result;
             }
             $this->recordFailure($server);
@@ -463,7 +489,7 @@ final class DNSResolver
     }
 
     /**
-     * Query specific DNS server via UDP
+     * Query specific DNS server via UDP.
      */
     private function queryDNSServer(string $server, string $name, int $type): ?array
     {
@@ -514,7 +540,7 @@ final class DNSResolver
     }
 
     /**
-     * Query via child process (Unix only, provides true isolation)
+     * Query via child process (Unix only, provides true isolation).
      */
     private function queryViaProcess(string $name, int $type): ?array
     {
@@ -547,7 +573,7 @@ final class DNSResolver
             'dig +short +time=%d +tries=1 %s %s 2>/dev/null',
             (int) ceil($this->timeout),
             escapeshellarg($typeStr),
-            escapeshellarg($name)
+            escapeshellarg($name),
         );
 
         $process = @proc_open($cmd, $descriptors, $pipes);
@@ -629,12 +655,13 @@ final class DNSResolver
             @fclose($pipes[2] ?? null);
             @proc_terminate($process);
             @proc_close($process);
+
             throw $e;
         }
     }
 
     /**
-     * Build DNS query packet
+     * Build DNS query packet.
      */
     private function buildDNSPacket(string $name, int $type): string
     {
@@ -673,7 +700,7 @@ final class DNSResolver
     }
 
     /**
-     * Parse DNS response packet
+     * Parse DNS response packet.
      *
      * @return array<mixed>|null
      */
@@ -729,7 +756,7 @@ final class DNSResolver
     }
 
     /**
-     * Parse single resource record
+     * Parse single resource record.
      */
     private function parseResourceRecord(string $response, int &$offset, int $expectedType): ?array
     {
@@ -768,7 +795,7 @@ final class DNSResolver
     }
 
     /**
-     * Skip DNS name (handling compression)
+     * Skip DNS name (handling compression).
      */
     private function skipName(string $response, int $offset): int|false
     {
@@ -782,11 +809,12 @@ final class DNSResolver
             }
             $offset += $len + 1;
         }
+
         return false;
     }
 
     /**
-     * Parse DNS name from response
+     * Parse DNS name from response.
      */
     private function parseName(string $response, int $offset): string
     {
@@ -821,7 +849,7 @@ final class DNSResolver
     }
 
     /**
-     * Parse MX record
+     * Parse MX record.
      */
     private function parseMXRecord(string $response, int $offset, int $rdlength): array
     {
@@ -835,7 +863,7 @@ final class DNSResolver
     }
 
     /**
-     * Parse TXT record
+     * Parse TXT record.
      */
     private function parseTXTRecord(string $rdata): string
     {
@@ -852,12 +880,13 @@ final class DNSResolver
     }
 
     /**
-     * Build PTR query name from IP
+     * Build PTR query name from IP.
      */
     private function buildPTRName(string $ip): ?string
     {
         if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
             $octets = array_reverse(explode('.', $ip));
+
             return implode('.', $octets) . '.in-addr.arpa';
         }
 
@@ -868,6 +897,7 @@ final class DNSResolver
             }
             $hex = bin2hex($expanded);
             $chars = str_split($hex);
+
             return implode('.', array_reverse($chars)) . '.ip6.arpa';
         }
 
@@ -875,7 +905,7 @@ final class DNSResolver
     }
 
     /**
-     * Get available nameservers (not in circuit breaker)
+     * Get available nameservers (not in circuit breaker).
      *
      * @return array<string>
      */
@@ -908,7 +938,7 @@ final class DNSResolver
     }
 
     /**
-     * Record success for nameserver
+     * Record success for nameserver.
      */
     private function recordSuccess(string $server): void
     {
@@ -919,7 +949,7 @@ final class DNSResolver
     }
 
     /**
-     * Record failure for nameserver
+     * Record failure for nameserver.
      */
     private function recordFailure(string $server): void
     {
@@ -940,7 +970,7 @@ final class DNSResolver
     }
 
     /**
-     * Reset all circuit breakers
+     * Reset all circuit breakers.
      */
     private function resetCircuitBreakers(): void
     {
@@ -948,7 +978,7 @@ final class DNSResolver
     }
 
     /**
-     * Get from cache
+     * Get from cache.
      */
     private function getFromCache(string $key): mixed
     {
@@ -959,6 +989,7 @@ final class DNSResolver
         $entry = $this->cache[$key];
         if ($entry['expires'] < time()) {
             unset($this->cache[$key]);
+
             return null;
         }
 
@@ -966,7 +997,7 @@ final class DNSResolver
     }
 
     /**
-     * Add to cache
+     * Add to cache.
      */
     private function addToCache(string $key, mixed $value): void
     {
@@ -982,7 +1013,7 @@ final class DNSResolver
     }
 
     /**
-     * Clear cache
+     * Clear cache.
      */
     public function clearCache(): void
     {
@@ -990,7 +1021,7 @@ final class DNSResolver
     }
 
     /**
-     * Get statistics
+     * Get statistics.
      *
      * @return array<string, mixed>
      */
@@ -1014,7 +1045,7 @@ final class DNSResolver
     }
 
     /**
-     * Reset statistics
+     * Reset statistics.
      */
     public function resetStatistics(): void
     {
@@ -1030,7 +1061,7 @@ final class DNSResolver
     }
 
     /**
-     * Create with strict timeout (socket-based)
+     * Create with strict timeout (socket-based).
      */
     public static function withTimeout(float $seconds): self
     {
@@ -1041,7 +1072,7 @@ final class DNSResolver
     }
 
     /**
-     * Create for security validation (fast, cached)
+     * Create for security validation (fast, cached).
      */
     public static function forSecurityValidation(): self
     {

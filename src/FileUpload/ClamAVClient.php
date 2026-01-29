@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace AdosLabs\EnterpriseSecurityShield\FileUpload;
 
 /**
- * ClamAV Antivirus Client
+ * ClamAV Antivirus Client.
  *
  * Enterprise-grade antivirus integration using ClamAV daemon.
  * Supports both Unix socket and TCP connections.
@@ -33,12 +33,17 @@ namespace AdosLabs\EnterpriseSecurityShield\FileUpload;
 final class ClamAVClient
 {
     private const CHUNK_SIZE = 8192;
+
     private const DEFAULT_TIMEOUT = 30;
+
     private const STREAM_MAX_LENGTH = 26214400; // 25 MB
 
     private string $socket;
+
     private float $timeout;
+
     private mixed $connection = null;
+
     private bool $persistent;
 
     /**
@@ -49,7 +54,7 @@ final class ClamAVClient
     public function __construct(
         string $socket = '/var/run/clamav/clamd.sock',
         float $timeout = self::DEFAULT_TIMEOUT,
-        bool $persistent = true
+        bool $persistent = true,
     ) {
         $this->socket = $socket;
         $this->timeout = $timeout;
@@ -57,11 +62,13 @@ final class ClamAVClient
     }
 
     /**
-     * Scan a file for malware
+     * Scan a file for malware.
      *
      * @param string $filePath Path to file to scan
-     * @return array{clean: bool, virus: string|null, raw: string}
+     *
      * @throws ClamAVException
+     *
+     * @return array{clean: bool, virus: string|null, raw: string}
      */
     public function scanFile(string $filePath): array
     {
@@ -85,18 +92,20 @@ final class ClamAVClient
     }
 
     /**
-     * Scan data stream for malware
+     * Scan data stream for malware.
      *
      * @param string $data Data to scan
-     * @return array{clean: bool, virus: string|null, raw: string}
+     *
      * @throws ClamAVException
+     *
+     * @return array{clean: bool, virus: string|null, raw: string}
      */
     public function scanStream(string $data): array
     {
         $length = strlen($data);
 
         if ($length > self::STREAM_MAX_LENGTH) {
-            throw new ClamAVException("Data exceeds maximum stream length");
+            throw new ClamAVException('Data exceeds maximum stream length');
         }
 
         $connection = $this->getConnection();
@@ -131,9 +140,10 @@ final class ClamAVClient
     }
 
     /**
-     * Scan multiple files
+     * Scan multiple files.
      *
      * @param array<string> $filePaths Files to scan
+     *
      * @return array<string, array{clean: bool, virus: string|null, raw: string}>
      */
     public function scanBatch(array $filePaths): array
@@ -156,11 +166,13 @@ final class ClamAVClient
     }
 
     /**
-     * Scan directory recursively
+     * Scan directory recursively.
      *
      * @param string $directory Directory to scan
-     * @return array{clean: bool, infected_files: array<string>, total_files: int, raw: string}
+     *
      * @throws ClamAVException
+     *
+     * @return array{clean: bool, infected_files: array<string>, total_files: int, raw: string}
      */
     public function scanDirectory(string $directory): array
     {
@@ -204,10 +216,11 @@ final class ClamAVClient
     }
 
     /**
-     * Get ClamAV version
+     * Get ClamAV version.
+     *
+     * @throws ClamAVException
      *
      * @return string Version string
-     * @throws ClamAVException
      */
     public function getVersion(): string
     {
@@ -215,10 +228,11 @@ final class ClamAVClient
     }
 
     /**
-     * Get ClamAV statistics
+     * Get ClamAV statistics.
+     *
+     * @throws ClamAVException
      *
      * @return array<string, mixed>
-     * @throws ClamAVException
      */
     public function getStats(): array
     {
@@ -237,7 +251,7 @@ final class ClamAVClient
     }
 
     /**
-     * Ping ClamAV daemon
+     * Ping ClamAV daemon.
      *
      * @return bool True if daemon is responding
      */
@@ -245,6 +259,7 @@ final class ClamAVClient
     {
         try {
             $response = $this->sendCommand('PING');
+
             return trim($response) === 'PONG';
         } catch (ClamAVException $e) {
             return false;
@@ -252,19 +267,21 @@ final class ClamAVClient
     }
 
     /**
-     * Reload virus database
+     * Reload virus database.
+     *
+     * @throws ClamAVException
      *
      * @return bool True if reload was successful
-     * @throws ClamAVException
      */
     public function reload(): bool
     {
         $response = $this->sendCommand('RELOAD');
+
         return str_contains($response, 'RELOADING');
     }
 
     /**
-     * Check daemon health
+     * Check daemon health.
      *
      * @return array{healthy: bool, version: string|null, signatures: int|null, error: string|null}
      */
@@ -301,7 +318,7 @@ final class ClamAVClient
     }
 
     /**
-     * Send command to ClamAV daemon
+     * Send command to ClamAV daemon.
      *
      * @throws ClamAVException
      */
@@ -325,10 +342,11 @@ final class ClamAVClient
     }
 
     /**
-     * Get connection to daemon
+     * Get connection to daemon.
+     *
+     * @throws ClamAVException
      *
      * @return resource
-     * @throws ClamAVException
      */
     private function getConnection()
     {
@@ -369,7 +387,7 @@ final class ClamAVClient
             $errstr,
             $this->timeout,
             $flags,
-            $context
+            $context,
         );
 
         if ($connection === false) {
@@ -384,9 +402,10 @@ final class ClamAVClient
     }
 
     /**
-     * Write data to connection
+     * Write data to connection.
      *
      * @param resource $connection
+     *
      * @throws ClamAVException
      */
     private function write($connection, string $data): void
@@ -399,9 +418,10 @@ final class ClamAVClient
     }
 
     /**
-     * Read response from connection
+     * Read response from connection.
      *
      * @param resource $connection
+     *
      * @throws ClamAVException
      */
     private function read($connection): string
@@ -438,7 +458,7 @@ final class ClamAVClient
     }
 
     /**
-     * Parse ClamAV response
+     * Parse ClamAV response.
      *
      * @return array{clean: bool, virus: string|null, raw: string}
      */
@@ -478,7 +498,7 @@ final class ClamAVClient
     }
 
     /**
-     * Disconnect from daemon
+     * Disconnect from daemon.
      */
     public function disconnect(): void
     {
@@ -489,7 +509,7 @@ final class ClamAVClient
     }
 
     /**
-     * Destructor
+     * Destructor.
      */
     public function __destruct()
     {

@@ -321,7 +321,7 @@ final class XXEDetectorTest extends TestCase
 
             $this->assertTrue(
                 $result['detected'],
-                "Should detect sensitive file: {$file}"
+                "Should detect sensitive file: {$file}",
             );
         }
     }

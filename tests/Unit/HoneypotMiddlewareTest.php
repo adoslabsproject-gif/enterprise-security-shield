@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace AdosLabs\EnterpriseSecurityShield\Tests\Unit;
 
-use PHPUnit\Framework\TestCase;
 use AdosLabs\EnterpriseSecurityShield\Config\SecurityConfig;
 use AdosLabs\EnterpriseSecurityShield\Middleware\HoneypotMiddleware;
 use AdosLabs\EnterpriseSecurityShield\Tests\Fixtures\InMemoryStorage;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Test Suite for HoneypotMiddleware.

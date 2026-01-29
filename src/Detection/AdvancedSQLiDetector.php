@@ -8,7 +8,7 @@ use AdosLabs\EnterpriseSecurityShield\Detection\Parser\SQLInjectionAnalyzer;
 use AdosLabs\EnterpriseSecurityShield\Detection\Parser\SQLTokenizer;
 
 /**
- * Advanced SQL Injection Detector
+ * Advanced SQL Injection Detector.
  *
  * Enterprise-grade SQLi detection using real lexical analysis.
  * This replaces regex-based detection with actual SQL parsing.
@@ -25,6 +25,7 @@ use AdosLabs\EnterpriseSecurityShield\Detection\Parser\SQLTokenizer;
 final class AdvancedSQLiDetector
 {
     private SQLInjectionAnalyzer $analyzer;
+
     private float $threshold;
 
     public function __construct(float $threshold = 0.5)
@@ -34,9 +35,10 @@ final class AdvancedSQLiDetector
     }
 
     /**
-     * Detect SQL injection in input
+     * Detect SQL injection in input.
      *
      * @param string $input User input to analyze
+     *
      * @return array{
      *     detected: bool,
      *     confidence: float,
@@ -67,9 +69,10 @@ final class AdvancedSQLiDetector
     }
 
     /**
-     * Detect SQLi in multiple inputs (batch)
+     * Detect SQLi in multiple inputs (batch).
      *
      * @param array<string, string> $inputs Key => value pairs to check
+     *
      * @return array{
      *     detected: bool,
      *     total_checked: int,
@@ -110,9 +113,10 @@ final class AdvancedSQLiDetector
     }
 
     /**
-     * Quick check (for high-performance scenarios)
+     * Quick check (for high-performance scenarios).
      *
      * @param string $input Input to check
+     *
      * @return bool True if SQLi detected
      */
     public function isInjection(string $input): bool
@@ -121,18 +125,19 @@ final class AdvancedSQLiDetector
     }
 
     /**
-     * Set detection threshold
+     * Set detection threshold.
      *
      * @param float $threshold 0.0 to 1.0
      */
     public function setThreshold(float $threshold): self
     {
         $this->threshold = max(0.0, min(1.0, $threshold));
+
         return $this;
     }
 
     /**
-     * Generate attack fingerprint for tracking
+     * Generate attack fingerprint for tracking.
      */
     private function generateFingerprint(string $input, array $result): string
     {
@@ -145,8 +150,8 @@ final class AdvancedSQLiDetector
         // Add hash of dangerous tokens
         if (!empty($result['dangerous_tokens'])) {
             $tokenStr = implode('|', array_map(
-                fn($t) => $t['type'] . ':' . strtoupper($t['value']),
-                array_slice($result['dangerous_tokens'], 0, 5)
+                fn ($t) => $t['type'] . ':' . strtoupper($t['value']),
+                array_slice($result['dangerous_tokens'], 0, 5),
             ));
             $data['sig'] = hash('xxh3', $tokenStr);
         }
@@ -155,7 +160,7 @@ final class AdvancedSQLiDetector
     }
 
     /**
-     * Get analyzer instance (for advanced use)
+     * Get analyzer instance (for advanced use).
      */
     public function getAnalyzer(): SQLInjectionAnalyzer
     {

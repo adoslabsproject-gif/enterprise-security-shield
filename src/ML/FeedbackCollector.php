@@ -9,7 +9,7 @@ use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 
 /**
- * ML Feedback Collector
+ * ML Feedback Collector.
  *
  * Collects and processes feedback signals for online learning.
  * Integrates with various WAF components to gather training data.
@@ -31,11 +31,13 @@ use Psr\Log\NullLogger;
 final class FeedbackCollector
 {
     private StorageInterface $storage;
+
     private OnlineLearningClassifier $classifier;
+
     private LoggerInterface $logger;
 
     /**
-     * Feedback types and their confidence weights
+     * Feedback types and their confidence weights.
      */
     private const FEEDBACK_WEIGHTS = [
         'waf_block' => 1.0,
@@ -50,30 +52,31 @@ final class FeedbackCollector
     ];
 
     /**
-     * Storage key prefix
+     * Storage key prefix.
      */
     private const STORAGE_PREFIX = 'ml:feedback:';
 
     /**
-     * Pending feedback queue
+     * Pending feedback queue.
+     *
      * @var array<int, array{type: string, features: array, class: string, weight: float, hash: string}>
      */
     private array $pendingFeedback = [];
 
     /**
-     * Batch size for processing
+     * Batch size for processing.
      */
     private int $batchSize = 50;
 
     /**
-     * Hash TTL for deduplication (24 hours)
+     * Hash TTL for deduplication (24 hours).
      */
     private int $deduplicationTTL = 86400;
 
     public function __construct(
         StorageInterface $storage,
         OnlineLearningClassifier $classifier,
-        ?LoggerInterface $logger = null
+        ?LoggerInterface $logger = null,
     ) {
         $this->storage = $storage;
         $this->classifier = $classifier;
@@ -81,7 +84,7 @@ final class FeedbackCollector
     }
 
     /**
-     * Record WAF blocking decision
+     * Record WAF blocking decision.
      *
      * @param array<string, mixed> $requestData
      * @param string $blockReason
@@ -93,7 +96,7 @@ final class FeedbackCollector
     }
 
     /**
-     * Record honeypot access
+     * Record honeypot access.
      *
      * @param array<string, mixed> $requestData
      */
@@ -103,7 +106,7 @@ final class FeedbackCollector
     }
 
     /**
-     * Record SQLi detection
+     * Record SQLi detection.
      *
      * @param array<string, mixed> $requestData
      */
@@ -113,7 +116,7 @@ final class FeedbackCollector
     }
 
     /**
-     * Record XSS detection
+     * Record XSS detection.
      *
      * @param array<string, mixed> $requestData
      */
@@ -123,7 +126,7 @@ final class FeedbackCollector
     }
 
     /**
-     * Record bot spoofing detection
+     * Record bot spoofing detection.
      *
      * @param array<string, mixed> $requestData
      */
@@ -133,7 +136,7 @@ final class FeedbackCollector
     }
 
     /**
-     * Record brute force detection
+     * Record brute force detection.
      *
      * @param array<string, mixed> $requestData
      */
@@ -143,7 +146,7 @@ final class FeedbackCollector
     }
 
     /**
-     * Record rate limit trigger
+     * Record rate limit trigger.
      *
      * @param array<string, mixed> $requestData
      */
@@ -154,7 +157,7 @@ final class FeedbackCollector
     }
 
     /**
-     * Record verified legitimate bot
+     * Record verified legitimate bot.
      *
      * @param array<string, mixed> $requestData
      */
@@ -164,7 +167,7 @@ final class FeedbackCollector
     }
 
     /**
-     * Record admin feedback (explicit labeling)
+     * Record admin feedback (explicit labeling).
      *
      * @param array<string, mixed> $requestData
      * @param string $labeledClass
@@ -175,7 +178,7 @@ final class FeedbackCollector
     }
 
     /**
-     * Record path traversal detection
+     * Record path traversal detection.
      *
      * @param array<string, mixed> $requestData
      */
@@ -185,7 +188,7 @@ final class FeedbackCollector
     }
 
     /**
-     * Record IoT exploit attempt
+     * Record IoT exploit attempt.
      *
      * @param array<string, mixed> $requestData
      */
@@ -195,7 +198,7 @@ final class FeedbackCollector
     }
 
     /**
-     * Record CMS probe attempt
+     * Record CMS probe attempt.
      *
      * @param array<string, mixed> $requestData
      */
@@ -205,7 +208,7 @@ final class FeedbackCollector
     }
 
     /**
-     * Record config hunting attempt
+     * Record config hunting attempt.
      *
      * @param array<string, mixed> $requestData
      */
@@ -215,7 +218,7 @@ final class FeedbackCollector
     }
 
     /**
-     * Record credential theft attempt
+     * Record credential theft attempt.
      *
      * @param array<string, mixed> $requestData
      */
@@ -225,7 +228,7 @@ final class FeedbackCollector
     }
 
     /**
-     * Add feedback to pending queue
+     * Add feedback to pending queue.
      *
      * @param array<string, mixed> $features
      */
@@ -241,6 +244,7 @@ final class FeedbackCollector
                 'class' => $class,
                 'hash' => $hash,
             ]);
+
             return;
         }
 
@@ -271,7 +275,7 @@ final class FeedbackCollector
     }
 
     /**
-     * Flush pending feedback to classifier
+     * Flush pending feedback to classifier.
      */
     public function flush(): void
     {
@@ -298,7 +302,7 @@ final class FeedbackCollector
     }
 
     /**
-     * Calculate hash for deduplication
+     * Calculate hash for deduplication.
      *
      * @param array<string, mixed> $features
      */
@@ -316,16 +320,17 @@ final class FeedbackCollector
     }
 
     /**
-     * Check if feedback is duplicate
+     * Check if feedback is duplicate.
      */
     private function isDuplicate(string $hash): bool
     {
         $key = self::STORAGE_PREFIX . "hash:{$hash}";
+
         return $this->storage->get($key) !== null;
     }
 
     /**
-     * Mark feedback as processed
+     * Mark feedback as processed.
      */
     private function markProcessed(string $hash): void
     {
@@ -334,7 +339,7 @@ final class FeedbackCollector
     }
 
     /**
-     * Map WAF block reason to classification class
+     * Map WAF block reason to classification class.
      */
     private function mapBlockReasonToClass(string $reason): string
     {
@@ -395,7 +400,7 @@ final class FeedbackCollector
     }
 
     /**
-     * Get pending feedback count
+     * Get pending feedback count.
      */
     public function getPendingCount(): int
     {
@@ -403,7 +408,7 @@ final class FeedbackCollector
     }
 
     /**
-     * Get statistics
+     * Get statistics.
      *
      * @return array<string, mixed>
      */
@@ -418,25 +423,27 @@ final class FeedbackCollector
     }
 
     /**
-     * Set batch size
+     * Set batch size.
      */
     public function setBatchSize(int $size): self
     {
         $this->batchSize = max(1, $size);
+
         return $this;
     }
 
     /**
-     * Set deduplication TTL
+     * Set deduplication TTL.
      */
     public function setDeduplicationTTL(int $seconds): self
     {
         $this->deduplicationTTL = max(60, $seconds);
+
         return $this;
     }
 
     /**
-     * Clear pending feedback without flushing
+     * Clear pending feedback without flushing.
      */
     public function clear(): void
     {
@@ -444,7 +451,7 @@ final class FeedbackCollector
     }
 
     /**
-     * Destructor - flush pending on shutdown
+     * Destructor - flush pending on shutdown.
      */
     public function __destruct()
     {

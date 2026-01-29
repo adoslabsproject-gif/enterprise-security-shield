@@ -5,9 +5,8 @@ declare(strict_types=1);
 namespace AdosLabs\EnterpriseSecurityShield\Tests\Unit\Privacy;
 
 use AdosLabs\EnterpriseSecurityShield\Privacy\GDPRCompliance;
-use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\Test;
-use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\TestCase;
 
 class GDPRComplianceTest extends TestCase
 {

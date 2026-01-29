@@ -1,6 +1,6 @@
 <?php
 /**
- * Security Shield IP Management View
+ * Security Shield IP Management View.
  *
  * @var array $bannedIps List of banned IPs
  * @var array $whitelistedIps List of whitelisted IPs

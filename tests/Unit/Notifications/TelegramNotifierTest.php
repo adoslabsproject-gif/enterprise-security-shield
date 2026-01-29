@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace AdosLabs\EnterpriseSecurityShield\Tests\Unit\Notifications;
 
-use PHPUnit\Framework\TestCase;
 use AdosLabs\EnterpriseSecurityShield\Notifications\TelegramNotifier;
+use PHPUnit\Framework\TestCase;
 
 class TelegramNotifierTest extends TestCase
 {

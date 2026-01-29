@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace AdosLabs\EnterpriseSecurityShield\Tests\Unit\Notifications;
 
-use PHPUnit\Framework\TestCase;
 use AdosLabs\EnterpriseSecurityShield\Notifications\NotificationManager;
 use AdosLabs\EnterpriseSecurityShield\Notifications\NotifierInterface;
+use PHPUnit\Framework\TestCase;
 
 class NotificationManagerTest extends TestCase
 {

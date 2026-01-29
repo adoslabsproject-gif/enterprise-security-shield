@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace AdosLabs\EnterpriseSecurityShield\Detection;
 
 /**
- * Command Injection Detector
+ * Command Injection Detector.
  *
  * Detects OS command injection attempts in user input.
  * Uses tokenization and pattern analysis, not just regex.
@@ -24,13 +24,17 @@ namespace AdosLabs\EnterpriseSecurityShield\Detection;
 final class CommandInjectionDetector
 {
     public const RISK_NONE = 'NONE';
+
     public const RISK_LOW = 'LOW';
+
     public const RISK_MEDIUM = 'MEDIUM';
+
     public const RISK_HIGH = 'HIGH';
+
     public const RISK_CRITICAL = 'CRITICAL';
 
     /**
-     * Shell metacharacters that can be used for injection
+     * Shell metacharacters that can be used for injection.
      */
     private const SHELL_METACHARACTERS = [
         ';' => 0.70,   // Command separator
@@ -46,7 +50,7 @@ final class CommandInjectionDetector
     ];
 
     /**
-     * Command chaining operators
+     * Command chaining operators.
      */
     private const CHAINING_OPERATORS = [
         '&&' => 0.85,  // AND
@@ -57,7 +61,7 @@ final class CommandInjectionDetector
     ];
 
     /**
-     * Command substitution patterns
+     * Command substitution patterns.
      */
     private const SUBSTITUTION_PATTERNS = [
         '/`[^`]+`/' => 0.95,           // Backtick substitution
@@ -67,7 +71,7 @@ final class CommandInjectionDetector
     ];
 
     /**
-     * Dangerous commands (Linux/Unix)
+     * Dangerous commands (Linux/Unix).
      */
     private const DANGEROUS_COMMANDS = [
         // Network tools
@@ -183,7 +187,7 @@ final class CommandInjectionDetector
     ];
 
     /**
-     * Windows dangerous commands
+     * Windows dangerous commands.
      */
     private const WINDOWS_COMMANDS = [
         'cmd' => 0.85,
@@ -229,9 +233,10 @@ final class CommandInjectionDetector
     }
 
     /**
-     * Detect command injection
+     * Detect command injection.
      *
      * @param string $input User input to analyze
+     *
      * @return array{
      *     detected: bool,
      *     confidence: float,
@@ -274,7 +279,7 @@ final class CommandInjectionDetector
         foreach (self::SUBSTITUTION_PATTERNS as $pattern => $confidence) {
             if (preg_match($pattern, $decoded, $matches)) {
                 $maxConfidence = max($maxConfidence, $confidence);
-                $evidence[] = "Command substitution: " . substr($matches[0], 0, 30);
+                $evidence[] = 'Command substitution: ' . substr($matches[0], 0, 30);
                 $patterns[] = 'substitution';
             }
         }
@@ -295,21 +300,21 @@ final class CommandInjectionDetector
         // Check for redirection with sensitive files
         if (preg_match('/[<>]\s*[\/"\']*(?:\/etc\/passwd|\/etc\/shadow|\.htaccess|web\.config|\.env)/i', $decoded)) {
             $maxConfidence = max($maxConfidence, 0.95);
-            $evidence[] = "Redirection to/from sensitive file";
+            $evidence[] = 'Redirection to/from sensitive file';
             $patterns[] = 'sensitive_file_redirect';
         }
 
         // Check for /dev/tcp (bash reverse shell)
         if (preg_match('/\/dev\/tcp\//i', $decoded)) {
             $maxConfidence = 0.99;
-            $evidence[] = "Bash /dev/tcp (reverse shell pattern)";
+            $evidence[] = 'Bash /dev/tcp (reverse shell pattern)';
             $patterns[] = 'dev_tcp';
         }
 
         // Check for base64 decode piped to shell
         if (preg_match('/base64\s+(-d|--decode).*\|\s*(bash|sh|zsh)/i', $decoded)) {
             $maxConfidence = 0.98;
-            $evidence[] = "Base64 decode piped to shell";
+            $evidence[] = 'Base64 decode piped to shell';
             $patterns[] = 'b64_shell';
         }
 
@@ -336,7 +341,7 @@ final class CommandInjectionDetector
     }
 
     /**
-     * Quick check
+     * Quick check.
      */
     public function isInjection(string $input): bool
     {
@@ -344,7 +349,7 @@ final class CommandInjectionDetector
     }
 
     /**
-     * Decode input
+     * Decode input.
      */
     private function decodeInput(string $input): string
     {
@@ -365,29 +370,29 @@ final class CommandInjectionDetector
         // Unicode escapes
         $decoded = preg_replace_callback(
             '/\\\\u([0-9a-fA-F]{4})/',
-            fn($m) => mb_chr((int) hexdec($m[1])),
-            $decoded
+            fn ($m) => mb_chr((int) hexdec($m[1])),
+            $decoded,
         ) ?? $decoded;
 
         // Hex escapes (\xNN)
         $decoded = preg_replace_callback(
             '/\\\\x([0-9a-fA-F]{2})/',
-            fn($m) => chr((int) hexdec($m[1])),
-            $decoded
+            fn ($m) => chr((int) hexdec($m[1])),
+            $decoded,
         ) ?? $decoded;
 
         // Octal escapes (\NNN)
         $decoded = preg_replace_callback(
             '/\\\\([0-7]{1,3})/',
-            fn($m) => chr((int) octdec($m[1])),
-            $decoded
+            fn ($m) => chr((int) octdec($m[1])),
+            $decoded,
         ) ?? $decoded;
 
         return $decoded;
     }
 
     /**
-     * Get readable character name
+     * Get readable character name.
      */
     private function getCharName(string $char): string
     {
@@ -407,11 +412,12 @@ final class CommandInjectionDetector
     }
 
     /**
-     * Set threshold
+     * Set threshold.
      */
     public function setThreshold(float $threshold): self
     {
         $this->threshold = max(0.0, min(1.0, $threshold));
+
         return $this;
     }
 }

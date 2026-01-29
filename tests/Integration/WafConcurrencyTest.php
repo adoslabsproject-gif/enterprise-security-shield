@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace AdosLabs\EnterpriseSecurityShield\Tests\Integration;
 
-use PHPUnit\Framework\TestCase;
 use AdosLabs\EnterpriseSecurityShield\Config\SecurityConfig;
 use AdosLabs\EnterpriseSecurityShield\Middleware\WafMiddleware;
 use AdosLabs\EnterpriseSecurityShield\Storage\NullLogger;
 use AdosLabs\EnterpriseSecurityShield\Storage\NullStorage;
+use PHPUnit\Framework\TestCase;
 
 /**
  * WAF Concurrency & Proxy Tests.

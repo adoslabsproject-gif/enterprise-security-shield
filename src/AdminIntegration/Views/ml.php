@@ -1,6 +1,6 @@
 <?php
 /**
- * ML Threat Detection View
+ * ML Threat Detection View.
  *
  * @var array $ml_stats
  * @var array $classifications
@@ -124,26 +124,26 @@
                             <td>
                                 <?php
                                 $classification = $event['data']['classification'] ?? 'unknown';
-                                $badgeClass = match($classification) {
-                                    'SCANNER' => 'danger',
-                                    'BOT_SPOOF' => 'warning',
-                                    'CMS_PROBE' => 'info',
-                                    'SQLI_ATTEMPT' => 'dark',
-                                    'XSS_ATTEMPT' => 'primary',
-                                    'LEGITIMATE' => 'success',
-                                    default => 'secondary',
-                                };
-                                ?>
+                            $badgeClass = match($classification) {
+                                'SCANNER' => 'danger',
+                                'BOT_SPOOF' => 'warning',
+                                'CMS_PROBE' => 'info',
+                                'SQLI_ATTEMPT' => 'dark',
+                                'XSS_ATTEMPT' => 'primary',
+                                'LEGITIMATE' => 'success',
+                                default => 'secondary',
+                            };
+                            ?>
                                 <span class="badge bg-<?= $badgeClass ?>">
                                     <?= htmlspecialchars($classification) ?>
                                 </span>
                             </td>
                             <td>
                                 <?php
-                                $confidence = $event['data']['confidence'] ?? 0;
-                                $confidencePercent = round($confidence * 100, 1);
-                                $progressClass = $confidence >= 0.8 ? 'danger' : ($confidence >= 0.6 ? 'warning' : 'info');
-                                ?>
+                            $confidence = $event['data']['confidence'] ?? 0;
+                            $confidencePercent = round($confidence * 100, 1);
+                            $progressClass = $confidence >= 0.8 ? 'danger' : ($confidence >= 0.6 ? 'warning' : 'info');
+                            ?>
                                 <div class="progress" style="width: 100px; height: 20px;">
                                     <div class="progress-bar bg-<?= $progressClass ?>" style="width: <?= $confidencePercent ?>%">
                                         <?= $confidencePercent ?>%

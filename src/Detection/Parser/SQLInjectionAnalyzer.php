@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace AdosLabs\EnterpriseSecurityShield\Detection\Parser;
 
 /**
- * SQL Injection Analyzer - Syntactic analysis of tokenized SQL
+ * SQL Injection Analyzer - Syntactic analysis of tokenized SQL.
  *
  * This analyzer examines token sequences to detect SQL injection patterns.
  * It's NOT regex matching - it understands SQL grammar and detects:
@@ -26,7 +26,7 @@ final class SQLInjectionAnalyzer
     private SQLTokenizer $tokenizer;
 
     /**
-     * Detection result structure
+     * Detection result structure.
      */
     private const RESULT_SAFE = [
         'detected' => false,
@@ -37,25 +37,37 @@ final class SQLInjectionAnalyzer
     ];
 
     /**
-     * Risk levels
+     * Risk levels.
      */
     public const RISK_NONE = 'NONE';
+
     public const RISK_LOW = 'LOW';
+
     public const RISK_MEDIUM = 'MEDIUM';
+
     public const RISK_HIGH = 'HIGH';
+
     public const RISK_CRITICAL = 'CRITICAL';
 
     /**
-     * Attack types
+     * Attack types.
      */
     public const ATTACK_UNION = 'UNION_BASED';
+
     public const ATTACK_BOOLEAN = 'BOOLEAN_BASED';
+
     public const ATTACK_TIME = 'TIME_BASED';
+
     public const ATTACK_ERROR = 'ERROR_BASED';
+
     public const ATTACK_STACKED = 'STACKED_QUERIES';
+
     public const ATTACK_COMMENT = 'COMMENT_INJECTION';
+
     public const ATTACK_TAUTOLOGY = 'TAUTOLOGY';
+
     public const ATTACK_PIGGYBACK = 'PIGGYBACK';
+
     public const ATTACK_ILLEGAL = 'ILLEGAL_QUERY';
 
     public function __construct(?SQLTokenizer $tokenizer = null)
@@ -64,9 +76,10 @@ final class SQLInjectionAnalyzer
     }
 
     /**
-     * Analyze input for SQL injection
+     * Analyze input for SQL injection.
      *
      * @param string $input Raw user input
+     *
      * @return array{
      *     detected: bool,
      *     confidence: float,
@@ -90,7 +103,7 @@ final class SQLInjectionAnalyzer
         // Filter out whitespace for analysis
         $significantTokens = array_values(array_filter(
             $tokens,
-            fn($t) => $t['type'] !== SQLTokenizer::T_WHITESPACE
+            fn ($t) => $t['type'] !== SQLTokenizer::T_WHITESPACE,
         ));
 
         if (empty($significantTokens)) {
@@ -150,7 +163,7 @@ final class SQLInjectionAnalyzer
     }
 
     /**
-     * Quick check for obviously safe input (optimization)
+     * Quick check for obviously safe input (optimization).
      */
     private function isObviouslySafe(string $input): bool
     {
@@ -169,6 +182,7 @@ final class SQLInjectionAnalyzer
                     return false;
                 }
             }
+
             return true;
         }
 
@@ -176,7 +190,7 @@ final class SQLInjectionAnalyzer
     }
 
     /**
-     * Check for UNION-based injection
+     * Check for UNION-based injection.
      *
      * Pattern: ... UNION [ALL] SELECT ...
      */
@@ -201,6 +215,7 @@ final class SQLInjectionAnalyzer
                     $result['evidence'][] = 'UNION SELECT pattern detected';
                     $result['dangerous_tokens'][] = ['type' => 'KEYWORD', 'value' => 'UNION'];
                     $result['dangerous_tokens'][] = ['type' => 'KEYWORD', 'value' => 'SELECT'];
+
                     return $result;
                 }
             }
@@ -210,7 +225,7 @@ final class SQLInjectionAnalyzer
     }
 
     /**
-     * Check for Boolean-based blind injection
+     * Check for Boolean-based blind injection.
      *
      * Pattern: OR 1=1, AND 1=1, OR 'a'='a', etc.
      */
@@ -245,7 +260,7 @@ final class SQLInjectionAnalyzer
                             $result['detected'] = true;
                             $result['confidence'] = max($result['confidence'], 0.85);
                             $result['attack_type'] = self::ATTACK_BOOLEAN;
-                            $result['evidence'][] = "Boolean injection: always-true comparison";
+                            $result['evidence'][] = 'Boolean injection: always-true comparison';
                         }
                     }
                 }
@@ -267,7 +282,7 @@ final class SQLInjectionAnalyzer
     }
 
     /**
-     * Check for time-based blind injection
+     * Check for time-based blind injection.
      *
      * Pattern: SLEEP(n), BENCHMARK(n, expr), WAITFOR DELAY, pg_sleep(n)
      */
@@ -301,7 +316,7 @@ final class SQLInjectionAnalyzer
     }
 
     /**
-     * Check for error-based injection
+     * Check for error-based injection.
      *
      * Pattern: EXTRACTVALUE, UPDATEXML, XMLType, etc.
      */
@@ -327,7 +342,7 @@ final class SQLInjectionAnalyzer
     }
 
     /**
-     * Check for stacked queries (multiple statements)
+     * Check for stacked queries (multiple statements).
      *
      * Pattern: ; SELECT, ; DROP, ; INSERT, etc.
      */
@@ -363,7 +378,7 @@ final class SQLInjectionAnalyzer
     }
 
     /**
-     * Check for comment-based injection/bypass
+     * Check for comment-based injection/bypass.
      *
      * Pattern: --, /*, #, comment in middle of keyword
      */
@@ -400,7 +415,7 @@ final class SQLInjectionAnalyzer
     }
 
     /**
-     * Check for tautology attacks
+     * Check for tautology attacks.
      *
      * Pattern: WHERE 1=1, WHERE 'x'='x', WHERE 1 LIKE 1
      */
@@ -419,6 +434,7 @@ final class SQLInjectionAnalyzer
                             $result['confidence'] = 0.85;
                             $result['attack_type'] = self::ATTACK_TAUTOLOGY;
                             $result['evidence'][] = 'Tautology after WHERE clause';
+
                             return $result;
                         }
                     }
@@ -430,7 +446,7 @@ final class SQLInjectionAnalyzer
     }
 
     /**
-     * Check for dangerous function usage
+     * Check for dangerous function usage.
      */
     private function checkDangerousFunctions(array $tokens): array
     {
@@ -474,7 +490,7 @@ final class SQLInjectionAnalyzer
                 $result['evidence'][] = "Information function: {$upper}";
                 if ($result['confidence'] >= 0.5) {
                     $result['detected'] = true;
-                    $result['attack_type'] = $result['attack_type'] ?? self::ATTACK_ILLEGAL;
+                    $result['attack_type'] ??= self::ATTACK_ILLEGAL;
                 }
             }
         }
@@ -483,7 +499,7 @@ final class SQLInjectionAnalyzer
     }
 
     /**
-     * Check for suspicious patterns
+     * Check for suspicious patterns.
      */
     private function checkSuspiciousPatterns(array $tokens): array
     {
@@ -517,7 +533,7 @@ final class SQLInjectionAnalyzer
         if ($keywordCount >= 1 && $hasComparison && $hasLogical) {
             $result['detected'] = true;
             $result['confidence'] = max($result['confidence'], 0.75);
-            $result['attack_type'] = $result['attack_type'] ?? self::ATTACK_PIGGYBACK;
+            $result['attack_type'] ??= self::ATTACK_PIGGYBACK;
             $result['evidence'][] = 'SQL clause structure detected in input';
         }
 
@@ -525,7 +541,7 @@ final class SQLInjectionAnalyzer
     }
 
     /**
-     * Check if token is a specific keyword
+     * Check if token is a specific keyword.
      */
     private function isTokenKeyword(array $token, string $keyword): bool
     {
@@ -534,7 +550,7 @@ final class SQLInjectionAnalyzer
     }
 
     /**
-     * Check if token is a logical operator
+     * Check if token is a logical operator.
      */
     private function isTokenLogical(array $token, array $operators): bool
     {
@@ -543,7 +559,7 @@ final class SQLInjectionAnalyzer
     }
 
     /**
-     * Check if two tokens represent the same value (for tautology detection)
+     * Check if two tokens represent the same value (for tautology detection).
      */
     private function isSameValue(array $left, array $right): bool
     {
@@ -561,6 +577,7 @@ final class SQLInjectionAnalyzer
         if ($left['type'] === SQLTokenizer::T_STRING && $right['type'] === SQLTokenizer::T_STRING) {
             $leftVal = trim($left['value'], "\"'`");
             $rightVal = trim($right['value'], "\"'`");
+
             return $leftVal === $rightVal;
         }
 
@@ -568,7 +585,7 @@ final class SQLInjectionAnalyzer
     }
 
     /**
-     * Check if comparison is always true (like 1>0, 2>1)
+     * Check if comparison is always true (like 1>0, 2>1).
      */
     private function isAlwaysTrue(array $left, array $op, array $right): bool
     {

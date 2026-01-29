@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace AdosLabs\EnterpriseSecurityShield\Tests\Unit\Services;
 
-use PHPUnit\Framework\TestCase;
 use AdosLabs\EnterpriseSecurityShield\Services\WebhookNotifier;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Webhook Notifier Test Suite.

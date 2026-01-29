@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace AdosLabs\EnterpriseSecurityShield\Detection\Parser;
 
 /**
- * SQL Tokenizer - Real lexical analysis for SQL injection detection
+ * SQL Tokenizer - Real lexical analysis for SQL injection detection.
  *
  * This is NOT regex matching. This is a real tokenizer that breaks SQL
  * into tokens for syntactic analysis. Handles:
@@ -22,20 +22,31 @@ final class SQLTokenizer
 {
     // Token types
     public const T_KEYWORD = 'KEYWORD';
+
     public const T_FUNCTION = 'FUNCTION';
+
     public const T_OPERATOR = 'OPERATOR';
+
     public const T_COMPARISON = 'COMPARISON';
+
     public const T_LOGICAL = 'LOGICAL';
+
     public const T_STRING = 'STRING';
+
     public const T_NUMBER = 'NUMBER';
+
     public const T_IDENTIFIER = 'IDENTIFIER';
+
     public const T_COMMENT = 'COMMENT';
+
     public const T_WHITESPACE = 'WHITESPACE';
+
     public const T_PUNCTUATION = 'PUNCTUATION';
+
     public const T_UNKNOWN = 'UNKNOWN';
 
     /**
-     * SQL Keywords that indicate potential injection
+     * SQL Keywords that indicate potential injection.
      */
     private const SQL_KEYWORDS = [
         'SELECT', 'INSERT', 'UPDATE', 'DELETE', 'DROP', 'CREATE', 'ALTER',
@@ -62,7 +73,7 @@ final class SQLTokenizer
     ];
 
     /**
-     * Dangerous SQL functions
+     * Dangerous SQL functions.
      */
     private const SQL_FUNCTIONS = [
         // String functions (often used in injection)
@@ -113,7 +124,7 @@ final class SQLTokenizer
     ];
 
     /**
-     * SQL Operators
+     * SQL Operators.
      */
     private const SQL_OPERATORS = [
         '+', '-', '*', '/', '%', '&', '|', '^', '~',
@@ -121,7 +132,7 @@ final class SQLTokenizer
     ];
 
     /**
-     * SQL Comparison operators
+     * SQL Comparison operators.
      */
     private const SQL_COMPARISONS = [
         '=', '!=', '<>', '<', '>', '<=', '>=', '<=>',
@@ -129,9 +140,10 @@ final class SQLTokenizer
     ];
 
     /**
-     * Tokenize input string
+     * Tokenize input string.
      *
      * @param string $input Raw input (may be URL encoded, etc.)
+     *
      * @return array<int, array{type: string, value: string, position: int}>
      */
     public function tokenize(string $input): array
@@ -158,7 +170,7 @@ final class SQLTokenizer
     }
 
     /**
-     * Decode various input encodings
+     * Decode various input encodings.
      */
     private function decodeInput(string $input): string
     {
@@ -179,22 +191,22 @@ final class SQLTokenizer
         // Unicode escape sequences (\uXXXX)
         $decoded = preg_replace_callback(
             '/\\\\u([0-9a-fA-F]{4})/',
-            fn($m) => mb_chr((int) hexdec($m[1])),
-            $decoded
+            fn ($m) => mb_chr((int) hexdec($m[1])),
+            $decoded,
         ) ?? $decoded;
 
         // Hex escape sequences (0xXX)
         $decoded = preg_replace_callback(
             '/0x([0-9a-fA-F]{2})/',
-            fn($m) => chr((int) hexdec($m[1])),
-            $decoded
+            fn ($m) => chr((int) hexdec($m[1])),
+            $decoded,
         ) ?? $decoded;
 
         // MySQL hex strings (X'...' or 0x...)
         $decoded = preg_replace_callback(
             "/X'([0-9a-fA-F]+)'/i",
-            fn($m) => pack('H*', $m[1]),
-            $decoded
+            fn ($m) => pack('H*', $m[1]),
+            $decoded,
         ) ?? $decoded;
 
         // Remove null bytes (bypass attempts)
@@ -207,7 +219,7 @@ final class SQLTokenizer
     }
 
     /**
-     * Get next token from input
+     * Get next token from input.
      *
      * @return array{type: string, value: string, position: int}|null
      */
@@ -233,6 +245,7 @@ final class SQLTokenizer
         if (str_starts_with($remaining, '--')) {
             $end = strpos($remaining, "\n");
             $value = $end === false ? $remaining : substr($remaining, 0, $end);
+
             return [
                 'type' => self::T_COMMENT,
                 'value' => $value,
@@ -244,6 +257,7 @@ final class SQLTokenizer
         if ($char === '#') {
             $end = strpos($remaining, "\n");
             $value = $end === false ? $remaining : substr($remaining, 0, $end);
+
             return [
                 'type' => self::T_COMMENT,
                 'value' => $value,
@@ -255,6 +269,7 @@ final class SQLTokenizer
         if (str_starts_with($remaining, '/*')) {
             $end = strpos($remaining, '*/', 2);
             $value = $end === false ? $remaining : substr($remaining, 0, $end + 2);
+
             return [
                 'type' => self::T_COMMENT,
                 'value' => $value,
@@ -381,7 +396,7 @@ final class SQLTokenizer
     }
 
     /**
-     * Parse string literal with proper escape handling
+     * Parse string literal with proper escape handling.
      *
      * @return array{type: string, value: string, position: int}
      */
@@ -428,7 +443,7 @@ final class SQLTokenizer
     }
 
     /**
-     * Get all SQL keywords (for external use)
+     * Get all SQL keywords (for external use).
      *
      * @return array<string>
      */
@@ -438,7 +453,7 @@ final class SQLTokenizer
     }
 
     /**
-     * Get all SQL functions (for external use)
+     * Get all SQL functions (for external use).
      *
      * @return array<string>
      */

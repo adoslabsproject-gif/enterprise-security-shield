@@ -5,10 +5,9 @@ declare(strict_types=1);
 namespace AdosLabs\EnterpriseSecurityShield\Detection;
 
 use Psr\Log\LoggerInterface;
-use Psr\Log\NullLogger;
 
 /**
- * XSS (Cross-Site Scripting) Detector
+ * XSS (Cross-Site Scripting) Detector.
  *
  * Context-aware XSS detection. NOT regex-based (too many false positives).
  * Uses HTML parsing and context analysis.
@@ -25,7 +24,7 @@ use Psr\Log\NullLogger;
 final class XSSDetector
 {
     /**
-     * Dangerous HTML tags
+     * Dangerous HTML tags.
      */
     private const DANGEROUS_TAGS = [
         'script', 'iframe', 'object', 'embed', 'applet', 'meta', 'link',
@@ -34,7 +33,7 @@ final class XSSDetector
     ];
 
     /**
-     * Event handler attributes (XSS vectors)
+     * Event handler attributes (XSS vectors).
      */
     private const EVENT_HANDLERS = [
         'onabort', 'onblur', 'onchange', 'onclick', 'ondblclick', 'onerror',
@@ -59,20 +58,21 @@ final class XSSDetector
     ];
 
     /**
-     * Dangerous URL protocols
+     * Dangerous URL protocols.
      */
     private const DANGEROUS_PROTOCOLS = [
         'javascript:', 'vbscript:', 'data:', 'blob:',
     ];
 
     /**
-     * Dangerous CSS
+     * Dangerous CSS.
      */
     private const DANGEROUS_CSS = [
         'expression', 'url(', 'import', '@import', 'behavior:',
     ];
 
     private int $minConfidence = 60;
+
     private ?LoggerInterface $logger = null;
 
     /**
@@ -88,19 +88,21 @@ final class XSSDetector
     }
 
     /**
-     * Set minimum confidence threshold
+     * Set minimum confidence threshold.
      */
     public function setMinConfidence(int $confidence): self
     {
         $this->minConfidence = max(0, min(100, $confidence));
+
         return $this;
     }
 
     /**
-     * Detect XSS in input
+     * Detect XSS in input.
      *
      * @param string $input Input to analyze
      * @param string $context Where input will be used: 'html', 'attribute', 'js', 'url', 'css'
+     *
      * @return array{detected: bool, confidence: int, vectors: array, details: array}
      */
     public function detect(string $input, string $context = 'html'): array
@@ -201,7 +203,7 @@ final class XSSDetector
     }
 
     /**
-     * Batch detect multiple inputs
+     * Batch detect multiple inputs.
      */
     public function detectBatch(array $inputs, string $context = 'html'): array
     {
@@ -212,11 +214,12 @@ final class XSSDetector
             }
             $results[$field] = $this->detect($value, $context);
         }
+
         return $results;
     }
 
     /**
-     * Check if any input contains XSS
+     * Check if any input contains XSS.
      */
     public function hasXSS(array $inputs, string $context = 'html'): bool
     {
@@ -229,11 +232,12 @@ final class XSSDetector
                 return true;
             }
         }
+
         return false;
     }
 
     /**
-     * Normalize input
+     * Normalize input.
      */
     private function normalize(string $input): string
     {
@@ -266,7 +270,7 @@ final class XSSDetector
     }
 
     /**
-     * Quick check for suspicious characters
+     * Quick check for suspicious characters.
      */
     private function hasSuspiciousChars(string $input): bool
     {
@@ -281,7 +285,7 @@ final class XSSDetector
     }
 
     /**
-     * Detect dangerous HTML tags
+     * Detect dangerous HTML tags.
      */
     private function detectDangerousTags(string $input): array
     {
@@ -311,7 +315,7 @@ final class XSSDetector
     }
 
     /**
-     * Detect event handlers
+     * Detect event handlers.
      */
     private function detectEventHandlers(string $input): array
     {
@@ -334,7 +338,7 @@ final class XSSDetector
     }
 
     /**
-     * Detect dangerous protocols
+     * Detect dangerous protocols.
      */
     private function detectDangerousProtocols(string $input): array
     {
@@ -362,7 +366,7 @@ final class XSSDetector
     }
 
     /**
-     * Detect attribute breaking attempts
+     * Detect attribute breaking attempts.
      */
     private function detectAttributeBreaking(string $input, string $context): array
     {
@@ -392,7 +396,7 @@ final class XSSDetector
     }
 
     /**
-     * Detect JavaScript string breaking
+     * Detect JavaScript string breaking.
      */
     private function detectJSBreaking(string $input): array
     {
@@ -421,7 +425,7 @@ final class XSSDetector
     }
 
     /**
-     * Detect CSS injection
+     * Detect CSS injection.
      */
     private function detectCSSInjection(string $input): array
     {

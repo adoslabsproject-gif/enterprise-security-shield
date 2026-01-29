@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace AdosLabs\EnterpriseSecurityShield\Tests\Unit\Network;
 
 use AdosLabs\EnterpriseSecurityShield\Network\DNSResolver;
-use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\TestCase;
 
 class DNSResolverTest extends TestCase
 {

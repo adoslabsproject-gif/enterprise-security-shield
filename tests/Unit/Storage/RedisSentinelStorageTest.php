@@ -187,7 +187,7 @@ final class RedisSentinelStorageTest extends TestCase
         $storage = new RedisSentinelStorage(
             ['sentinels' => [['host' => '127.0.0.1', 'port' => 26379]]],
             'test:',
-            false // fail-open
+            false, // fail-open
         );
 
         // These should return safe defaults instead of throwing
@@ -209,7 +209,7 @@ final class RedisSentinelStorageTest extends TestCase
         $storage = new RedisSentinelStorage(
             ['sentinels' => [['host' => '127.0.0.1', 'port' => 26379]]],
             'test:',
-            true // fail-closed
+            true, // fail-closed
         );
 
         $this->expectException(\RuntimeException::class);

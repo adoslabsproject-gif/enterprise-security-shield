@@ -25,7 +25,7 @@ final class BotVerificationServiceTest extends TestCase
     {
         $result = $this->service->verify(
             '192.168.1.1',
-            'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)'
+            'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)',
         );
 
         $this->assertIsArray($result);
@@ -44,7 +44,7 @@ final class BotVerificationServiceTest extends TestCase
     {
         $result = $this->service->verify(
             '66.249.66.1',
-            'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)'
+            'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)',
         );
 
         $this->assertTrue($result['is_bot']);
@@ -57,7 +57,7 @@ final class BotVerificationServiceTest extends TestCase
     {
         $result = $this->service->verify(
             '157.55.39.1',
-            'Mozilla/5.0 (compatible; bingbot/2.0; +http://www.bing.com/bingbot.htm)'
+            'Mozilla/5.0 (compatible; bingbot/2.0; +http://www.bing.com/bingbot.htm)',
         );
 
         $this->assertTrue($result['is_bot']);
@@ -71,7 +71,7 @@ final class BotVerificationServiceTest extends TestCase
         // Facebook bot in known IP range
         $result = $this->service->verify(
             '69.171.224.1', // Meta IP range
-            'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)'
+            'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)',
         );
 
         $this->assertTrue($result['is_bot']);
@@ -86,7 +86,7 @@ final class BotVerificationServiceTest extends TestCase
     {
         $result = $this->service->verify(
             '199.16.156.1', // Twitter IP range
-            'Twitterbot/1.0'
+            'Twitterbot/1.0',
         );
 
         $this->assertTrue($result['is_bot']);
@@ -100,7 +100,7 @@ final class BotVerificationServiceTest extends TestCase
     {
         $result = $this->service->verify(
             '192.168.1.1',
-            'GPTBot/1.0'
+            'GPTBot/1.0',
         );
 
         $this->assertTrue($result['is_bot']);
@@ -113,7 +113,7 @@ final class BotVerificationServiceTest extends TestCase
     {
         $result = $this->service->verify(
             '192.168.1.1',
-            'ClaudeBot/1.0'
+            'ClaudeBot/1.0',
         );
 
         $this->assertTrue($result['is_bot']);
@@ -126,7 +126,7 @@ final class BotVerificationServiceTest extends TestCase
     {
         $result = $this->service->verify(
             '192.168.1.1',
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0'
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0',
         );
 
         $this->assertFalse($result['is_bot']);
@@ -139,7 +139,7 @@ final class BotVerificationServiceTest extends TestCase
     {
         $result = $this->service->verify(
             '54.36.148.1', // Ahrefs IP range
-            'AhrefsBot/7.0'
+            'AhrefsBot/7.0',
         );
 
         $this->assertTrue($result['is_bot']);
@@ -152,7 +152,7 @@ final class BotVerificationServiceTest extends TestCase
     {
         $result = $this->service->verify(
             '192.168.1.1',
-            'SemrushBot/7~bl'
+            'SemrushBot/7~bl',
         );
 
         $this->assertTrue($result['is_bot']);
@@ -165,7 +165,7 @@ final class BotVerificationServiceTest extends TestCase
     {
         $result = $this->service->verify(
             '69.162.124.226', // UptimeRobot IP range
-            'UptimeRobot/2.0'
+            'UptimeRobot/2.0',
         );
 
         $this->assertTrue($result['is_bot']);
@@ -179,7 +179,7 @@ final class BotVerificationServiceTest extends TestCase
     {
         $result = $this->service->verify(
             '192.168.1.1',
-            'Pingdom.com_bot_version_1.4_(http://www.pingdom.com/)'
+            'Pingdom.com_bot_version_1.4_(http://www.pingdom.com/)',
         );
 
         $this->assertTrue($result['is_bot']);
@@ -250,7 +250,7 @@ final class BotVerificationServiceTest extends TestCase
     {
         $result = $this->service->verify(
             '192.168.1.1',
-            'Mozilla/5.0 (compatible; YandexBot/3.0; +http://yandex.com/bots)'
+            'Mozilla/5.0 (compatible; YandexBot/3.0; +http://yandex.com/bots)',
         );
 
         $this->assertTrue($result['is_bot']);
@@ -263,7 +263,7 @@ final class BotVerificationServiceTest extends TestCase
     {
         $result = $this->service->verify(
             '192.168.1.1',
-            'Mozilla/5.0 (compatible; Baiduspider/2.0; +http://www.baidu.com/search/spider.html)'
+            'Mozilla/5.0 (compatible; Baiduspider/2.0; +http://www.baidu.com/search/spider.html)',
         );
 
         $this->assertTrue($result['is_bot']);
@@ -276,7 +276,7 @@ final class BotVerificationServiceTest extends TestCase
     {
         $result = $this->service->verify(
             '192.168.1.1',
-            'Slackbot 1.0 (+https://api.slack.com/robots)'
+            'Slackbot 1.0 (+https://api.slack.com/robots)',
         );
 
         $this->assertTrue($result['is_bot']);
@@ -289,7 +289,7 @@ final class BotVerificationServiceTest extends TestCase
     {
         $result = $this->service->verify(
             '91.108.4.1', // Telegram IP range
-            'TelegramBot/1.0'
+            'TelegramBot/1.0',
         );
 
         $this->assertTrue($result['is_bot']);

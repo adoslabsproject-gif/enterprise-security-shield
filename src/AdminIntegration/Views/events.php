@@ -1,6 +1,6 @@
 <?php
 /**
- * Security Shield Events View
+ * Security Shield Events View.
  *
  * @var array $events Security events list
  * @var array $filters Current filters
@@ -14,7 +14,8 @@
 
 // Helper functions for badge classes
 if (!function_exists('essThreatBadgeClass')) {
-    function essThreatBadgeClass(string $type): string {
+    function essThreatBadgeClass(string $type): string
+    {
         return match (strtolower($type)) {
             'auto_ban', 'ban' => 'danger',
             'honeypot', 'honeypot_access' => 'warning',
@@ -28,10 +29,18 @@ if (!function_exists('essThreatBadgeClass')) {
 }
 
 if (!function_exists('essScoreClass')) {
-    function essScoreClass(int $score): string {
-        if ($score >= 80) return 'danger';
-        if ($score >= 50) return 'warning';
-        if ($score >= 20) return 'info';
+    function essScoreClass(int $score): string
+    {
+        if ($score >= 80) {
+            return 'danger';
+        }
+        if ($score >= 50) {
+            return 'warning';
+        }
+        if ($score >= 20) {
+            return 'info';
+        }
+
         return 'success';
     }
 }
@@ -163,7 +172,7 @@ $pagination = [
                         </td>
                         <td class="ess-table__td">
                             <div class="ess-score-bar">
-                                <div class="ess-score-bar__fill ess-score-bar__fill--<?= essScoreClass((int)($event['score'] ?? 0)) ?>"
+                                <div class="ess-score-bar__fill ess-score-bar__fill--<?= essScoreClass((int) ($event['score'] ?? 0)) ?>"
                                      data-score="<?= min(100, $event['score'] ?? 0) ?>"></div>
                                 <span class="ess-score-bar__value"><?= $event['score'] ?? 0 ?></span>
                             </div>

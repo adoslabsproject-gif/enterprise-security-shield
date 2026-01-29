@@ -25,7 +25,7 @@ final class AnomalyDetectorTest extends TestCase
             '192.168.1.1',
             '/test',
             10, // requestCount
-            0   // errorCount404
+            0,   // errorCount404
         );
 
         $this->assertIsArray($result);
@@ -42,7 +42,7 @@ final class AnomalyDetectorTest extends TestCase
             '192.168.1.1',
             '/page',
             5,  // Normal request count
-            0   // No errors
+            0,   // No errors
         );
 
         $this->assertFalse($result['is_anomaly']);
@@ -55,7 +55,7 @@ final class AnomalyDetectorTest extends TestCase
             '192.168.1.1',
             '/api/data',
             500, // High request count
-            0
+            0,
         );
 
         $this->assertTrue($result['is_anomaly']);
@@ -68,7 +68,7 @@ final class AnomalyDetectorTest extends TestCase
             '192.168.1.1',
             '/random',
             100, // request count
-            80   // High 404 error count
+            80,   // High 404 error count
         );
 
         $this->assertTrue($result['is_anomaly']);
@@ -83,7 +83,7 @@ final class AnomalyDetectorTest extends TestCase
             '192.168.1.1',
             '/a/b/c/d/e/f/g/h', // Very deep path
             10,
-            0
+            0,
         );
 
         $hasPathAnomaly = false;
@@ -102,7 +102,7 @@ final class AnomalyDetectorTest extends TestCase
             '192.168.1.1',
             '/../../../etc/passwd',
             1,
-            0
+            0,
         );
 
         $this->assertTrue($result['is_anomaly']);
@@ -122,7 +122,7 @@ final class AnomalyDetectorTest extends TestCase
                 $data['ip'],
                 $data['path'],
                 $data['requests'],
-                $data['errors']
+                $data['errors'],
             );
             $this->assertGreaterThanOrEqual(0, $result['anomaly_score']);
             $this->assertLessThanOrEqual(100, $result['anomaly_score']);
@@ -135,7 +135,7 @@ final class AnomalyDetectorTest extends TestCase
             '192.168.1.1',
             '/',
             0,
-            0
+            0,
         );
 
         $this->assertFalse($result['is_anomaly']);
@@ -216,7 +216,7 @@ final class AnomalyDetectorTest extends TestCase
             '192.168.1.1',
             '/admin',
             500,
-            0
+            0,
         );
 
         $this->assertNotEmpty($result['recommendation']);
@@ -231,7 +231,7 @@ final class AnomalyDetectorTest extends TestCase
             '192.168.1.1',
             '/',
             50, // Moderately high
-            0
+            0,
         );
 
         // Should be less likely to flag as anomaly
@@ -247,7 +247,7 @@ final class AnomalyDetectorTest extends TestCase
             '192.168.1.1',
             '/',
             10,
-            5 // Moderate error count
+            5, // Moderate error count
         );
 
         $this->assertIsBool($result['is_anomaly']);

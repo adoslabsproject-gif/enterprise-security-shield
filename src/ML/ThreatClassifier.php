@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace AdosLabs\EnterpriseSecurityShield\ML;
 
 /**
- * Machine Learning Threat Classifier
+ * Machine Learning Threat Classifier.
  *
  * Trained on REAL attack data from need2talk.it production logs (Dec 2025 - Jan 2026).
  * Uses Naive Bayes classification with feature extraction from actual attack patterns.
@@ -32,7 +32,7 @@ final class ThreatClassifier
 {
     /**
      * Feature weights learned from need2talk attack logs
-     * These are REAL patterns from production data
+     * These are REAL patterns from production data.
      */
     private const FEATURE_WEIGHTS = [
         // User-Agent based features (from 38 days of logs)
@@ -100,7 +100,7 @@ final class ThreatClassifier
 
     /**
      * Prior probabilities (from log analysis)
-     * Based on 662 events: ~28% attacks, ~72% legitimate
+     * Based on 662 events: ~28% attacks, ~72% legitimate.
      */
     private const PRIORS = [
         'SCANNER' => 0.12,
@@ -115,7 +115,8 @@ final class ThreatClassifier
     ];
 
     /**
-     * Attack path patterns extracted from logs
+     * Attack path patterns extracted from logs.
+     *
      * @var array<string, string>
      */
     private const ATTACK_PATH_PATTERNS = [
@@ -177,7 +178,8 @@ final class ThreatClassifier
     ];
 
     /**
-     * Scanner User-Agent signatures
+     * Scanner User-Agent signatures.
+     *
      * @var array<string>
      */
     private const SCANNER_UA_SIGNATURES = [
@@ -216,7 +218,8 @@ final class ThreatClassifier
     ];
 
     /**
-     * Known bot User-Agents that need DNS verification
+     * Known bot User-Agents that need DNS verification.
+     *
      * @var array<string, string>
      */
     private const VERIFIABLE_BOTS = [
@@ -236,10 +239,12 @@ final class ThreatClassifier
     ];
 
     private float $confidenceThreshold = 0.65;
+
     private bool $enableBotVerification = true;
 
     /**
-     * Verified bot IPs cache
+     * Verified bot IPs cache.
+     *
      * @var array<string, bool>
      */
     private array $verifiedBots = [];
@@ -247,17 +252,19 @@ final class ThreatClassifier
     public function setConfidenceThreshold(float $threshold): self
     {
         $this->confidenceThreshold = max(0.0, min(1.0, $threshold));
+
         return $this;
     }
 
     public function enableBotVerification(bool $enable): self
     {
         $this->enableBotVerification = $enable;
+
         return $this;
     }
 
     /**
-     * Classify a request using Naive Bayes
+     * Classify a request using Naive Bayes.
      *
      * @return array{
      *     classification: string,
@@ -274,7 +281,7 @@ final class ThreatClassifier
         string $path,
         string $method = 'GET',
         array $headers = [],
-        array $behaviorMetrics = []
+        array $behaviorMetrics = [],
     ): array {
         // Extract features
         $features = $this->extractFeatures($ip, $userAgent, $path, $method, $headers, $behaviorMetrics);
@@ -298,15 +305,16 @@ final class ThreatClassifier
             'confidence' => round($confidence, 4),
             'is_threat' => $isThreat,
             'features_detected' => $features,
-            'probabilities' => array_map(fn($p) => round($p, 4), $probabilities),
+            'probabilities' => array_map(fn ($p) => round($p, 4), $probabilities),
             'reasoning' => $reasoning,
         ];
     }
 
     /**
-     * Batch classify multiple requests
+     * Batch classify multiple requests.
      *
      * @param array<array{ip: string, user_agent: string, path: string, method?: string, headers?: array, metrics?: array}> $requests
+     *
      * @return array<array>
      */
     public function classifyBatch(array $requests): array
@@ -319,14 +327,15 @@ final class ThreatClassifier
                 $request['path'],
                 $request['method'] ?? 'GET',
                 $request['headers'] ?? [],
-                $request['metrics'] ?? []
+                $request['metrics'] ?? [],
             );
         }
+
         return $results;
     }
 
     /**
-     * Check if User-Agent is a scanner
+     * Check if User-Agent is a scanner.
      */
     public function isScanner(string $userAgent): bool
     {
@@ -336,11 +345,12 @@ final class ThreatClassifier
                 return true;
             }
         }
+
         return false;
     }
 
     /**
-     * Check if User-Agent claims to be a bot and verify it
+     * Check if User-Agent claims to be a bot and verify it.
      */
     public function isSpoofedBot(string $ip, string $userAgent): ?array
     {
@@ -359,6 +369,7 @@ final class ThreatClassifier
                             'reason' => 'DNS verification failed (cached)',
                         ];
                     }
+
                     return null; // Verified legitimate
                 }
 
@@ -385,7 +396,7 @@ final class ThreatClassifier
     }
 
     /**
-     * Get attack type for a path
+     * Get attack type for a path.
      */
     public function getPathAttackType(string $path): ?string
     {
@@ -407,7 +418,7 @@ final class ThreatClassifier
     }
 
     /**
-     * Extract features from request
+     * Extract features from request.
      *
      * @return array<string>
      */
@@ -417,7 +428,7 @@ final class ThreatClassifier
         string $path,
         string $method,
         array $headers,
-        array $behaviorMetrics
+        array $behaviorMetrics,
     ): array {
         $features = [];
         $ua = strtolower($userAgent);
@@ -570,9 +581,10 @@ final class ThreatClassifier
     }
 
     /**
-     * Calculate Naive Bayes probabilities
+     * Calculate Naive Bayes probabilities.
      *
      * @param array<string> $features
+     *
      * @return array<string, float>
      */
     private function calculateProbabilities(array $features): array
@@ -615,7 +627,7 @@ final class ThreatClassifier
     }
 
     /**
-     * Verify bot via DNS reverse lookup
+     * Verify bot via DNS reverse lookup.
      */
     private function verifyBotDNS(string $ip, string $expectedDomain): bool
     {
@@ -645,7 +657,7 @@ final class ThreatClassifier
     }
 
     /**
-     * Build human-readable reasoning
+     * Build human-readable reasoning.
      */
     private function buildReasoning(string $classification, array $features, float $confidence): string
     {
@@ -688,12 +700,12 @@ final class ThreatClassifier
             $classification,
             $confidenceLevel,
             $confidence * 100,
-            implode('; ', array_slice($reasons, 0, 3))
+            implode('; ', array_slice($reasons, 0, 3)),
         );
     }
 
     /**
-     * Get model statistics
+     * Get model statistics.
      */
     public function getModelStats(): array
     {

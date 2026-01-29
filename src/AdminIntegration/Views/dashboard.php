@@ -1,6 +1,6 @@
 <?php
 /**
- * Security Shield Dashboard View
+ * Security Shield Dashboard View.
  *
  * @var array $stats Security statistics
  * @var array $recent_threats Recent threat events
@@ -11,7 +11,8 @@
 
 // Helper functions for badge classes (wrapped to prevent redefinition)
 if (!function_exists('essThreatBadgeClass')) {
-    function essThreatBadgeClass(string $type): string {
+    function essThreatBadgeClass(string $type): string
+    {
         return match (strtolower($type)) {
             'auto_ban', 'ban' => 'danger',
             'honeypot', 'honeypot_access' => 'warning',
@@ -25,10 +26,18 @@ if (!function_exists('essThreatBadgeClass')) {
 }
 
 if (!function_exists('essScoreClass')) {
-    function essScoreClass(int $score): string {
-        if ($score >= 80) return 'danger';
-        if ($score >= 50) return 'warning';
-        if ($score >= 20) return 'info';
+    function essScoreClass(int $score): string
+    {
+        if ($score >= 80) {
+            return 'danger';
+        }
+        if ($score >= 50) {
+            return 'warning';
+        }
+        if ($score >= 20) {
+            return 'info';
+        }
+
         return 'success';
     }
 }

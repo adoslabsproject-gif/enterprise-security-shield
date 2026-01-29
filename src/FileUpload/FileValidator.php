@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace AdosLabs\EnterpriseSecurityShield\FileUpload;
 
 /**
- * Enterprise File Upload Validator
+ * Enterprise File Upload Validator.
  *
  * Multi-layer file validation to prevent malicious uploads:
  * - MIME type detection (magic bytes, not extension)
@@ -31,21 +31,21 @@ namespace AdosLabs\EnterpriseSecurityShield\FileUpload;
 final class FileValidator
 {
     /**
-     * Magic bytes signatures for file type detection
+     * Magic bytes signatures for file type detection.
      */
     private const MAGIC_BYTES = [
         // Images
         'image/jpeg' => [[0 => "\xFF\xD8\xFF"]],
         'image/png' => [[0 => "\x89PNG\r\n\x1a\n"]],
-        'image/gif' => [[0 => "GIF87a"], [0 => "GIF89a"]],
-        'image/webp' => [[0 => "RIFF", 8 => "WEBP"]],
-        'image/bmp' => [[0 => "BM"]],
+        'image/gif' => [[0 => 'GIF87a'], [0 => 'GIF89a']],
+        'image/webp' => [[0 => 'RIFF', 8 => 'WEBP']],
+        'image/bmp' => [[0 => 'BM']],
         'image/tiff' => [[0 => "II\x2a\x00"], [0 => "MM\x00\x2a"]],
         'image/x-icon' => [[0 => "\x00\x00\x01\x00"]],
-        'image/svg+xml' => [[0 => "<?xml"], [0 => "<svg"]],
+        'image/svg+xml' => [[0 => '<?xml'], [0 => '<svg']],
 
         // Documents
-        'application/pdf' => [[0 => "%PDF"]],
+        'application/pdf' => [[0 => '%PDF']],
         'application/msword' => [[0 => "\xD0\xCF\x11\xE0\xA1\xB1\x1A\xE1"]],
         'application/vnd.openxmlformats-officedocument' => [[0 => "PK\x03\x04"]],
 
@@ -54,22 +54,22 @@ final class FileValidator
         'application/x-rar' => [[0 => "Rar!\x1a\x07"]],
         'application/gzip' => [[0 => "\x1f\x8b"]],
         'application/x-7z-compressed' => [[0 => "7z\xBC\xAF\x27\x1C"]],
-        'application/x-tar' => [[257 => "ustar"]],
+        'application/x-tar' => [[257 => 'ustar']],
 
         // Audio/Video
-        'audio/mpeg' => [[0 => "\xFF\xFB"], [0 => "\xFF\xFA"], [0 => "ID3"]],
-        'audio/wav' => [[0 => "RIFF", 8 => "WAVE"]],
-        'video/mp4' => [[4 => "ftyp"]],
+        'audio/mpeg' => [[0 => "\xFF\xFB"], [0 => "\xFF\xFA"], [0 => 'ID3']],
+        'audio/wav' => [[0 => 'RIFF', 8 => 'WAVE']],
+        'video/mp4' => [[4 => 'ftyp']],
         'video/webm' => [[0 => "\x1a\x45\xdf\xa3"]],
 
         // Text/Code (dangerous)
-        'text/html' => [[0 => "<!DOCTYPE"], [0 => "<html"], [0 => "<HTML"]],
+        'text/html' => [[0 => '<!DOCTYPE'], [0 => '<html'], [0 => '<HTML']],
         'application/javascript' => [],
-        'text/x-php' => [[0 => "<?php"], [0 => "<?="], [0 => "<?\n"], [0 => "<?\r"]],
+        'text/x-php' => [[0 => '<?php'], [0 => '<?='], [0 => "<?\n"], [0 => "<?\r"]],
     ];
 
     /**
-     * Dangerous file extensions (always blocked)
+     * Dangerous file extensions (always blocked).
      */
     private const DANGEROUS_EXTENSIONS = [
         // Server-side scripts
@@ -90,7 +90,7 @@ final class FileValidator
     ];
 
     /**
-     * PHP code signatures to detect in files
+     * PHP code signatures to detect in files.
      */
     private const PHP_SIGNATURES = [
         '<?php',
@@ -104,7 +104,7 @@ final class FileValidator
     ];
 
     /**
-     * JavaScript signatures (for SVG/HTML)
+     * JavaScript signatures (for SVG/HTML).
      */
     private const JS_SIGNATURES = [
         'javascript:',
@@ -123,6 +123,7 @@ final class FileValidator
     ];
 
     private array $config;
+
     private ?ClamAVClient $clamav = null;
 
     /**
@@ -168,10 +169,11 @@ final class FileValidator
     }
 
     /**
-     * Validate uploaded file
+     * Validate uploaded file.
      *
      * @param string $filePath Path to uploaded file
      * @param string $originalName Original filename
+     *
      * @return ValidationResult
      */
     public function validate(string $filePath, string $originalName): ValidationResult
@@ -201,7 +203,7 @@ final class FileValidator
             $errors[] = sprintf(
                 'File size (%s) exceeds maximum allowed (%s)',
                 $this->formatBytes($fileSize),
-                $this->formatBytes((int) $this->config['max_file_size'])
+                $this->formatBytes((int) $this->config['max_file_size']),
             );
         }
 
@@ -273,12 +275,12 @@ final class FileValidator
             empty($errors),
             $errors,
             $warnings,
-            $metadata
+            $metadata,
         );
     }
 
     /**
-     * Get safe extension from filename
+     * Get safe extension from filename.
      */
     private function getExtension(string $filename): string
     {
@@ -303,7 +305,7 @@ final class FileValidator
     }
 
     /**
-     * Validate extension
+     * Validate extension.
      */
     private function validateExtension(string $extension, string $originalName): array
     {
@@ -336,19 +338,19 @@ final class FileValidator
 
         // Check for null bytes in filename
         if (str_contains($originalName, "\x00")) {
-            $errors[] = "Null byte detected in filename (injection attack)";
+            $errors[] = 'Null byte detected in filename (injection attack)';
         }
 
         // Check for suspicious characters
         if (preg_match('/[<>:"|?*\x00-\x1f]/', $originalName)) {
-            $warnings[] = "Filename contains suspicious characters";
+            $warnings[] = 'Filename contains suspicious characters';
         }
 
         return ['valid' => empty($errors), 'errors' => $errors, 'warnings' => $warnings];
     }
 
     /**
-     * Validate magic bytes match declared extension
+     * Validate magic bytes match declared extension.
      */
     private function validateMagicBytes(string $filePath, string $extension): array
     {
@@ -371,7 +373,7 @@ final class FileValidator
                 $errors[] = sprintf(
                     "MIME type mismatch: extension '%s' but detected '%s' (possible spoofing)",
                     $extension,
-                    $detectedMime
+                    $detectedMime,
                 );
             }
         }
@@ -379,14 +381,14 @@ final class FileValidator
         // Check for PHP/script MIME types
         $dangerousMimes = ['text/x-php', 'application/x-php', 'application/x-httpd-php'];
         if (in_array($detectedMime, $dangerousMimes, true)) {
-            $errors[] = "File detected as PHP script regardless of extension";
+            $errors[] = 'File detected as PHP script regardless of extension';
         }
 
         return ['valid' => empty($errors), 'errors' => $errors, 'detected_mime' => $detectedMime];
     }
 
     /**
-     * Detect MIME type using magic bytes
+     * Detect MIME type using magic bytes.
      */
     private function detectMimeType(string $filePath): ?string
     {
@@ -427,6 +429,7 @@ final class FileValidator
             if ($finfo !== false) {
                 $mime = finfo_file($finfo, $filePath);
                 finfo_close($finfo);
+
                 return $mime ?: null;
             }
         }
@@ -435,7 +438,7 @@ final class FileValidator
     }
 
     /**
-     * Validate file content for embedded scripts
+     * Validate file content for embedded scripts.
      */
     private function validateContent(string $filePath, string $extension): array
     {
@@ -452,7 +455,7 @@ final class FileValidator
         if (!in_array($extension, ['php', 'phtml', 'phar'], true)) {
             foreach (self::PHP_SIGNATURES as $sig) {
                 if (str_contains($contentLower, strtolower($sig))) {
-                    $errors[] = "PHP code detected in file (possible webshell)";
+                    $errors[] = 'PHP code detected in file (possible webshell)';
                     break;
                 }
             }
@@ -462,7 +465,7 @@ final class FileValidator
         if ($this->isImageExtension($extension) || in_array($extension, ['pdf', 'svg'], true)) {
             foreach (self::JS_SIGNATURES as $sig) {
                 if (str_contains($contentLower, strtolower($sig))) {
-                    $errors[] = "JavaScript/Event handler detected in file (XSS risk)";
+                    $errors[] = 'JavaScript/Event handler detected in file (XSS risk)';
                     break;
                 }
             }
@@ -471,7 +474,7 @@ final class FileValidator
         // Check for HTML in non-HTML files
         if (!in_array($extension, ['html', 'htm', 'svg', 'xml'], true)) {
             if (preg_match('/<\s*(html|script|iframe|object|embed|form|body)/i', $content)) {
-                $errors[] = "HTML content detected in non-HTML file";
+                $errors[] = 'HTML content detected in non-HTML file';
             }
         }
 
@@ -487,7 +490,7 @@ final class FileValidator
                 }
             }
             if ($hasImageHeader && $hasPhp) {
-                $errors[] = "Polyglot file detected: Valid image with embedded PHP code";
+                $errors[] = 'Polyglot file detected: Valid image with embedded PHP code';
             }
         }
 
@@ -495,7 +498,7 @@ final class FileValidator
     }
 
     /**
-     * Validate image file
+     * Validate image file.
      */
     private function validateImage(string $filePath): array
     {
@@ -508,7 +511,8 @@ final class FileValidator
 
         $imageInfo = @getimagesize($filePath);
         if ($imageInfo === false) {
-            $errors[] = "Invalid or corrupted image file";
+            $errors[] = 'Invalid or corrupted image file';
+
             return ['valid' => false, 'errors' => $errors, 'metadata' => []];
         }
 
@@ -520,24 +524,24 @@ final class FileValidator
         // Check dimensions
         if ($imageInfo[0] > $this->config['max_image_width']) {
             $errors[] = sprintf(
-                "Image width (%d) exceeds maximum (%d)",
+                'Image width (%d) exceeds maximum (%d)',
                 $imageInfo[0],
-                $this->config['max_image_width']
+                $this->config['max_image_width'],
             );
         }
 
         if ($imageInfo[1] > $this->config['max_image_height']) {
             $errors[] = sprintf(
-                "Image height (%d) exceeds maximum (%d)",
+                'Image height (%d) exceeds maximum (%d)',
                 $imageInfo[1],
-                $this->config['max_image_height']
+                $this->config['max_image_height'],
             );
         }
 
         // Decompression bomb detection (pixel count)
         $pixels = $imageInfo[0] * $imageInfo[1];
         if ($pixels > 100000000) { // 100 megapixels
-            $errors[] = "Image has excessive pixel count (decompression bomb risk)";
+            $errors[] = 'Image has excessive pixel count (decompression bomb risk)';
         }
 
         // Check compression ratio for decompression bombs
@@ -545,7 +549,7 @@ final class FileValidator
         if ($fileSize > 0) {
             $bitsPerPixel = ($fileSize * 8) / $pixels;
             if ($bitsPerPixel < 0.01) { // Suspiciously high compression
-                $errors[] = "Image has suspicious compression ratio (possible bomb)";
+                $errors[] = 'Image has suspicious compression ratio (possible bomb)';
             }
         }
 
@@ -553,7 +557,7 @@ final class FileValidator
     }
 
     /**
-     * Validate archive file
+     * Validate archive file.
      */
     private function validateArchive(string $filePath): array
     {
@@ -568,7 +572,8 @@ final class FileValidator
             $result = $zip->open($filePath, \ZipArchive::RDONLY);
 
             if ($result !== true) {
-                $errors[] = "Invalid or corrupted ZIP archive";
+                $errors[] = 'Invalid or corrupted ZIP archive';
+
                 return ['valid' => false, 'errors' => $errors, 'warnings' => [], 'metadata' => []];
             }
 
@@ -582,9 +587,9 @@ final class FileValidator
             // Check file count
             if ($fileCount > $this->config['max_archive_files']) {
                 $errors[] = sprintf(
-                    "Archive contains too many files (%d > %d)",
+                    'Archive contains too many files (%d > %d)',
                     $fileCount,
-                    $this->config['max_archive_files']
+                    $this->config['max_archive_files'],
                 );
             }
 
@@ -600,7 +605,7 @@ final class FileValidator
 
                 // Check for path traversal
                 if (str_contains($entryName, '..') || str_starts_with($entryName, '/')) {
-                    $errors[] = "Archive contains path traversal: " . substr($entryName, 0, 50);
+                    $errors[] = 'Archive contains path traversal: ' . substr($entryName, 0, 50);
                 }
 
                 // Check for dangerous files
@@ -621,9 +626,9 @@ final class FileValidator
             // Check total uncompressed size (ZIP bomb)
             if ($totalSize > $this->config['max_archive_size']) {
                 $errors[] = sprintf(
-                    "Archive uncompressed size too large (%s > %s) - possible ZIP bomb",
+                    'Archive uncompressed size too large (%s > %s) - possible ZIP bomb',
                     $this->formatBytes($totalSize),
-                    $this->formatBytes($this->config['max_archive_size'])
+                    $this->formatBytes($this->config['max_archive_size']),
                 );
             }
 
@@ -633,20 +638,20 @@ final class FileValidator
                 $ratio = $totalSize / $compressedSize;
                 $metadata['compression_ratio'] = round($ratio, 2);
                 if ($ratio > 1000) { // 1000:1 ratio is suspicious
-                    $errors[] = sprintf("Suspicious compression ratio (%.0f:1) - possible ZIP bomb", $ratio);
+                    $errors[] = sprintf('Suspicious compression ratio (%.0f:1) - possible ZIP bomb', $ratio);
                 }
             }
 
             // Warn about dangerous files
             if (!empty($dangerousFiles)) {
-                $warnings[] = "Archive contains potentially dangerous files: " .
+                $warnings[] = 'Archive contains potentially dangerous files: ' .
                     implode(', ', array_slice($dangerousFiles, 0, 5)) .
                     (count($dangerousFiles) > 5 ? '...' : '');
             }
 
             // Warn about nested archives
             if ($nestedArchives > $this->config['max_archive_depth']) {
-                $warnings[] = sprintf("Archive contains %d nested archives", $nestedArchives);
+                $warnings[] = sprintf('Archive contains %d nested archives', $nestedArchives);
             }
 
             $zip->close();
@@ -661,7 +666,7 @@ final class FileValidator
     }
 
     /**
-     * Validate and optionally sanitize SVG
+     * Validate and optionally sanitize SVG.
      */
     private function validateSvg(string $filePath): array
     {
@@ -674,44 +679,44 @@ final class FileValidator
 
         // Check for script elements
         if (preg_match('/<\s*script/i', $content)) {
-            $errors[] = "SVG contains script element";
+            $errors[] = 'SVG contains script element';
         }
 
         // Check for event handlers
         if (preg_match('/\s+on\w+\s*=/i', $content)) {
-            $errors[] = "SVG contains event handlers";
+            $errors[] = 'SVG contains event handlers';
         }
 
         // Check for javascript: URLs
         if (preg_match('/javascript\s*:/i', $content)) {
-            $errors[] = "SVG contains javascript: URL";
+            $errors[] = 'SVG contains javascript: URL';
         }
 
         // Check for data: URLs with scripts
         if (preg_match('/data\s*:\s*text\/html/i', $content)) {
-            $errors[] = "SVG contains data:text/html URL";
+            $errors[] = 'SVG contains data:text/html URL';
         }
 
         // Check for external references (SSRF risk)
         if (preg_match('/xlink:href\s*=\s*["\']https?:/i', $content)) {
-            $errors[] = "SVG contains external HTTP references";
+            $errors[] = 'SVG contains external HTTP references';
         }
 
         // Check for foreignObject (can contain HTML)
         if (preg_match('/<\s*foreignObject/i', $content)) {
-            $errors[] = "SVG contains foreignObject element";
+            $errors[] = 'SVG contains foreignObject element';
         }
 
         // Check for use element with external reference
         if (preg_match('/<\s*use[^>]+xlink:href\s*=\s*["\'][^#]/i', $content)) {
-            $errors[] = "SVG use element references external resource";
+            $errors[] = 'SVG use element references external resource';
         }
 
         return ['valid' => empty($errors), 'errors' => $errors];
     }
 
     /**
-     * Scan file with ClamAV
+     * Scan file with ClamAV.
      */
     private function scanWithClamAV(string $filePath): array
     {
@@ -721,9 +726,10 @@ final class FileValidator
 
         try {
             $result = $this->clamav->scanFile($filePath);
+
             return [
                 'valid' => $result['clean'],
-                'errors' => $result['clean'] ? [] : ["Malware detected: " . ($result['virus'] ?? 'Unknown')],
+                'errors' => $result['clean'] ? [] : ['Malware detected: ' . ($result['virus'] ?? 'Unknown')],
                 'metadata' => [
                     'scanned' => true,
                     'clean' => $result['clean'],
@@ -744,7 +750,7 @@ final class FileValidator
     }
 
     /**
-     * Get expected MIME types for extension
+     * Get expected MIME types for extension.
      */
     private function getExpectedMimes(string $extension): array
     {
@@ -785,7 +791,7 @@ final class FileValidator
     }
 
     /**
-     * Check if extension is for image
+     * Check if extension is for image.
      */
     private function isImageExtension(string $extension): bool
     {
@@ -793,7 +799,7 @@ final class FileValidator
     }
 
     /**
-     * Check if extension is for archive
+     * Check if extension is for archive.
      */
     private function isArchiveExtension(string $extension): bool
     {
@@ -801,7 +807,7 @@ final class FileValidator
     }
 
     /**
-     * Format bytes for display
+     * Format bytes for display.
      */
     private function formatBytes(int $bytes): string
     {
@@ -811,11 +817,12 @@ final class FileValidator
             $bytes /= 1024;
             $i++;
         }
+
         return round($bytes, 2) . ' ' . $units[$i];
     }
 
     /**
-     * Sanitize SVG file (remove dangerous elements)
+     * Sanitize SVG file (remove dangerous elements).
      */
     public function sanitizeSvg(string $content): string
     {
@@ -839,11 +846,12 @@ final class FileValidator
     }
 
     /**
-     * Configure ClamAV client
+     * Configure ClamAV client.
      */
     public function setClamAVClient(ClamAVClient $client): self
     {
         $this->clamav = $client;
+
         return $this;
     }
 }

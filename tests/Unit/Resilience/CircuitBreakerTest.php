@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace AdosLabs\EnterpriseSecurityShield\Tests\Unit\Resilience;
 
-use PHPUnit\Framework\TestCase;
 use AdosLabs\EnterpriseSecurityShield\Resilience\CircuitBreaker;
 use AdosLabs\EnterpriseSecurityShield\Resilience\CircuitOpenException;
 use AdosLabs\EnterpriseSecurityShield\Tests\Fixtures\InMemoryStorage;
+use PHPUnit\Framework\TestCase;
 
 class CircuitBreakerTest extends TestCase
 {

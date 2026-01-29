@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace AdosLabs\EnterpriseSecurityShield\Detection\Parser;
 
 /**
- * XSS Analyzer - Real HTML/JS parsing for XSS detection
+ * XSS Analyzer - Real HTML/JS parsing for XSS detection.
  *
  * This is NOT regex matching. This is a real parser that:
  * - Tokenizes HTML structure
@@ -26,30 +26,43 @@ namespace AdosLabs\EnterpriseSecurityShield\Detection\Parser;
 final class XSSAnalyzer
 {
     /**
-     * Risk levels
+     * Risk levels.
      */
     public const RISK_NONE = 'NONE';
+
     public const RISK_LOW = 'LOW';
+
     public const RISK_MEDIUM = 'MEDIUM';
+
     public const RISK_HIGH = 'HIGH';
+
     public const RISK_CRITICAL = 'CRITICAL';
 
     /**
-     * Attack types
+     * Attack types.
      */
     public const ATTACK_SCRIPT_TAG = 'SCRIPT_TAG';
+
     public const ATTACK_EVENT_HANDLER = 'EVENT_HANDLER';
+
     public const ATTACK_JAVASCRIPT_URI = 'JAVASCRIPT_URI';
+
     public const ATTACK_DATA_URI = 'DATA_URI';
+
     public const ATTACK_SVG_XSS = 'SVG_XSS';
+
     public const ATTACK_MATHML_XSS = 'MATHML_XSS';
+
     public const ATTACK_TEMPLATE_INJECTION = 'TEMPLATE_INJECTION';
+
     public const ATTACK_DOM_CLOBBERING = 'DOM_CLOBBERING';
+
     public const ATTACK_CSS_INJECTION = 'CSS_INJECTION';
+
     public const ATTACK_ENCODED_XSS = 'ENCODED_XSS';
 
     /**
-     * Dangerous HTML tags
+     * Dangerous HTML tags.
      */
     private const DANGEROUS_TAGS = [
         'script' => 1.0,
@@ -89,7 +102,7 @@ final class XSSAnalyzer
     ];
 
     /**
-     * Event handlers (case-insensitive)
+     * Event handlers (case-insensitive).
      */
     private const EVENT_HANDLERS = [
         'onabort', 'onactivate', 'onafterprint', 'onafterscriptexecute', 'onafterupdate',
@@ -137,7 +150,7 @@ final class XSSAnalyzer
     ];
 
     /**
-     * Dangerous URL schemes
+     * Dangerous URL schemes.
      */
     private const DANGEROUS_SCHEMES = [
         'javascript:',
@@ -149,7 +162,7 @@ final class XSSAnalyzer
     ];
 
     /**
-     * JavaScript dangerous patterns
+     * JavaScript dangerous patterns.
      */
     private const JS_DANGEROUS_PATTERNS = [
         'eval',
@@ -191,9 +204,10 @@ final class XSSAnalyzer
     ];
 
     /**
-     * Analyze input for XSS
+     * Analyze input for XSS.
      *
      * @param string $input Raw user input
+     *
      * @return array{
      *     detected: bool,
      *     confidence: float,
@@ -272,7 +286,7 @@ final class XSSAnalyzer
     }
 
     /**
-     * Quick check for obviously safe input
+     * Quick check for obviously safe input.
      */
     private function isObviouslySafe(string $input): bool
     {
@@ -290,7 +304,7 @@ final class XSSAnalyzer
     }
 
     /**
-     * Decode various input encodings
+     * Decode various input encodings.
      */
     private function decodeInput(string $input): string
     {
@@ -311,22 +325,22 @@ final class XSSAnalyzer
         // Numeric character references
         $decoded = preg_replace_callback(
             '/&#([0-9]+);?/',
-            fn($m) => chr((int) $m[1]),
-            $decoded
+            fn ($m) => chr((int) $m[1]),
+            $decoded,
         ) ?? $decoded;
 
         // Hex character references
         $decoded = preg_replace_callback(
             '/&#x([0-9a-fA-F]+);?/',
-            fn($m) => chr((int) hexdec($m[1])),
-            $decoded
+            fn ($m) => chr((int) hexdec($m[1])),
+            $decoded,
         ) ?? $decoded;
 
         // Unicode escapes
         $decoded = preg_replace_callback(
             '/\\\\u([0-9a-fA-F]{4})/',
-            fn($m) => mb_chr((int) hexdec($m[1])),
-            $decoded
+            fn ($m) => mb_chr((int) hexdec($m[1])),
+            $decoded,
         ) ?? $decoded;
 
         // Remove null bytes
@@ -336,7 +350,7 @@ final class XSSAnalyzer
     }
 
     /**
-     * Check for script tags
+     * Check for script tags.
      */
     private function checkScriptTags(string $input): array
     {
@@ -370,7 +384,7 @@ final class XSSAnalyzer
     }
 
     /**
-     * Check for event handlers
+     * Check for event handlers.
      */
     private function checkEventHandlers(string $input): array
     {
@@ -397,7 +411,7 @@ final class XSSAnalyzer
     }
 
     /**
-     * Check for javascript: URIs
+     * Check for javascript: URIs.
      */
     private function checkJavascriptUri(string $input): array
     {
@@ -426,7 +440,7 @@ final class XSSAnalyzer
                 $result['detected'] = true;
                 $result['confidence'] = max($result['confidence'], $confidence);
                 $result['attack_type'] = self::ATTACK_JAVASCRIPT_URI;
-                $result['evidence'][] = "JavaScript URI detected";
+                $result['evidence'][] = 'JavaScript URI detected';
                 $result['vectors'][] = [
                     'type' => 'javascript_uri',
                     'payload' => $pattern,
@@ -439,7 +453,7 @@ final class XSSAnalyzer
     }
 
     /**
-     * Check for data: URIs with JavaScript
+     * Check for data: URIs with JavaScript.
      */
     private function checkDataUri(string $input): array
     {
@@ -450,7 +464,7 @@ final class XSSAnalyzer
             $result['detected'] = true;
             $result['confidence'] = 0.90;
             $result['attack_type'] = self::ATTACK_DATA_URI;
-            $result['evidence'][] = "Data URI with HTML content type";
+            $result['evidence'][] = 'Data URI with HTML content type';
             $result['vectors'][] = [
                 'type' => 'data_uri',
                 'payload' => substr($matches[0], 0, 50),
@@ -466,7 +480,7 @@ final class XSSAnalyzer
                     $result['detected'] = true;
                     $result['confidence'] = 0.95;
                     $result['attack_type'] = self::ATTACK_DATA_URI;
-                    $result['evidence'][] = "Base64 encoded script in data URI";
+                    $result['evidence'][] = 'Base64 encoded script in data URI';
                     $result['vectors'][] = [
                         'type' => 'data_uri_base64',
                         'payload' => 'base64 encoded script',
@@ -480,7 +494,7 @@ final class XSSAnalyzer
     }
 
     /**
-     * Check for SVG-based XSS
+     * Check for SVG-based XSS.
      */
     private function checkSvgXss(string $input): array
     {
@@ -493,7 +507,7 @@ final class XSSAnalyzer
                 $result['detected'] = true;
                 $result['confidence'] = 0.95;
                 $result['attack_type'] = self::ATTACK_SVG_XSS;
-                $result['evidence'][] = "SVG with script/event handler";
+                $result['evidence'][] = 'SVG with script/event handler';
                 $result['vectors'][] = [
                     'type' => 'svg_xss',
                     'payload' => 'svg with embedded script',
@@ -506,7 +520,7 @@ final class XSSAnalyzer
                 $result['detected'] = true;
                 $result['confidence'] = 0.90;
                 $result['attack_type'] = self::ATTACK_SVG_XSS;
-                $result['evidence'][] = "SVG animate XSS";
+                $result['evidence'][] = 'SVG animate XSS';
             }
 
             // SVG use with external reference
@@ -514,7 +528,7 @@ final class XSSAnalyzer
                 $result['detected'] = true;
                 $result['confidence'] = 0.70;
                 $result['attack_type'] = self::ATTACK_SVG_XSS;
-                $result['evidence'][] = "SVG use element with external reference";
+                $result['evidence'][] = 'SVG use element with external reference';
             }
         }
 
@@ -522,7 +536,7 @@ final class XSSAnalyzer
     }
 
     /**
-     * Check for MathML-based XSS
+     * Check for MathML-based XSS.
      */
     private function checkMathMlXss(string $input): array
     {
@@ -535,7 +549,7 @@ final class XSSAnalyzer
                 $result['detected'] = true;
                 $result['confidence'] = 0.85;
                 $result['attack_type'] = self::ATTACK_MATHML_XSS;
-                $result['evidence'][] = "MathML maction XSS";
+                $result['evidence'][] = 'MathML maction XSS';
             }
 
             // MathML with annotation-xml
@@ -543,7 +557,7 @@ final class XSSAnalyzer
                 $result['detected'] = true;
                 $result['confidence'] = 0.90;
                 $result['attack_type'] = self::ATTACK_MATHML_XSS;
-                $result['evidence'][] = "MathML annotation-xml HTML escape";
+                $result['evidence'][] = 'MathML annotation-xml HTML escape';
             }
         }
 
@@ -551,7 +565,7 @@ final class XSSAnalyzer
     }
 
     /**
-     * Check for template injection (Angular, Vue, etc.)
+     * Check for template injection (Angular, Vue, etc.).
      */
     private function checkTemplateInjection(string $input): array
     {
@@ -571,7 +585,7 @@ final class XSSAnalyzer
                 $result['detected'] = true;
                 $result['confidence'] = max($result['confidence'], $confidence);
                 $result['attack_type'] = self::ATTACK_TEMPLATE_INJECTION;
-                $result['evidence'][] = "Template injection pattern detected";
+                $result['evidence'][] = 'Template injection pattern detected';
                 $result['vectors'][] = [
                     'type' => 'template_injection',
                     'payload' => substr($matches[0], 0, 50),
@@ -584,7 +598,7 @@ final class XSSAnalyzer
     }
 
     /**
-     * Check for DOM clobbering
+     * Check for DOM clobbering.
      */
     private function checkDomClobbering(string $input): array
     {
@@ -606,7 +620,7 @@ final class XSSAnalyzer
     }
 
     /**
-     * Check for CSS injection XSS
+     * Check for CSS injection XSS.
      */
     private function checkCssInjection(string $input): array
     {
@@ -617,7 +631,7 @@ final class XSSAnalyzer
             $result['detected'] = true;
             $result['confidence'] = 0.90;
             $result['attack_type'] = self::ATTACK_CSS_INJECTION;
-            $result['evidence'][] = "CSS expression() detected";
+            $result['evidence'][] = 'CSS expression() detected';
         }
 
         // url() with javascript
@@ -625,7 +639,7 @@ final class XSSAnalyzer
             $result['detected'] = true;
             $result['confidence'] = 0.95;
             $result['attack_type'] = self::ATTACK_CSS_INJECTION;
-            $result['evidence'][] = "CSS url() with javascript:";
+            $result['evidence'][] = 'CSS url() with javascript:';
         }
 
         // behavior() - IE specific
@@ -633,7 +647,7 @@ final class XSSAnalyzer
             $result['detected'] = true;
             $result['confidence'] = 0.85;
             $result['attack_type'] = self::ATTACK_CSS_INJECTION;
-            $result['evidence'][] = "CSS behavior() detected";
+            $result['evidence'][] = 'CSS behavior() detected';
         }
 
         // @import with javascript
@@ -641,14 +655,14 @@ final class XSSAnalyzer
             $result['detected'] = true;
             $result['confidence'] = 0.90;
             $result['attack_type'] = self::ATTACK_CSS_INJECTION;
-            $result['evidence'][] = "CSS @import with javascript:";
+            $result['evidence'][] = 'CSS @import with javascript:';
         }
 
         return $result;
     }
 
     /**
-     * Check for encoded XSS patterns
+     * Check for encoded XSS patterns.
      */
     private function checkEncodedPatterns(string $input): array
     {
@@ -662,7 +676,7 @@ final class XSSAnalyzer
                 $result['detected'] = true;
                 $result['confidence'] = 0.90;
                 $result['attack_type'] = self::ATTACK_ENCODED_XSS;
-                $result['evidence'][] = "Encoded script tag bypass attempt";
+                $result['evidence'][] = 'Encoded script tag bypass attempt';
             }
 
             // Check for encoded event handlers
@@ -680,7 +694,7 @@ final class XSSAnalyzer
     }
 
     /**
-     * Check for dangerous JavaScript patterns
+     * Check for dangerous JavaScript patterns.
      */
     private function checkJsPatterns(string $input): array
     {

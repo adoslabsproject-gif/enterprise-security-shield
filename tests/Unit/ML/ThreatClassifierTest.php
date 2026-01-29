@@ -24,7 +24,7 @@ final class ThreatClassifierTest extends TestCase
         $result = $this->classifier->classify(
             '192.168.1.1',
             'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-            '/index.php'
+            '/index.php',
         );
 
         $this->assertIsArray($result);
@@ -41,7 +41,7 @@ final class ThreatClassifierTest extends TestCase
         $result = $this->classifier->classify(
             '185.177.72.51',
             'curl/8.7.1',
-            '/admin/phpinfo.php'
+            '/admin/phpinfo.php',
         );
 
         $this->assertTrue($result['is_threat']);
@@ -54,7 +54,7 @@ final class ThreatClassifierTest extends TestCase
         $result = $this->classifier->classify(
             '122.97.212.147',
             'Hello, World',
-            '/GponForm/diag_Form?images/'
+            '/GponForm/diag_Form?images/',
         );
 
         $this->assertTrue($result['is_threat']);
@@ -67,7 +67,7 @@ final class ThreatClassifierTest extends TestCase
         $result = $this->classifier->classify(
             '167.94.138.165',
             'Mozilla/5.0 (compatible; CensysInspect/1.1; +https://about.censys.io/)',
-            '/'
+            '/',
         );
 
         $this->assertTrue($result['is_threat']);
@@ -80,7 +80,7 @@ final class ThreatClassifierTest extends TestCase
         $result = $this->classifier->classify(
             '93.71.164.36',
             'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.1 Safari/605.1.15',
-            '/auth/login'
+            '/auth/login',
         );
 
         $this->assertFalse($result['is_threat']);
@@ -92,7 +92,7 @@ final class ThreatClassifierTest extends TestCase
         $result = $this->classifier->classify(
             '79.37.99.128',
             'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Mobile Safari/537.36',
-            '/'
+            '/',
         );
 
         $this->assertFalse($result['is_threat']);
@@ -136,10 +136,10 @@ final class ThreatClassifierTest extends TestCase
     public function testIsScannerAllowsLegitimateUAs(): void
     {
         $this->assertFalse($this->classifier->isScanner(
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0'
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0',
         ));
         $this->assertFalse($this->classifier->isScanner(
-            'Mozilla/5.0 (iPhone; CPU iPhone OS 17_2 like Mac OS X) Safari/605.1.15'
+            'Mozilla/5.0 (iPhone; CPU iPhone OS 17_2 like Mac OS X) Safari/605.1.15',
         ));
     }
 
@@ -219,7 +219,7 @@ final class ThreatClassifierTest extends TestCase
         $result = $this->classifier->classify(
             '192.168.1.1',
             'Mozilla/5.0',
-            '/wp-login.php'
+            '/wp-login.php',
         );
 
         // The result may or may not be a threat depending on confidence
@@ -238,7 +238,7 @@ final class ThreatClassifierTest extends TestCase
                 '404_count' => 50,
                 'requests_per_minute' => 100,
                 'login_failures' => 10,
-            ]
+            ],
         );
 
         $this->assertIsArray($result);

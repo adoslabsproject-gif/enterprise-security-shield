@@ -8,7 +8,7 @@ use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
 
 /**
- * Anonymizing Logger Decorator
+ * Anonymizing Logger Decorator.
  *
  * PSR-3 Logger decorator that automatically anonymizes sensitive data
  * before passing to the underlying logger.
@@ -36,10 +36,12 @@ use Psr\Log\LogLevel;
 final class AnonymizingLoggerDecorator implements LoggerInterface
 {
     private LoggerInterface $logger;
+
     private GDPRCompliance $gdpr;
 
     /**
-     * Fields that contain IP addresses
+     * Fields that contain IP addresses.
+     *
      * @var array<string>
      */
     private array $ipFields = [
@@ -53,7 +55,8 @@ final class AnonymizingLoggerDecorator implements LoggerInterface
     ];
 
     /**
-     * Fields that should be minimized
+     * Fields that should be minimized.
+     *
      * @var array<string>
      */
     private array $minimizeFields = [
@@ -63,7 +66,8 @@ final class AnonymizingLoggerDecorator implements LoggerInterface
     ];
 
     /**
-     * Fields that should be redacted
+     * Fields that should be redacted.
+     *
      * @var array<string>
      */
     private array $redactFields = [
@@ -83,14 +87,14 @@ final class AnonymizingLoggerDecorator implements LoggerInterface
     ];
 
     /**
-     * Enable/disable anonymization
+     * Enable/disable anonymization.
      */
     private bool $enabled = true;
 
     public function __construct(
         LoggerInterface $logger,
         ?GDPRCompliance $gdpr = null,
-        array $config = []
+        array $config = [],
     ) {
         $this->logger = $logger;
         $this->gdpr = $gdpr ?? GDPRCompliance::balanced();
@@ -110,29 +114,32 @@ final class AnonymizingLoggerDecorator implements LoggerInterface
     }
 
     /**
-     * Enable or disable anonymization
+     * Enable or disable anonymization.
      */
     public function setEnabled(bool $enabled): self
     {
         $this->enabled = $enabled;
+
         return $this;
     }
 
     /**
-     * Add custom IP field
+     * Add custom IP field.
      */
     public function addIPField(string $field): self
     {
         $this->ipFields[] = $field;
+
         return $this;
     }
 
     /**
-     * Add custom redact field
+     * Add custom redact field.
      */
     public function addRedactField(string $field): self
     {
         $this->redactFields[] = $field;
+
         return $this;
     }
 
@@ -189,9 +196,10 @@ final class AnonymizingLoggerDecorator implements LoggerInterface
     }
 
     /**
-     * Anonymize context array
+     * Anonymize context array.
      *
      * @param array<string, mixed> $context
+     *
      * @return array<string, mixed>
      */
     private function anonymizeContext(array $context): array
@@ -200,9 +208,10 @@ final class AnonymizingLoggerDecorator implements LoggerInterface
     }
 
     /**
-     * Process array recursively
+     * Process array recursively.
      *
      * @param array<string, mixed> $data
+     *
      * @return array<string, mixed>
      */
     private function processArray(array $data): array
@@ -249,7 +258,7 @@ final class AnonymizingLoggerDecorator implements LoggerInterface
     }
 
     /**
-     * Check if field should be redacted
+     * Check if field should be redacted.
      */
     private function shouldRedact(string $key): bool
     {
@@ -258,11 +267,12 @@ final class AnonymizingLoggerDecorator implements LoggerInterface
                 return true;
             }
         }
+
         return false;
     }
 
     /**
-     * Check if field is an IP field
+     * Check if field is an IP field.
      */
     private function isIPField(string $key): bool
     {
@@ -270,7 +280,7 @@ final class AnonymizingLoggerDecorator implements LoggerInterface
     }
 
     /**
-     * Check if field should be minimized
+     * Check if field should be minimized.
      */
     private function shouldMinimize(string $key): bool
     {
@@ -278,7 +288,7 @@ final class AnonymizingLoggerDecorator implements LoggerInterface
     }
 
     /**
-     * Anonymize IP value (handles single IP or comma-separated list)
+     * Anonymize IP value (handles single IP or comma-separated list).
      *
      * @param mixed $value
      */
@@ -291,7 +301,8 @@ final class AnonymizingLoggerDecorator implements LoggerInterface
         // Handle comma-separated IPs (X-Forwarded-For)
         if (str_contains($value, ',')) {
             $ips = array_map('trim', explode(',', $value));
-            $anonymized = array_map(fn($ip) => $this->gdpr->anonymizeIP($ip), $ips);
+            $anonymized = array_map(fn ($ip) => $this->gdpr->anonymizeIP($ip), $ips);
+
             return implode(', ', $anonymized);
         }
 
@@ -299,7 +310,7 @@ final class AnonymizingLoggerDecorator implements LoggerInterface
     }
 
     /**
-     * Minimize value based on field type
+     * Minimize value based on field type.
      *
      * @param mixed $value
      */
@@ -321,7 +332,7 @@ final class AnonymizingLoggerDecorator implements LoggerInterface
     }
 
     /**
-     * Minimize User-Agent
+     * Minimize User-Agent.
      */
     private function minimizeUserAgent(string $ua): string
     {
@@ -329,25 +340,38 @@ final class AnonymizingLoggerDecorator implements LoggerInterface
         $os = 'Unknown';
 
         // Detect browser
-        if (str_contains($ua, 'Chrome')) $browser = 'Chrome';
-        elseif (str_contains($ua, 'Firefox')) $browser = 'Firefox';
-        elseif (str_contains($ua, 'Safari')) $browser = 'Safari';
-        elseif (str_contains($ua, 'Edge')) $browser = 'Edge';
-        elseif (str_contains($ua, 'MSIE') || str_contains($ua, 'Trident')) $browser = 'IE';
-        elseif (preg_match('/bot|crawler|spider|curl|wget|python/i', $ua)) $browser = 'Bot';
+        if (str_contains($ua, 'Chrome')) {
+            $browser = 'Chrome';
+        } elseif (str_contains($ua, 'Firefox')) {
+            $browser = 'Firefox';
+        } elseif (str_contains($ua, 'Safari')) {
+            $browser = 'Safari';
+        } elseif (str_contains($ua, 'Edge')) {
+            $browser = 'Edge';
+        } elseif (str_contains($ua, 'MSIE') || str_contains($ua, 'Trident')) {
+            $browser = 'IE';
+        } elseif (preg_match('/bot|crawler|spider|curl|wget|python/i', $ua)) {
+            $browser = 'Bot';
+        }
 
         // Detect OS
-        if (str_contains($ua, 'Windows')) $os = 'Windows';
-        elseif (str_contains($ua, 'Mac')) $os = 'Mac';
-        elseif (str_contains($ua, 'Linux')) $os = 'Linux';
-        elseif (str_contains($ua, 'Android')) $os = 'Android';
-        elseif (str_contains($ua, 'iOS') || str_contains($ua, 'iPhone')) $os = 'iOS';
+        if (str_contains($ua, 'Windows')) {
+            $os = 'Windows';
+        } elseif (str_contains($ua, 'Mac')) {
+            $os = 'Mac';
+        } elseif (str_contains($ua, 'Linux')) {
+            $os = 'Linux';
+        } elseif (str_contains($ua, 'Android')) {
+            $os = 'Android';
+        } elseif (str_contains($ua, 'iOS') || str_contains($ua, 'iPhone')) {
+            $os = 'iOS';
+        }
 
         return "{$browser}/{$os}";
     }
 
     /**
-     * Minimize Referer
+     * Minimize Referer.
      */
     private function minimizeReferer(string $referer): string
     {
@@ -361,7 +385,7 @@ final class AnonymizingLoggerDecorator implements LoggerInterface
     }
 
     /**
-     * Check if value looks like an IP address
+     * Check if value looks like an IP address.
      */
     private function looksLikeIP(string $value): bool
     {
@@ -369,22 +393,22 @@ final class AnonymizingLoggerDecorator implements LoggerInterface
     }
 
     /**
-     * Anonymize message string (looks for IP patterns)
+     * Anonymize message string (looks for IP patterns).
      */
     private function anonymizeMessage(string $message): string
     {
         // IPv4 pattern
         $message = preg_replace_callback(
             '/\b(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\b/',
-            fn($m) => $this->gdpr->anonymizeIP($m[1]),
-            $message
+            fn ($m) => $this->gdpr->anonymizeIP($m[1]),
+            $message,
         ) ?? $message;
 
         return $message;
     }
 
     /**
-     * Get the underlying logger
+     * Get the underlying logger.
      */
     public function getInnerLogger(): LoggerInterface
     {

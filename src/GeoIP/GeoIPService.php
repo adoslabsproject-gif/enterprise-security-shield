@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace AdosLabs\EnterpriseSecurityShield\GeoIP;
 
 /**
- * GeoIP Service
+ * GeoIP Service.
  *
  * IP geolocation using MaxMind GeoLite2 database.
  * Provides country, city, ASN, and organization lookup.
@@ -27,31 +27,38 @@ namespace AdosLabs\EnterpriseSecurityShield\GeoIP;
 final class GeoIPService
 {
     private ?string $databasePath = null;
+
     private ?object $reader = null;
+
     private bool $initialized = false;
+
     private string $lastError = '';
 
     /**
-     * In-memory cache for lookups
+     * In-memory cache for lookups.
+     *
      * @var array<string, array>
      */
     private array $cache = [];
+
     private int $cacheMaxSize = 10000;
 
     /**
-     * Blocked countries (ISO 3166-1 alpha-2 codes)
+     * Blocked countries (ISO 3166-1 alpha-2 codes).
+     *
      * @var array<string>
      */
     private array $blockedCountries = [];
 
     /**
-     * Blocked ASNs
+     * Blocked ASNs.
+     *
      * @var array<int>
      */
     private array $blockedASNs = [];
 
     /**
-     * Known malicious ASNs (hosting providers often used for attacks)
+     * Known malicious ASNs (hosting providers often used for attacks).
      */
     private const SUSPICIOUS_ASNS = [
         // Note: These are examples - you should verify and update
@@ -59,7 +66,7 @@ final class GeoIPService
     ];
 
     /**
-     * High-risk countries for certain attacks
+     * High-risk countries for certain attacks.
      */
     private const HIGH_RISK_COUNTRIES = [
         // Countries with historically high attack rates
@@ -75,29 +82,31 @@ final class GeoIPService
     }
 
     /**
-     * Set database path
+     * Set database path.
      */
     public function setDatabasePath(string $path): self
     {
         $this->databasePath = $path;
         $this->initialized = false;
         $this->reader = null;
+
         return $this;
     }
 
     /**
-     * Set blocked countries
+     * Set blocked countries.
      *
      * @param array<string> $countries ISO 3166-1 alpha-2 codes (e.g., ['CN', 'RU'])
      */
     public function setBlockedCountries(array $countries): self
     {
         $this->blockedCountries = array_map('strtoupper', $countries);
+
         return $this;
     }
 
     /**
-     * Add country to block list
+     * Add country to block list.
      */
     public function blockCountry(string $countryCode): self
     {
@@ -105,35 +114,39 @@ final class GeoIPService
         if (!in_array($code, $this->blockedCountries, true)) {
             $this->blockedCountries[] = $code;
         }
+
         return $this;
     }
 
     /**
-     * Set blocked ASNs
+     * Set blocked ASNs.
      *
      * @param array<int> $asns ASN numbers
      */
     public function setBlockedASNs(array $asns): self
     {
         $this->blockedASNs = array_map('intval', $asns);
+
         return $this;
     }
 
     /**
-     * Block an ASN
+     * Block an ASN.
      */
     public function blockASN(int $asn): self
     {
         if (!in_array($asn, $this->blockedASNs, true)) {
             $this->blockedASNs[] = $asn;
         }
+
         return $this;
     }
 
     /**
-     * Lookup IP geolocation
+     * Lookup IP geolocation.
      *
      * @param string $ip IP address
+     *
      * @return array{
      *     country_code: string|null,
      *     country_name: string|null,
@@ -221,50 +234,56 @@ final class GeoIPService
             return $this->cacheResult($ip, $result);
         } catch (\Throwable $e) {
             $this->lastError = $e->getMessage();
+
             return $this->lookupFallback($ip);
         }
     }
 
     /**
-     * Check if IP is from a blocked country
+     * Check if IP is from a blocked country.
      */
     public function isBlocked(string $ip): bool
     {
         $result = $this->lookup($ip);
+
         return $result['is_blocked'];
     }
 
     /**
-     * Get country code for IP
+     * Get country code for IP.
      */
     public function getCountry(string $ip): ?string
     {
         $result = $this->lookup($ip);
+
         return $result['country_code'];
     }
 
     /**
-     * Get ASN for IP
+     * Get ASN for IP.
      */
     public function getASN(string $ip): ?int
     {
         $result = $this->lookup($ip);
+
         return $result['asn'];
     }
 
     /**
-     * Get risk score for IP (0-100)
+     * Get risk score for IP (0-100).
      */
     public function getRiskScore(string $ip): int
     {
         $result = $this->lookup($ip);
+
         return $result['risk_score'];
     }
 
     /**
-     * Batch lookup multiple IPs
+     * Batch lookup multiple IPs.
      *
      * @param array<string> $ips
+     *
      * @return array<string, array>
      */
     public function lookupBatch(array $ips): array
@@ -273,11 +292,12 @@ final class GeoIPService
         foreach ($ips as $ip) {
             $results[$ip] = $this->lookup($ip);
         }
+
         return $results;
     }
 
     /**
-     * Get last error message
+     * Get last error message.
      */
     public function getLastError(): string
     {
@@ -285,7 +305,7 @@ final class GeoIPService
     }
 
     /**
-     * Check if GeoIP database is available
+     * Check if GeoIP database is available.
      */
     public function isAvailable(): bool
     {
@@ -293,7 +313,7 @@ final class GeoIPService
     }
 
     /**
-     * Initialize MaxMind reader
+     * Initialize MaxMind reader.
      */
     private function initialize(): bool
     {
@@ -305,11 +325,13 @@ final class GeoIPService
 
         if ($this->databasePath === null) {
             $this->lastError = 'GeoIP database path not configured';
+
             return false;
         }
 
         if (!file_exists($this->databasePath)) {
             $this->lastError = "GeoIP database not found: {$this->databasePath}";
+
             return false;
         }
 
@@ -318,22 +340,25 @@ final class GeoIPService
             // Try to use pure PHP reader
             if (!class_exists('MaxMind\Db\Reader')) {
                 $this->lastError = 'MaxMind GeoIP2 library not installed. Run: composer require geoip2/geoip2';
+
                 return false;
             }
         }
 
         try {
             $this->reader = new \GeoIp2\Database\Reader($this->databasePath);
+
             return true;
         } catch (\Throwable $e) {
             $this->lastError = 'Failed to initialize GeoIP reader: ' . $e->getMessage();
+
             return false;
         }
     }
 
     /**
      * Fallback lookup using free IP-API service
-     * Rate limited: 45 requests per minute
+     * Rate limited: 45 requests per minute.
      */
     private function lookupFallback(string $ip): array
     {
@@ -353,7 +378,7 @@ final class GeoIPService
             $response = @file_get_contents(
                 "http://ip-api.com/json/{$ip}?fields=status,country,countryCode,regionName,city,timezone,lat,lon,as,org,isp",
                 false,
-                $ctx
+                $ctx,
             );
 
             if ($response === false) {
@@ -408,24 +433,25 @@ final class GeoIPService
             return $this->cacheResult($ip, $result);
         } catch (\Throwable $e) {
             $this->lastError = 'Fallback lookup exception: ' . $e->getMessage();
+
             return $this->emptyResult($this->lastError);
         }
     }
 
     /**
-     * Check if IP is private/reserved
+     * Check if IP is private/reserved.
      */
     private function isPrivateIP(string $ip): bool
     {
         return filter_var(
             $ip,
             FILTER_VALIDATE_IP,
-            FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE
+            FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE,
         ) === false;
     }
 
     /**
-     * Calculate risk score based on country and ASN
+     * Calculate risk score based on country and ASN.
      */
     private function calculateRiskScore(?string $countryCode, ?int $asn): int
     {
@@ -454,7 +480,7 @@ final class GeoIPService
     }
 
     /**
-     * Cache result
+     * Cache result.
      */
     private function cacheResult(string $ip, array $result): array
     {
@@ -465,11 +491,12 @@ final class GeoIPService
         }
 
         $this->cache[$ip] = $result;
+
         return $result;
     }
 
     /**
-     * Empty result template
+     * Empty result template.
      */
     private function emptyResult(string $error = ''): array
     {
@@ -494,7 +521,7 @@ final class GeoIPService
     }
 
     /**
-     * Clear cache
+     * Clear cache.
      */
     public function clearCache(): void
     {

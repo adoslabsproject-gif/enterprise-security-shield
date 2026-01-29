@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace AdosLabs\EnterpriseSecurityShield\Tests\Unit\Telemetry;
 
-use PHPUnit\Framework\TestCase;
 use AdosLabs\EnterpriseSecurityShield\Telemetry\Span;
 use AdosLabs\EnterpriseSecurityShield\Telemetry\SpanKind;
 use AdosLabs\EnterpriseSecurityShield\Telemetry\SpanStatus;
+use PHPUnit\Framework\TestCase;
 
 class SpanTest extends TestCase
 {

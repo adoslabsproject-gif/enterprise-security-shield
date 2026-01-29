@@ -1,13 +1,12 @@
 <?php
 /**
- * Security Shield Configuration View
+ * Security Shield Configuration View.
  *
  * @var array $config Current configuration
  * @var array $presets Available presets
  * @var string $csrfToken CSRF token
  */
-
-$config = $config ?? [];
+$config ??= [];
 ?>
 <div class="ess-config">
     <h1 class="ess-config__title">Security Configuration</h1>

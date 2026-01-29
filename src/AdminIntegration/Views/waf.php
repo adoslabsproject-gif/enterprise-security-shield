@@ -1,6 +1,6 @@
 <?php
 /**
- * WAF Rules View
+ * WAF Rules View.
  *
  * @var array $rules
  * @var array $detection_stats

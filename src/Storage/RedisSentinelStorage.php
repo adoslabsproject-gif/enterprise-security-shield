@@ -7,7 +7,7 @@ namespace AdosLabs\EnterpriseSecurityShield\Storage;
 use AdosLabs\EnterpriseSecurityShield\Contracts\StorageInterface;
 
 /**
- * Redis Sentinel Storage - Enterprise High Availability
+ * Redis Sentinel Storage - Enterprise High Availability.
  *
  * Production-grade Redis storage with automatic failover support.
  * Uses Redis Sentinel for master discovery and automatic failover.
@@ -36,7 +36,7 @@ use AdosLabs\EnterpriseSecurityShield\Contracts\StorageInterface;
 final class RedisSentinelStorage implements StorageInterface
 {
     /**
-     * Sentinel configuration
+     * Sentinel configuration.
      *
      * @var array{
      *     sentinels: array<array{host: string, port: int}>,
@@ -52,28 +52,30 @@ final class RedisSentinelStorage implements StorageInterface
     private array $config;
 
     private string $keyPrefix;
+
     private ?\Redis $redis = null;
+
     private bool $failClosed;
 
     /**
-     * Current master info
+     * Current master info.
      *
      * @var array{host: string, port: int}|null
      */
     private ?array $currentMaster = null;
 
     /**
-     * Last time master was discovered
+     * Last time master was discovered.
      */
     private int $masterDiscoveredAt = 0;
 
     /**
-     * Master discovery cache TTL (seconds)
+     * Master discovery cache TTL (seconds).
      */
     private int $masterCacheTtl = 30;
 
     /**
-     * Number of connection retries
+     * Number of connection retries.
      */
     private int $maxRetries = 3;
 
@@ -94,7 +96,7 @@ final class RedisSentinelStorage implements StorageInterface
     public function __construct(
         array $config,
         string $keyPrefix = 'security_shield:',
-        bool $failClosed = false
+        bool $failClosed = false,
     ) {
         $this->config = array_merge([
             'sentinels' => [],
@@ -116,10 +118,11 @@ final class RedisSentinelStorage implements StorageInterface
     }
 
     /**
-     * Discover master via Sentinel
+     * Discover master via Sentinel.
+     *
+     * @throws \RuntimeException If master cannot be discovered
      *
      * @return array{host: string, port: int}
-     * @throws \RuntimeException If master cannot be discovered
      */
     private function discoverMaster(): array
     {
@@ -136,7 +139,7 @@ final class RedisSentinelStorage implements StorageInterface
                 $connected = @$sentinelConn->connect(
                     $sentinel['host'],
                     $sentinel['port'],
-                    $this->config['timeout']
+                    $this->config['timeout'],
                 );
 
                 if (!$connected) {
@@ -148,7 +151,7 @@ final class RedisSentinelStorage implements StorageInterface
                 $masterInfo = $sentinelConn->rawCommand(
                     'SENTINEL',
                     'get-master-addr-by-name',
-                    $this->config['master_name']
+                    $this->config['master_name'],
                 );
 
                 $sentinelConn->close();
@@ -170,12 +173,12 @@ final class RedisSentinelStorage implements StorageInterface
         }
 
         throw new \RuntimeException(
-            "Failed to discover Redis master from all Sentinels. Errors: " . implode('; ', $errors)
+            'Failed to discover Redis master from all Sentinels. Errors: ' . implode('; ', $errors),
         );
     }
 
     /**
-     * Get Redis connection (with automatic reconnection)
+     * Get Redis connection (with automatic reconnection).
      *
      * @throws \RuntimeException If connection fails
      */
@@ -205,13 +208,13 @@ final class RedisSentinelStorage implements StorageInterface
                         $master['host'],
                         $master['port'],
                         $this->config['timeout'],
-                        'sentinel_' . $this->config['master_name']
+                        'sentinel_' . $this->config['master_name'],
                     );
                 } else {
                     $connected = @$redis->connect(
                         $master['host'],
                         $master['port'],
-                        $this->config['timeout']
+                        $this->config['timeout'],
                     );
                 }
 
@@ -243,7 +246,7 @@ final class RedisSentinelStorage implements StorageInterface
             } catch (\RedisException $e) {
                 if ($attempt === $this->maxRetries) {
                     throw new \RuntimeException(
-                        "Failed to connect to Redis master after {$this->maxRetries} attempts: " . $e->getMessage()
+                        "Failed to connect to Redis master after {$this->maxRetries} attempts: " . $e->getMessage(),
                     );
                 }
 
@@ -257,10 +260,11 @@ final class RedisSentinelStorage implements StorageInterface
     }
 
     /**
-     * Execute Redis command with automatic failover
+     * Execute Redis command with automatic failover.
      *
      * @param callable $operation The Redis operation to execute
      * @param mixed $failOpenValue Value to return on failure in fail-open mode
+     *
      * @return mixed
      */
     private function execute(callable $operation, mixed $failOpenValue = null): mixed
@@ -303,8 +307,8 @@ final class RedisSentinelStorage implements StorageInterface
     public function setScore(string $ip, int $score, int $ttl): bool
     {
         return $this->execute(
-            fn(\Redis $redis) => $redis->setex($this->keyPrefix . 'score:' . $ip, $ttl, (string) $score) !== false,
-            false
+            fn (\Redis $redis) => $redis->setex($this->keyPrefix . 'score:' . $ip, $ttl, (string) $score) !== false,
+            false,
         );
     }
 
@@ -490,7 +494,7 @@ final class RedisSentinelStorage implements StorageInterface
                     }
                 } while ($it > 0);
 
-                usort($events, fn($a, $b) => ($b['timestamp'] ?? 0) <=> ($a['timestamp'] ?? 0));
+                usort($events, fn ($a, $b) => ($b['timestamp'] ?? 0) <=> ($a['timestamp'] ?? 0));
                 $events = array_slice($events, 0, $limit);
             }
 
@@ -633,7 +637,7 @@ final class RedisSentinelStorage implements StorageInterface
     // =========================================================================
 
     /**
-     * Get current master info
+     * Get current master info.
      *
      * @return array{host: string, port: int}|null
      */
@@ -647,7 +651,7 @@ final class RedisSentinelStorage implements StorageInterface
     }
 
     /**
-     * Get all slaves from Sentinel
+     * Get all slaves from Sentinel.
      *
      * @return array<array{host: string, port: int, flags: string}>
      */
@@ -661,7 +665,7 @@ final class RedisSentinelStorage implements StorageInterface
                 $connected = @$sentinelConn->connect(
                     $sentinel['host'],
                     $sentinel['port'],
-                    $this->config['timeout']
+                    $this->config['timeout'],
                 );
 
                 if (!$connected) {
@@ -671,7 +675,7 @@ final class RedisSentinelStorage implements StorageInterface
                 $rawSlaves = $sentinelConn->rawCommand(
                     'SENTINEL',
                     'slaves',
-                    $this->config['master_name']
+                    $this->config['master_name'],
                 );
 
                 $sentinelConn->close();
@@ -708,7 +712,7 @@ final class RedisSentinelStorage implements StorageInterface
     }
 
     /**
-     * Force failover (for testing/maintenance)
+     * Force failover (for testing/maintenance).
      *
      * @return bool
      */
@@ -720,7 +724,7 @@ final class RedisSentinelStorage implements StorageInterface
                 $connected = @$sentinelConn->connect(
                     $sentinel['host'],
                     $sentinel['port'],
-                    $this->config['timeout']
+                    $this->config['timeout'],
                 );
 
                 if (!$connected) {
@@ -730,7 +734,7 @@ final class RedisSentinelStorage implements StorageInterface
                 $result = $sentinelConn->rawCommand(
                     'SENTINEL',
                     'failover',
-                    $this->config['master_name']
+                    $this->config['master_name'],
                 );
 
                 $sentinelConn->close();
@@ -749,7 +753,7 @@ final class RedisSentinelStorage implements StorageInterface
     }
 
     /**
-     * Get Sentinel health status
+     * Get Sentinel health status.
      *
      * @return array{
      *     healthy: bool,
@@ -773,7 +777,7 @@ final class RedisSentinelStorage implements StorageInterface
                 $connected = @$sentinelConn->connect(
                     $sentinel['host'],
                     $sentinel['port'],
-                    $this->config['timeout']
+                    $this->config['timeout'],
                 );
 
                 if ($connected) {
@@ -810,7 +814,7 @@ final class RedisSentinelStorage implements StorageInterface
     }
 
     /**
-     * Check if failover is in progress
+     * Check if failover is in progress.
      *
      * @return bool
      */
@@ -822,7 +826,7 @@ final class RedisSentinelStorage implements StorageInterface
                 $connected = @$sentinelConn->connect(
                     $sentinel['host'],
                     $sentinel['port'],
-                    $this->config['timeout']
+                    $this->config['timeout'],
                 );
 
                 if (!$connected) {
@@ -832,7 +836,7 @@ final class RedisSentinelStorage implements StorageInterface
                 $masterInfo = $sentinelConn->rawCommand(
                     'SENTINEL',
                     'master',
-                    $this->config['master_name']
+                    $this->config['master_name'],
                 );
 
                 $sentinelConn->close();
@@ -861,7 +865,7 @@ final class RedisSentinelStorage implements StorageInterface
     }
 
     /**
-     * Set fail mode (open or closed)
+     * Set fail mode (open or closed).
      *
      * @param bool $failClosed True for fail-closed (security), false for fail-open (availability)
      */
@@ -873,7 +877,7 @@ final class RedisSentinelStorage implements StorageInterface
     }
 
     /**
-     * Set master cache TTL
+     * Set master cache TTL.
      *
      * @param int $ttl TTL in seconds
      */
@@ -885,7 +889,7 @@ final class RedisSentinelStorage implements StorageInterface
     }
 
     /**
-     * Set max retries
+     * Set max retries.
      *
      * @param int $retries Number of retries
      */
@@ -897,10 +901,11 @@ final class RedisSentinelStorage implements StorageInterface
     }
 
     /**
-     * Get Redis connection (for advanced use)
+     * Get Redis connection (for advanced use).
+     *
+     * @throws \RuntimeException
      *
      * @return \Redis
-     * @throws \RuntimeException
      */
     public function getRedis(): \Redis
     {
@@ -908,7 +913,7 @@ final class RedisSentinelStorage implements StorageInterface
     }
 
     /**
-     * Get key prefix
+     * Get key prefix.
      *
      * @return string
      */
@@ -918,7 +923,7 @@ final class RedisSentinelStorage implements StorageInterface
     }
 
     /**
-     * Close connections
+     * Close connections.
      */
     public function close(): void
     {
@@ -933,7 +938,7 @@ final class RedisSentinelStorage implements StorageInterface
     }
 
     /**
-     * Destructor - close connections
+     * Destructor - close connections.
      */
     public function __destruct()
     {

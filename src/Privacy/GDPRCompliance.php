@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace AdosLabs\EnterpriseSecurityShield\Privacy;
 
 /**
- * GDPR Compliance Utilities
+ * GDPR Compliance Utilities.
  *
  * Enterprise-grade GDPR compliance features for security logging.
  *
@@ -35,40 +35,43 @@ namespace AdosLabs\EnterpriseSecurityShield\Privacy;
 final class GDPRCompliance
 {
     /**
-     * Anonymization methods
+     * Anonymization methods.
      */
     public const METHOD_MASK = 'mask';
+
     public const METHOD_HASH = 'hash';
+
     public const METHOD_TRUNCATE = 'truncate';
+
     public const METHOD_TOKENIZE = 'tokenize';
 
     /**
-     * Default anonymization method
+     * Default anonymization method.
      */
     private string $defaultMethod = self::METHOD_MASK;
 
     /**
-     * Number of octets to anonymize (1-3 for IPv4)
+     * Number of octets to anonymize (1-3 for IPv4).
      */
     private int $octetsToAnonymize = 1;
 
     /**
-     * Secret key for tokenization (reversible)
+     * Secret key for tokenization (reversible).
      */
     private ?string $tokenizationKey = null;
 
     /**
-     * Daily salt for hashing (rotates for unlinkability)
+     * Daily salt for hashing (rotates for unlinkability).
      */
     private ?string $hashingSalt = null;
 
     /**
-     * Whether to preserve country-level geolocation
+     * Whether to preserve country-level geolocation.
      */
     private bool $preserveCountry = true;
 
     /**
-     * Retention period in days
+     * Retention period in days.
      */
     private int $retentionDays = 90;
 
@@ -95,15 +98,16 @@ final class GDPRCompliance
     }
 
     /**
-     * Anonymize an IP address
+     * Anonymize an IP address.
      *
      * @param string $ip IP address to anonymize
      * @param string|null $method Override default method
+     *
      * @return string Anonymized IP
      */
     public function anonymizeIP(string $ip, ?string $method = null): string
     {
-        $method = $method ?? $this->defaultMethod;
+        $method ??= $this->defaultMethod;
 
         // Detect IP version
         if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
@@ -119,7 +123,7 @@ final class GDPRCompliance
     }
 
     /**
-     * Anonymize IPv4 address
+     * Anonymize IPv4 address.
      */
     private function anonymizeIPv4(string $ip, string $method): string
     {
@@ -133,7 +137,7 @@ final class GDPRCompliance
     }
 
     /**
-     * Anonymize IPv6 address
+     * Anonymize IPv6 address.
      */
     private function anonymizeIPv6(string $ip, string $method): string
     {
@@ -147,7 +151,7 @@ final class GDPRCompliance
     }
 
     /**
-     * Mask IPv4 (replace octets with 0)
+     * Mask IPv4 (replace octets with 0).
      *
      * Examples:
      * - 1 octet: 192.168.1.100 -> 192.168.1.0
@@ -166,7 +170,7 @@ final class GDPRCompliance
     }
 
     /**
-     * Mask IPv6 (zero out last groups)
+     * Mask IPv6 (zero out last groups).
      *
      * For GDPR compliance, mask at least the last 80 bits (last 5 groups)
      */
@@ -195,7 +199,7 @@ final class GDPRCompliance
     }
 
     /**
-     * Truncate IPv4 (remove octets entirely)
+     * Truncate IPv4 (remove octets entirely).
      */
     private function truncateIPv4(string $ip): string
     {
@@ -206,7 +210,7 @@ final class GDPRCompliance
     }
 
     /**
-     * Truncate IPv6
+     * Truncate IPv6.
      */
     private function truncateIPv6(string $ip): string
     {
@@ -225,7 +229,7 @@ final class GDPRCompliance
     }
 
     /**
-     * Hash IP (irreversible, with daily salt for unlinkability)
+     * Hash IP (irreversible, with daily salt for unlinkability).
      */
     private function hashIP(string $ip): string
     {
@@ -245,7 +249,7 @@ final class GDPRCompliance
     }
 
     /**
-     * Get daily salt for hashing
+     * Get daily salt for hashing.
      */
     private function getDailySalt(): string
     {
@@ -258,7 +262,7 @@ final class GDPRCompliance
     }
 
     /**
-     * Tokenize IP (reversible with key, for legitimate interest cases)
+     * Tokenize IP (reversible with key, for legitimate interest cases).
      */
     private function tokenizeIP(string $ip): string
     {
@@ -284,7 +288,7 @@ final class GDPRCompliance
     }
 
     /**
-     * Detokenize IP (reverse tokenization)
+     * Detokenize IP (reverse tokenization).
      */
     public function detokenizeIP(string $token): ?string
     {
@@ -313,9 +317,10 @@ final class GDPRCompliance
     }
 
     /**
-     * Anonymize a log entry
+     * Anonymize a log entry.
      *
      * @param array<string, mixed> $logEntry
+     *
      * @return array<string, mixed>
      */
     public function anonymizeLogEntry(array $logEntry): array
@@ -342,7 +347,7 @@ final class GDPRCompliance
     }
 
     /**
-     * Minimize data based on field type
+     * Minimize data based on field type.
      *
      * @param mixed $value
      */
@@ -361,7 +366,7 @@ final class GDPRCompliance
     }
 
     /**
-     * Minimize User-Agent (keep only essential info)
+     * Minimize User-Agent (keep only essential info).
      */
     private function minimizeUserAgent(string $ua): string
     {
@@ -380,11 +385,17 @@ final class GDPRCompliance
             if (preg_match($pattern, $ua)) {
                 // Add OS if detectable
                 $os = 'Unknown';
-                if (str_contains($ua, 'Windows')) $os = 'Windows';
-                elseif (str_contains($ua, 'Mac')) $os = 'Mac';
-                elseif (str_contains($ua, 'Linux')) $os = 'Linux';
-                elseif (str_contains($ua, 'Android')) $os = 'Android';
-                elseif (str_contains($ua, 'iOS') || str_contains($ua, 'iPhone')) $os = 'iOS';
+                if (str_contains($ua, 'Windows')) {
+                    $os = 'Windows';
+                } elseif (str_contains($ua, 'Mac')) {
+                    $os = 'Mac';
+                } elseif (str_contains($ua, 'Linux')) {
+                    $os = 'Linux';
+                } elseif (str_contains($ua, 'Android')) {
+                    $os = 'Android';
+                } elseif (str_contains($ua, 'iOS') || str_contains($ua, 'iPhone')) {
+                    $os = 'iOS';
+                }
 
                 return "{$name}/{$os}";
             }
@@ -394,7 +405,7 @@ final class GDPRCompliance
     }
 
     /**
-     * Minimize Referer (keep only domain)
+     * Minimize Referer (keep only domain).
      */
     private function minimizeReferer(string $referer): string
     {
@@ -408,7 +419,7 @@ final class GDPRCompliance
     }
 
     /**
-     * Calculate retention expiry timestamp
+     * Calculate retention expiry timestamp.
      */
     public function getRetentionExpiry(): int
     {
@@ -416,18 +427,20 @@ final class GDPRCompliance
     }
 
     /**
-     * Check if data should be deleted based on retention
+     * Check if data should be deleted based on retention.
      */
     public function shouldDelete(int $createdAt): bool
     {
         $expiryTime = $createdAt + ($this->retentionDays * 86400);
+
         return time() >= $expiryTime;
     }
 
     /**
-     * Get data for "Right to Access" request (Article 15)
+     * Get data for "Right to Access" request (Article 15).
      *
      * @param array<array<string, mixed>> $userData All data related to user
+     *
      * @return array<string, mixed>
      */
     public function prepareAccessReport(array $userData): array
@@ -451,9 +464,10 @@ final class GDPRCompliance
     }
 
     /**
-     * Export data in portable format (Article 20)
+     * Export data in portable format (Article 20).
      *
      * @param array<array<string, mixed>> $userData
+     *
      * @return string JSON export
      */
     public function exportData(array $userData): string
@@ -466,47 +480,52 @@ final class GDPRCompliance
         ];
 
         $json = json_encode($export, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+
         return $json !== false ? $json : '{"error": "Export failed"}';
     }
 
     /**
-     * Set anonymization method
+     * Set anonymization method.
      */
     public function setMethod(string $method): self
     {
         $this->defaultMethod = $method;
+
         return $this;
     }
 
     /**
-     * Set number of octets to anonymize
+     * Set number of octets to anonymize.
      */
     public function setOctets(int $octets): self
     {
         $this->octetsToAnonymize = max(1, min(3, $octets));
+
         return $this;
     }
 
     /**
-     * Set tokenization key (enables reversible anonymization)
+     * Set tokenization key (enables reversible anonymization).
      */
     public function setTokenizationKey(string $key): self
     {
         $this->tokenizationKey = $key;
+
         return $this;
     }
 
     /**
-     * Set retention period
+     * Set retention period.
      */
     public function setRetentionDays(int $days): self
     {
         $this->retentionDays = max(1, $days);
+
         return $this;
     }
 
     /**
-     * Create with strict GDPR settings
+     * Create with strict GDPR settings.
      */
     public static function strict(): self
     {
@@ -518,7 +537,7 @@ final class GDPRCompliance
     }
 
     /**
-     * Create with balanced settings (security + privacy)
+     * Create with balanced settings (security + privacy).
      */
     public static function balanced(): self
     {
@@ -530,7 +549,7 @@ final class GDPRCompliance
     }
 
     /**
-     * Create for legitimate interest (tokenized, reversible)
+     * Create for legitimate interest (tokenized, reversible).
      */
     public static function legitimateInterest(string $key): self
     {

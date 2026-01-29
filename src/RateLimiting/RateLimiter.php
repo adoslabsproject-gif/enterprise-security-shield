@@ -6,7 +6,6 @@ namespace AdosLabs\EnterpriseSecurityShield\RateLimiting;
 
 use AdosLabs\EnterpriseSecurityShield\Contracts\StorageInterface;
 use Psr\Log\LoggerInterface;
-use Psr\Log\NullLogger;
 
 /**
  * Distributed Rate Limiter.

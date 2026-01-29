@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace AdosLabs\EnterpriseSecurityShield\ML;
 
 /**
- * Security Log Parser
+ * Security Log Parser.
  *
  * Parses security logs to extract attack patterns for model training.
  * Compatible with need2talk-style security log format.
@@ -28,17 +28,17 @@ namespace AdosLabs\EnterpriseSecurityShield\ML;
 final class LogParser
 {
     /**
-     * Regular expression for parsing log lines
+     * Regular expression for parsing log lines.
      */
     private const LOG_PATTERN = '/^\[(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})\] (\w+)\.(\w+): (.+)$/';
 
     /**
-     * Pattern for extracting JSON context
+     * Pattern for extracting JSON context.
      */
     private const JSON_PATTERN = '/\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}/';
 
     /**
-     * Event categories
+     * Event categories.
      */
     private const EVENT_CATEGORIES = [
         'ANTI-SCAN' => 'scanning',
@@ -52,13 +52,14 @@ final class LogParser
     ];
 
     /**
-     * Parsed events storage
+     * Parsed events storage.
+     *
      * @var array<array>
      */
     private array $events = [];
 
     /**
-     * Statistics
+     * Statistics.
      */
     private array $stats = [
         'total_lines' => 0,
@@ -69,9 +70,10 @@ final class LogParser
     ];
 
     /**
-     * Parse a log file
+     * Parse a log file.
      *
      * @param string $filePath Path to log file
+     *
      * @return int Number of events parsed
      */
     public function parseFile(string $filePath): int
@@ -104,13 +106,15 @@ final class LogParser
         }
 
         fclose($handle);
+
         return $count;
     }
 
     /**
-     * Parse multiple log files
+     * Parse multiple log files.
      *
      * @param array<string> $filePaths
+     *
      * @return int Total events parsed
      */
     public function parseFiles(array $filePaths): int
@@ -124,11 +128,12 @@ final class LogParser
                 $this->stats['parse_errors']++;
             }
         }
+
         return $total;
     }
 
     /**
-     * Parse a single log line
+     * Parse a single log line.
      */
     public function parseLine(string $line): ?array
     {
@@ -189,7 +194,7 @@ final class LogParser
     }
 
     /**
-     * Parse EARLY_BLOCK format line
+     * Parse EARLY_BLOCK format line.
      */
     private function parseEarlyBlockLine(string $line): ?array
     {
@@ -234,7 +239,7 @@ final class LogParser
     }
 
     /**
-     * Parse JSON-only line
+     * Parse JSON-only line.
      */
     private function parseJsonLine(string $line): ?array
     {
@@ -261,7 +266,7 @@ final class LogParser
     }
 
     /**
-     * Categorize event based on message content
+     * Categorize event based on message content.
      */
     private function categorizeEvent(string $message): string
     {
@@ -270,11 +275,12 @@ final class LogParser
                 return $category;
             }
         }
+
         return 'unknown';
     }
 
     /**
-     * Check if level indicates attack
+     * Check if level indicates attack.
      */
     private function isAttackLevel(string $level): bool
     {
@@ -282,7 +288,7 @@ final class LogParser
     }
 
     /**
-     * Check if category indicates attack
+     * Check if category indicates attack.
      */
     private function isAttackCategory(string $category): bool
     {
@@ -290,7 +296,7 @@ final class LogParser
     }
 
     /**
-     * Check if event is an attack
+     * Check if event is an attack.
      */
     private function isAttackEvent(array $event): bool
     {
@@ -298,7 +304,7 @@ final class LogParser
     }
 
     /**
-     * Get all parsed events
+     * Get all parsed events.
      *
      * @return array<array>
      */
@@ -308,17 +314,17 @@ final class LogParser
     }
 
     /**
-     * Get attack events only
+     * Get attack events only.
      *
      * @return array<array>
      */
     public function getAttackEvents(): array
     {
-        return array_filter($this->events, fn($e) => $e['is_attack']);
+        return array_filter($this->events, fn ($e) => $e['is_attack']);
     }
 
     /**
-     * Get unique attacker IPs
+     * Get unique attacker IPs.
      *
      * @return array<string, array> IP => attack details
      */
@@ -365,13 +371,13 @@ final class LogParser
         }
 
         // Sort by attack count
-        uasort($ips, fn($a, $b) => $b['attack_count'] <=> $a['attack_count']);
+        uasort($ips, fn ($a, $b) => $b['attack_count'] <=> $a['attack_count']);
 
         return $ips;
     }
 
     /**
-     * Get path patterns from attacks
+     * Get path patterns from attacks.
      *
      * @return array<string, int> Path => count
      */
@@ -394,11 +400,12 @@ final class LogParser
         }
 
         arsort($paths);
+
         return $paths;
     }
 
     /**
-     * Get User-Agent patterns from attacks
+     * Get User-Agent patterns from attacks.
      *
      * @return array<string, int> UA => count
      */
@@ -421,11 +428,12 @@ final class LogParser
         }
 
         arsort($uas);
+
         return $uas;
     }
 
     /**
-     * Get attack timing distribution
+     * Get attack timing distribution.
      *
      * @return array<int, int> Hour => count
      */
@@ -444,7 +452,7 @@ final class LogParser
     }
 
     /**
-     * Generate training data for ML model
+     * Generate training data for ML model.
      *
      * @return array{
      *     attack_paths: array<string, int>,
@@ -477,7 +485,7 @@ final class LogParser
     }
 
     /**
-     * Get statistics
+     * Get statistics.
      */
     public function getStats(): array
     {
@@ -485,7 +493,7 @@ final class LogParser
     }
 
     /**
-     * Clear parsed events
+     * Clear parsed events.
      */
     public function clear(): void
     {
@@ -500,7 +508,7 @@ final class LogParser
     }
 
     /**
-     * Normalize path for pattern matching
+     * Normalize path for pattern matching.
      */
     private function normalizePath(string $path): string
     {
@@ -526,7 +534,7 @@ final class LogParser
     }
 
     /**
-     * Normalize User-Agent for pattern matching
+     * Normalize User-Agent for pattern matching.
      */
     private function normalizeUserAgent(string $ua): string
     {
