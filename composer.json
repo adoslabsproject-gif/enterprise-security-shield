@@ -1,9 +1,10 @@
 {
-    "name": "senza1dio/security-shield",
-    "description": "Security Middleware for PHP - Honeypot, Scanner Detection, Rate Limiting, Resilience Patterns",
+    "name": "ados-labs/enterprise-security-shield",
+    "description": "Enterprise Security Shield - WAF, Honeypot, Scanner Detection, Rate Limiting, Resilience Patterns with Admin Panel Integration",
     "type": "library",
     "keywords": [
         "security",
+        "waf",
         "middleware",
         "honeypot",
         "rate-limiting",
@@ -12,14 +13,15 @@
         "anomaly-detection",
         "prometheus",
         "opentelemetry",
-        "health-check"
+        "health-check",
+        "admin-panel"
     ],
     "license": "MIT",
     "authors": [
         {
-            "name": "AIDOS (AI Developer Orchestration System)",
-            "email": "senza1dio@gmail.com",
-            "homepage": "https://github.com/senza1dio"
+            "name": "AdosLabs",
+            "email": "dev@adoslabs.com",
+            "homepage": "https://github.com/adoslabsproject-gif"
         }
     ],
     "require": {
@@ -35,16 +37,17 @@
     },
     "suggest": {
         "ext-redis": "Required for RedisStorage backend (recommended for production)",
-        "ext-pdo": "Required for DatabaseStorage backend"
+        "ext-pdo": "Required for DatabaseStorage backend",
+        "ados-labs/enterprise-admin-panel": "For admin panel integration with security dashboard"
     },
     "autoload": {
         "psr-4": {
-            "Senza1dio\\SecurityShield\\": "src/"
+            "AdosLabs\\EnterpriseSecurityShield\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Senza1dio\\SecurityShield\\Tests\\": "tests/"
+            "AdosLabs\\EnterpriseSecurityShield\\Tests\\": "tests/"
         }
     },
     "scripts": {
@@ -63,5 +66,11 @@
         "preferred-install": "dist"
     },
     "minimum-stability": "stable",
-    "prefer-stable": true
+    "prefer-stable": true,
+    "extra": {
+        "admin-panel": {
+            "module": "AdosLabs\\EnterpriseSecurityShield\\AdminIntegration\\SecurityShieldAdminModule",
+            "priority": 15
+        }
+    }
 }

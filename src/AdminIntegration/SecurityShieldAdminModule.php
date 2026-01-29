@@ -11,6 +11,7 @@ use AdosLabs\EnterpriseSecurityShield\Config\SecurityConfig;
 use AdosLabs\EnterpriseSecurityShield\Storage\DatabaseStorage;
 use AdosLabs\EnterpriseSecurityShield\Storage\RedisStorage;
 use AdosLabs\EnterpriseSecurityShield\Contracts\StorageInterface;
+use Psr\Log\LoggerInterface;
 
 /**
  * Security Shield Admin Module
@@ -33,15 +34,38 @@ final class SecurityShieldAdminModule implements AdminModuleInterface
     private ?StorageInterface $storage = null;
     private ?SecurityConfig $config = null;
     private ?DatabasePool $db = null;
+    private ?LoggerInterface $logger = null;
 
+    /**
+     * Constructor compatible with ModuleRegistry auto-instantiation.
+     *
+     * ModuleRegistry calls: new $moduleClass($db, $logger)
+     * So we accept DatabasePool as first param, LoggerInterface as second.
+     *
+     * @param DatabasePool|StorageInterface|null $dbOrStorage DatabasePool (from ModuleRegistry) or StorageInterface (manual setup)
+     * @param \Psr\Log\LoggerInterface|SecurityConfig|null $loggerOrConfig LoggerInterface (from ModuleRegistry) or SecurityConfig (manual setup)
+     * @param DatabasePool|null $db DatabasePool (only for manual setup with 3 params)
+     */
     public function __construct(
-        ?StorageInterface $storage = null,
-        ?SecurityConfig $config = null,
+        DatabasePool|StorageInterface|null $dbOrStorage = null,
+        LoggerInterface|SecurityConfig|null $loggerOrConfig = null,
         ?DatabasePool $db = null
     ) {
-        $this->storage = $storage;
-        $this->config = $config;
-        $this->db = $db;
+        // Handle ModuleRegistry signature: new Module($db, $logger)
+        if ($dbOrStorage instanceof DatabasePool) {
+            $this->db = $dbOrStorage;
+            if ($loggerOrConfig instanceof LoggerInterface) {
+                $this->logger = $loggerOrConfig;
+            }
+        }
+        // Handle manual signature: new Module($storage, $config, $db)
+        elseif ($dbOrStorage instanceof StorageInterface) {
+            $this->storage = $dbOrStorage;
+            if ($loggerOrConfig instanceof SecurityConfig) {
+                $this->config = $loggerOrConfig;
+            }
+            $this->db = $db;
+        }
     }
 
     /**
