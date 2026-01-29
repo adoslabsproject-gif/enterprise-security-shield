@@ -1,0 +1,222 @@
+#!/usr/bin/env php
+<?php
+/**
+ * Train ML Model from Security Logs
+ *
+ * Usage: ./bin/train-model /path/to/logs/*.log
+ *
+ * This script:
+ * 1. Parses security log files
+ * 2. Extracts attack patterns
+ * 3. Generates training data summary
+ * 4. Optionally exports patterns for model update
+ *
+ * @version 1.0.0
+ */
+
+declare(strict_types=1);
+
+// Autoload
+$autoloadPaths = [
+    __DIR__ . '/../vendor/autoload.php',
+    __DIR__ . '/../../autoload.php',
+    __DIR__ . '/../../../autoload.php',
+];
+
+$autoloaded = false;
+foreach ($autoloadPaths as $path) {
+    if (file_exists($path)) {
+        require $path;
+        $autoloaded = true;
+        break;
+    }
+}
+
+if (!$autoloaded) {
+    // Fallback: manual require
+    require __DIR__ . '/../src/ML/LogParser.php';
+}
+
+use AdosLabs\EnterpriseSecurityShield\ML\LogParser;
+
+// Colors for terminal output
+function green(string $text): string { return "\033[32m{$text}\033[0m"; }
+function red(string $text): string { return "\033[31m{$text}\033[0m"; }
+function yellow(string $text): string { return "\033[33m{$text}\033[0m"; }
+function blue(string $text): string { return "\033[34m{$text}\033[0m"; }
+function bold(string $text): string { return "\033[1m{$text}\033[0m"; }
+
+echo bold("\n🛡️  Enterprise Security Shield - ML Model Trainer\n");
+echo "=========================================\n\n";
+
+// Get log files from arguments
+$logFiles = [];
+$outputFile = null;
+$verbose = false;
+
+for ($i = 1; $i < $argc; $i++) {
+    $arg = $argv[$i];
+
+    if ($arg === '-v' || $arg === '--verbose') {
+        $verbose = true;
+        continue;
+    }
+
+    if ($arg === '-o' || $arg === '--output') {
+        $outputFile = $argv[++$i] ?? null;
+        continue;
+    }
+
+    if ($arg === '-h' || $arg === '--help') {
+        echo "Usage: {$argv[0]} [OPTIONS] <log-files...>\n\n";
+        echo "Options:\n";
+        echo "  -v, --verbose    Show detailed output\n";
+        echo "  -o, --output     Export patterns to JSON file\n";
+        echo "  -h, --help       Show this help\n\n";
+        echo "Example:\n";
+        echo "  {$argv[0]} /path/to/security-*.log\n";
+        echo "  {$argv[0]} -v -o patterns.json /path/to/logs/\n";
+        exit(0);
+    }
+
+    // Expand glob patterns
+    if (str_contains($arg, '*')) {
+        $expanded = glob($arg);
+        if ($expanded) {
+            $logFiles = array_merge($logFiles, $expanded);
+        }
+    } elseif (is_dir($arg)) {
+        // If directory, find all .log files
+        $found = glob($arg . '/*.log');
+        if ($found) {
+            $logFiles = array_merge($logFiles, $found);
+        }
+    } elseif (file_exists($arg)) {
+        $logFiles[] = $arg;
+    }
+}
+
+if (empty($logFiles)) {
+    echo red("Error: No log files specified.\n");
+    echo "Usage: {$argv[0]} <log-files...>\n";
+    exit(1);
+}
+
+$logFiles = array_unique($logFiles);
+sort($logFiles);
+
+echo blue("📁 Found ") . count($logFiles) . blue(" log files to process\n\n");
+
+if ($verbose) {
+    foreach ($logFiles as $file) {
+        echo "  • " . basename($file) . "\n";
+    }
+    echo "\n";
+}
+
+// Parse logs
+$parser = new LogParser();
+
+echo "⏳ Parsing log files...\n";
+
+$startTime = microtime(true);
+
+foreach ($logFiles as $file) {
+    try {
+        $count = $parser->parseFile($file);
+        if ($verbose) {
+            echo "  ✓ " . basename($file) . ": {$count} events\n";
+        }
+    } catch (\Throwable $e) {
+        echo red("  ✗ " . basename($file) . ": " . $e->getMessage() . "\n");
+    }
+}
+
+$parseTime = microtime(true) - $startTime;
+
+echo green("\n✅ Parsing complete in " . round($parseTime, 2) . "s\n\n");
+
+// Get statistics
+$stats = $parser->getStats();
+echo bold("📊 Statistics:\n");
+echo "  Total lines processed: " . number_format($stats['total_lines']) . "\n";
+echo "  Events parsed: " . number_format($stats['parsed_events']) . "\n";
+echo "  Attack events: " . red(number_format($stats['attack_events'])) . "\n";
+echo "  Legitimate events: " . green(number_format($stats['legitimate_events'])) . "\n";
+echo "  Parse errors: " . ($stats['parse_errors'] > 0 ? yellow($stats['parse_errors']) : '0') . "\n\n";
+
+// Attack analysis
+$trainingData = $parser->generateTrainingData();
+
+echo bold("🎯 Attack Categories:\n");
+arsort($trainingData['categories']);
+foreach ($trainingData['categories'] as $category => $count) {
+    $bar = str_repeat('█', min(40, (int) ($count / max(1, max($trainingData['categories'])) * 40)));
+    echo sprintf("  %-15s %s %d\n", $category, $bar, $count);
+}
+echo "\n";
+
+echo bold("🔝 Top Attack Paths:\n");
+$topPaths = array_slice($trainingData['attack_paths'], 0, 15, true);
+foreach ($topPaths as $path => $count) {
+    echo sprintf("  %4d × %s\n", $count, $path);
+}
+echo "\n";
+
+echo bold("🤖 Top Attack User-Agents:\n");
+$topUAs = array_slice($trainingData['attack_uas'], 0, 10, true);
+foreach ($topUAs as $ua => $count) {
+    echo sprintf("  %4d × %s\n", $count, substr($ua, 0, 60));
+}
+echo "\n";
+
+echo bold("👾 Top Attacker IPs:\n");
+$topIPs = array_slice($trainingData['attack_ips'], 0, 10, true);
+foreach ($topIPs as $ip => $data) {
+    echo sprintf(
+        "  %s - %d attacks, max score: %d, categories: %s\n",
+        $ip,
+        $data['attack_count'],
+        $data['max_score'],
+        implode(', ', array_slice($data['categories'], 0, 3))
+    );
+}
+echo "\n";
+
+echo bold("⏰ Attack Hour Distribution (UTC):\n");
+$maxHour = max($trainingData['hour_distribution']);
+for ($h = 0; $h < 24; $h++) {
+    $count = $trainingData['hour_distribution'][$h];
+    $bar = str_repeat('█', (int) ($count / max(1, $maxHour) * 30));
+    $hour = sprintf("%02d:00", $h);
+    echo sprintf("  %s %s %d\n", $hour, $bar, $count);
+}
+echo "\n";
+
+// Export if requested
+if ($outputFile !== null) {
+    echo "💾 Exporting patterns to {$outputFile}...\n";
+
+    $exportData = [
+        'generated_at' => date('Y-m-d H:i:s'),
+        'log_files_processed' => count($logFiles),
+        'total_events' => $stats['parsed_events'],
+        'attack_events' => $stats['attack_events'],
+        'training_data' => $trainingData,
+    ];
+
+    $json = json_encode($exportData, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+    file_put_contents($outputFile, $json);
+
+    echo green("✅ Exported to {$outputFile}\n\n");
+}
+
+// Summary
+echo bold("📈 Model Training Summary:\n");
+echo "  • " . count($trainingData['attack_paths']) . " unique attack path patterns\n";
+echo "  • " . count($trainingData['attack_uas']) . " unique User-Agent signatures\n";
+echo "  • " . count($trainingData['attack_ips']) . " unique attacker IPs\n";
+echo "  • " . count($trainingData['categories']) . " attack categories\n\n";
+
+echo green("✅ Training data ready for model update!\n");
+echo "   Use the patterns above to enhance ThreatClassifier.php\n\n";
