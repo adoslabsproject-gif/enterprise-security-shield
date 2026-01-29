@@ -767,12 +767,12 @@ class SecurityMiddleware
         if ($score > 0) {
             $this->threatScore = $score;
 
-            // Increment IP score in storage
-            $totalScore = $this->storage->incrementScore(
+            // Increment IP score in storage (capped at 10000 to prevent overflow)
+            $totalScore = min(10000, $this->storage->incrementScore(
                 $ip,
-                $score,
+                min($score, 1000), // Cap single increment
                 $this->config->getTrackingWindow(),
-            );
+            ));
 
             $logContext = [
                 'ip' => $ip,

@@ -325,7 +325,9 @@ class RateLimiter
 
     private function slidingWindowAttempt(string $identifier, int $cost): RateLimitResult
     {
-        $now = microtime(true);
+        // Use milliseconds as integers to avoid floating-point precision issues
+        $nowMs = (int) (microtime(true) * 1000);
+        $now = $nowMs / 1000;
         $windowStart = $now - $this->windowSeconds;
         $key = $this->keyPrefix . $identifier;
 

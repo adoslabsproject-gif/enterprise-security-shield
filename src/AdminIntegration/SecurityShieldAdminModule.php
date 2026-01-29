@@ -525,7 +525,9 @@ final class SecurityShieldAdminModule implements AdminModuleInterface
 
     public function getViewsPath(): ?string
     {
-        return dirname(__DIR__) . '/AdminIntegration/Views';
+        // __DIR__ = .../src/AdminIntegration
+        // Views are at .../src/AdminIntegration/Views
+        return __DIR__ . '/Views';
     }
 
     public function getAssetsPath(): ?string

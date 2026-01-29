@@ -114,16 +114,14 @@ class RedisStorage implements StorageInterface
     {
         $key = $this->keyPrefix . 'score:' . $ip;
 
-        // Lua script: Atomic increment + conditional expire
-        // Only sets TTL if key has no TTL (new key or expired)
+        // Lua script: Atomic increment + always refresh expire
+        // Always refresh TTL to prevent indefinite score persistence
         $lua = <<<'LUA'
             local key = KEYS[1]
             local points = tonumber(ARGV[1])
             local ttl = tonumber(ARGV[2])
             local newScore = redis.call('INCRBY', key, points)
-            if redis.call('TTL', key) < 0 then
-                redis.call('EXPIRE', key, ttl)
-            end
+            redis.call('EXPIRE', key, ttl)
             return newScore
             LUA;
 

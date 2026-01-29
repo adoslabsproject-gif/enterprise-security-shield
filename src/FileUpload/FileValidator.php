@@ -603,8 +603,15 @@ final class FileValidator
                 $entrySize = $stat['size'];
                 $totalSize += $entrySize;
 
-                // Check for path traversal
-                if (str_contains($entryName, '..') || str_starts_with($entryName, '/')) {
+                // Check for path traversal - comprehensive detection
+                // Handles: .., encoded variants (%2e%2e), backslashes, null bytes
+                $normalizedEntry = urldecode($entryName);
+                $normalizedEntry = str_replace(['\\', "\0"], ['/', ''], $normalizedEntry);
+                if (
+                    str_contains($normalizedEntry, '..')
+                    || str_starts_with($normalizedEntry, '/')
+                    || preg_match('/\.{2,}/', $normalizedEntry)
+                ) {
                     $errors[] = 'Archive contains path traversal: ' . substr($entryName, 0, 50);
                 }
 

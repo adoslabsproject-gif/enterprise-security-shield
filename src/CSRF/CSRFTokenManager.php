@@ -476,12 +476,10 @@ final class CSRFTokenManager
      */
     private function encryptToken(string $token, array $data): string
     {
-        $key = $this->config['encryption_key'];
-        if (strlen($key) < 32) {
-            $key = hash('sha256', $key, true);
-        } else {
-            $key = substr($key, 0, 32);
-        }
+        // Use PBKDF2 for proper key derivation with fixed salt
+        // This ensures consistent key derivation across requests
+        $rawKey = $this->config['encryption_key'];
+        $key = hash_pbkdf2('sha256', $rawKey, 'csrf_encryption_salt_v1', 10000, 32, true);
 
         $payload = json_encode([
             'token' => $token,
@@ -506,12 +504,9 @@ final class CSRFTokenManager
      */
     private function decryptToken(string $encrypted): ?array
     {
-        $key = $this->config['encryption_key'];
-        if (strlen($key) < 32) {
-            $key = hash('sha256', $key, true);
-        } else {
-            $key = substr($key, 0, 32);
-        }
+        // Use PBKDF2 for proper key derivation - must match encryptToken()
+        $rawKey = $this->config['encryption_key'];
+        $key = hash_pbkdf2('sha256', $rawKey, 'csrf_encryption_salt_v1', 10000, 32, true);
 
         $data = base64_decode($encrypted, true);
         if ($data === false || strlen($data) < 32) {
