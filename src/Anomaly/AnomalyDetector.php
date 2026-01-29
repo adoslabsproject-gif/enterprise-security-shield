@@ -2,7 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Senza1dio\SecurityShield\Anomaly;
+namespace AdosLabs\EnterpriseSecurityShield\Anomaly;
+
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 
 /**
  * Composite Anomaly Detector.
@@ -58,6 +61,8 @@ class AnomalyDetector
 
     private int $deduplicationWindow;
 
+    private LoggerInterface $logger;
+
     /** @var array<string, float> */
     private array $recentAlerts = [];
 
@@ -65,15 +70,18 @@ class AnomalyDetector
      * @param AnomalySeverity $alertThreshold Minimum severity for alerts
      * @param bool $deduplicateAlerts Whether to deduplicate similar alerts
      * @param int $deduplicationWindow Deduplication window in seconds
+     * @param LoggerInterface|null $logger PSR-3 logger for anomaly events
      */
     public function __construct(
         AnomalySeverity $alertThreshold = AnomalySeverity::MEDIUM,
         bool $deduplicateAlerts = true,
         int $deduplicationWindow = 300,
+        ?LoggerInterface $logger = null,
     ) {
         $this->alertThreshold = $alertThreshold;
         $this->deduplicateAlerts = $deduplicateAlerts;
         $this->deduplicationWindow = $deduplicationWindow;
+        $this->logger = $logger ?? new NullLogger();
     }
 
     /**
@@ -231,8 +239,13 @@ class AnomalyDetector
             try {
                 $handler($anomaly);
             } catch (\Throwable $e) {
-                // Don't let handler errors break detection
-                error_log('Anomaly alert handler failed: ' . $e->getMessage());
+                // Don't let handler errors break detection - log via PSR-3
+                $this->logger->error('Anomaly alert handler failed', [
+                    'exception' => $e->getMessage(),
+                    'exception_class' => get_class($e),
+                    'anomaly_type' => $anomaly->getType()->value,
+                    'anomaly_severity' => $anomaly->getSeverity()->value,
+                ]);
             }
         }
     }

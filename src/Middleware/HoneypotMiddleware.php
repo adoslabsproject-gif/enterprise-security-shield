@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Senza1dio\SecurityShield\Middleware;
+namespace AdosLabs\EnterpriseSecurityShield\Middleware;
 
-use Senza1dio\SecurityShield\Config\SecurityConfig;
-use Senza1dio\SecurityShield\Contracts\LoggerInterface;
-use Senza1dio\SecurityShield\Contracts\StorageInterface;
-use Senza1dio\SecurityShield\Exceptions\HoneypotAccessException;
-use Senza1dio\SecurityShield\Utils\IPUtils;
+use AdosLabs\EnterpriseSecurityShield\Config\SecurityConfig;
+use AdosLabs\EnterpriseSecurityShield\Contracts\LoggerInterface;
+use AdosLabs\EnterpriseSecurityShield\Contracts\StorageInterface;
+use AdosLabs\EnterpriseSecurityShield\Exceptions\HoneypotAccessException;
+use AdosLabs\EnterpriseSecurityShield\Utils\IPUtils;
 
 /**
  * Honeypot Middleware - Framework-Agnostic Trap System.
@@ -944,7 +944,7 @@ class HoneypotMiddleware
                 '/debug/sql' => [
                     'post' => [
                         'summary' => 'Execute raw SQL query',
-                        'description' => 'Dev endpoint - TODO: Remove in production',
+                        'description' => 'Administrative endpoint for query debugging',
                     ],
                 ],
             ],

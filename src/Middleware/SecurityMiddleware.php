@@ -2,14 +2,17 @@
 
 declare(strict_types=1);
 
-namespace Senza1dio\SecurityShield\Middleware;
+namespace AdosLabs\EnterpriseSecurityShield\Middleware;
 
-use Senza1dio\SecurityShield\Config\SecurityConfig;
-use Senza1dio\SecurityShield\Contracts\LoggerInterface;
-use Senza1dio\SecurityShield\Contracts\StorageInterface;
-use Senza1dio\SecurityShield\Services\BotVerifier;
-use Senza1dio\SecurityShield\Services\ThreatPatterns;
-use Senza1dio\SecurityShield\Utils\IPUtils;
+use AdosLabs\EnterpriseSecurityShield\Config\SecurityConfig;
+use AdosLabs\EnterpriseSecurityShield\Contracts\LoggerInterface;
+use AdosLabs\EnterpriseSecurityShield\Contracts\StorageInterface;
+use AdosLabs\EnterpriseSecurityShield\ML\RequestAnalyzer;
+use AdosLabs\EnterpriseSecurityShield\ML\ThreatClassifier;
+use AdosLabs\EnterpriseSecurityShield\ML\AnomalyDetector as MLAnomalyDetector;
+use AdosLabs\EnterpriseSecurityShield\Services\BotVerifier;
+use AdosLabs\EnterpriseSecurityShield\Services\ThreatPatterns;
+use AdosLabs\EnterpriseSecurityShield\Utils\IPUtils;
 
 /**
  * Security Middleware - Threat Detection and IP Management.
@@ -99,17 +102,27 @@ class SecurityMiddleware
     /**
      * GeoIP service instance.
      */
-    private ?\Senza1dio\SecurityShield\Services\GeoIP\GeoIPService $geoip = null;
+    private ?\AdosLabs\EnterpriseSecurityShield\Services\GeoIP\GeoIPService $geoip = null;
 
     /**
      * Metrics collector instance.
      */
-    private ?\Senza1dio\SecurityShield\Contracts\MetricsCollectorInterface $metrics = null;
+    private ?\AdosLabs\EnterpriseSecurityShield\Contracts\MetricsCollectorInterface $metrics = null;
 
     /**
      * Webhook notifier instance.
      */
-    private ?\Senza1dio\SecurityShield\Services\WebhookNotifier $webhooks = null;
+    private ?\AdosLabs\EnterpriseSecurityShield\Services\WebhookNotifier $webhooks = null;
+
+    /**
+     * ML Request Analyzer for intelligent threat detection.
+     */
+    private ?RequestAnalyzer $mlAnalyzer = null;
+
+    /**
+     * Enable/disable ML-based analysis.
+     */
+    private bool $mlEnabled = true;
 
     /**
      * Block reason (set when request is blocked).
@@ -164,16 +177,49 @@ class SecurityMiddleware
         if ($config->isBotVerificationEnabled()) {
             $this->botVerifier = new BotVerifier($this->storage, $this->logger);
         }
+
+        // Initialize ML-based threat analyzer
+        $this->initializeMLAnalyzer();
+    }
+
+    /**
+     * Initialize the ML-based request analyzer.
+     *
+     * The analyzer combines:
+     * - Naive Bayes classifier trained on real attack data (662 events)
+     * - Statistical anomaly detection (Z-Score, IQR)
+     * - Pattern-based feature extraction
+     */
+    private function initializeMLAnalyzer(): void
+    {
+        $classifier = new ThreatClassifier();
+        $anomalyDetector = new MLAnomalyDetector();
+        $this->mlAnalyzer = new RequestAnalyzer($classifier, $anomalyDetector);
+    }
+
+    /**
+     * Enable or disable ML-based analysis.
+     *
+     * When disabled, falls back to pattern-based scoring only.
+     *
+     * @param bool $enabled Whether ML analysis is enabled
+     * @return self
+     */
+    public function setMLEnabled(bool $enabled): self
+    {
+        $this->mlEnabled = $enabled;
+
+        return $this;
     }
 
     /**
      * Set GeoIP service (optional but recommended).
      *
-     * @param \Senza1dio\SecurityShield\Services\GeoIP\GeoIPService $geoip
+     * @param \AdosLabs\EnterpriseSecurityShield\Services\GeoIP\GeoIPService $geoip
      *
      * @return self
      */
-    public function setGeoIP(\Senza1dio\SecurityShield\Services\GeoIP\GeoIPService $geoip): self
+    public function setGeoIP(\AdosLabs\EnterpriseSecurityShield\Services\GeoIP\GeoIPService $geoip): self
     {
         $this->geoip = $geoip;
 
@@ -183,11 +229,11 @@ class SecurityMiddleware
     /**
      * Set metrics collector (optional).
      *
-     * @param \Senza1dio\SecurityShield\Contracts\MetricsCollectorInterface $metrics
+     * @param \AdosLabs\EnterpriseSecurityShield\Contracts\MetricsCollectorInterface $metrics
      *
      * @return self
      */
-    public function setMetrics(\Senza1dio\SecurityShield\Contracts\MetricsCollectorInterface $metrics): self
+    public function setMetrics(\AdosLabs\EnterpriseSecurityShield\Contracts\MetricsCollectorInterface $metrics): self
     {
         $this->metrics = $metrics;
 
@@ -197,11 +243,11 @@ class SecurityMiddleware
     /**
      * Set webhook notifier (optional).
      *
-     * @param \Senza1dio\SecurityShield\Services\WebhookNotifier $webhooks
+     * @param \AdosLabs\EnterpriseSecurityShield\Services\WebhookNotifier $webhooks
      *
      * @return self
      */
-    public function setWebhooks(\Senza1dio\SecurityShield\Services\WebhookNotifier $webhooks): self
+    public function setWebhooks(\AdosLabs\EnterpriseSecurityShield\Services\WebhookNotifier $webhooks): self
     {
         $this->webhooks = $webhooks;
 
@@ -499,7 +545,63 @@ class SecurityMiddleware
         // Example: $countryCode = $this->getCountryCode($ip);
 
         // ====================================================================
-        // STEP 6.5: Rate Limit Scoring (requestCount already incremented above)
+        // STEP 6.5A: ML-Based Threat Analysis
+        // Uses Naive Bayes classifier trained on real attack data (662 events)
+        // ====================================================================
+
+        $mlResult = null;
+        if ($this->mlEnabled && $this->mlAnalyzer !== null) {
+            $mlResult = $this->mlAnalyzer->analyze([
+                'ip' => $ip,
+                'user_agent' => $userAgent,
+                'path' => $path,
+                'request_count' => $requestCount,
+                'error_count' => 0, // Track 404s separately if available
+            ]);
+
+            // Add ML score to total (weighted at 40% to blend with pattern-based)
+            $mlScore = (int) ($mlResult['score'] * 0.4);
+            $score += $mlScore;
+
+            // Add ML classification to reasons
+            if ($mlResult['classification']['is_threat']) {
+                $reasons[] = 'ml_' . strtolower($mlResult['classification']['classification']);
+
+                $this->logger->info('WAF: ML threat classification', [
+                    'ip' => $ip,
+                    'classification' => $mlResult['classification']['classification'],
+                    'confidence' => $mlResult['classification']['confidence'],
+                    'ml_score' => $mlResult['score'],
+                    'decision' => $mlResult['decision'],
+                    'reasoning' => $mlResult['classification']['reasoning'] ?? '',
+                ]);
+            }
+
+            // If ML recommends immediate block (BAN decision with high confidence)
+            if ($mlResult['decision'] === 'BAN' && $mlResult['classification']['confidence'] >= 0.85) {
+                $this->blockReason = 'ml_high_confidence_threat';
+
+                $this->storage->banIP(
+                    $ip,
+                    $this->config->getBanDuration(),
+                    'ML: ' . $mlResult['classification']['classification'],
+                );
+
+                $this->logger->critical('WAF: ML-based automatic ban (high confidence)', [
+                    'ip' => $ip,
+                    'classification' => $mlResult['classification']['classification'],
+                    'confidence' => $mlResult['classification']['confidence'],
+                    'score' => $mlResult['score'],
+                    'path' => $path,
+                    'user_agent' => $userAgent,
+                ]);
+
+                return false; // BLOCKED by ML
+            }
+        }
+
+        // ====================================================================
+        // STEP 6.5B: Rate Limit Scoring (requestCount already incremented above)
         // ====================================================================
 
         if ($requestCount > $rateLimitMax) {
@@ -529,7 +631,7 @@ class SecurityMiddleware
                 $this->config->getTrackingWindow(),
             );
 
-            $this->logger->warning('WAF: Suspicious activity detected', [
+            $logContext = [
                 'ip' => $ip,
                 'path' => $path,
                 'user_agent' => $userAgent,
@@ -538,7 +640,17 @@ class SecurityMiddleware
                 'reasons' => $reasons,
                 'threshold' => $this->config->getScoreThreshold(),
                 'distance_to_ban' => $this->config->getScoreThreshold() - $totalScore,
-            ]);
+            ];
+
+            // Include ML analysis results if available
+            if ($mlResult !== null) {
+                $logContext['ml_decision'] = $mlResult['decision'];
+                $logContext['ml_classification'] = $mlResult['classification']['classification'];
+                $logContext['ml_confidence'] = $mlResult['classification']['confidence'];
+                $logContext['ml_anomalies'] = count($mlResult['anomalies']);
+            }
+
+            $this->logger->warning('WAF: Suspicious activity detected', $logContext);
 
             // ================================================================
             // STEP 8: Auto-ban if threshold exceeded

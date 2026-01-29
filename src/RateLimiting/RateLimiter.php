@@ -2,9 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Senza1dio\SecurityShield\RateLimiting;
+namespace AdosLabs\EnterpriseSecurityShield\RateLimiting;
 
-use Senza1dio\SecurityShield\Contracts\StorageInterface;
+use AdosLabs\EnterpriseSecurityShield\Contracts\StorageInterface;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 
 /**
  * Distributed Rate Limiter.
@@ -68,6 +70,8 @@ class RateLimiter
 
     private const ALGO_LEAKY_BUCKET = 'leaky_bucket';
 
+    private ?LoggerInterface $logger = null;
+
     private function __construct(
         StorageInterface $storage,
         int $maxRequests,
@@ -84,6 +88,18 @@ class RateLimiter
         // Token bucket defaults
         $this->tokensPerSecond = $maxRequests / $windowSeconds;
         $this->bucketSize = $maxRequests;
+    }
+
+    /**
+     * Set PSR-3 logger for rate limit events.
+     *
+     * @param LoggerInterface $logger PSR-3 logger
+     */
+    public function setLogger(LoggerInterface $logger): self
+    {
+        $this->logger = $logger;
+
+        return $this;
     }
 
     // ==================== FACTORY METHODS ====================
@@ -200,13 +216,46 @@ class RateLimiter
      */
     public function attempt(string $identifier, int $cost = 1): RateLimitResult
     {
-        return match ($this->algorithm) {
+        $result = match ($this->algorithm) {
             self::ALGO_SLIDING_WINDOW => $this->slidingWindowAttempt($identifier, $cost),
             self::ALGO_FIXED_WINDOW => $this->fixedWindowAttempt($identifier, $cost),
             self::ALGO_TOKEN_BUCKET => $this->tokenBucketAttempt($identifier, $cost),
             self::ALGO_LEAKY_BUCKET => $this->leakyBucketAttempt($identifier, $cost),
             default => throw new \InvalidArgumentException("Unknown algorithm: {$this->algorithm}"),
         };
+
+        // Log rate limit exceeded events
+        if (!$result->allowed && $this->logger !== null) {
+            $this->logger->warning('Rate limit exceeded', [
+                'identifier' => $this->maskIdentifier($identifier),
+                'algorithm' => $this->algorithm,
+                'limit' => $result->limit,
+                'remaining' => $result->remaining,
+                'retry_after' => $result->retryAfter,
+                'window_seconds' => $this->windowSeconds,
+            ]);
+        }
+
+        return $result;
+    }
+
+    /**
+     * Mask identifier for logging (privacy protection).
+     */
+    private function maskIdentifier(string $identifier): string
+    {
+        // If it looks like an IP, mask the last octet
+        if (filter_var($identifier, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+            return preg_replace('/\.\d+$/', '.xxx', $identifier) ?? $identifier;
+        }
+
+        // For other identifiers, show first and last chars only
+        $len = strlen($identifier);
+        if ($len <= 4) {
+            return str_repeat('*', $len);
+        }
+
+        return $identifier[0] . str_repeat('*', $len - 2) . $identifier[$len - 1];
     }
 
     /**

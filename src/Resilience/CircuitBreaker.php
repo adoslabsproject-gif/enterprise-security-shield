@@ -2,9 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Senza1dio\SecurityShield\Resilience;
+namespace AdosLabs\EnterpriseSecurityShield\Resilience;
 
-use Senza1dio\SecurityShield\Contracts\StorageInterface;
+use AdosLabs\EnterpriseSecurityShield\Contracts\StorageInterface;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 
 /**
  * Circuit Breaker Pattern Implementation.
@@ -86,6 +88,8 @@ class CircuitBreaker
     /** @var array<callable> */
     private array $onSuccess = [];
 
+    private LoggerInterface $logger;
+
     /**
      * @param string $name Unique identifier for this circuit
      * @param StorageInterface|null $storage Shared storage for distributed state (null = local only)
@@ -96,15 +100,18 @@ class CircuitBreaker
      *     success_threshold?: int,
      *     key_prefix?: string
      * } $options Configuration options
+     * @param LoggerInterface|null $logger PSR-3 logger for state transitions
      */
     public function __construct(
         string $name,
         ?StorageInterface $storage = null,
         array $options = [],
+        ?LoggerInterface $logger = null,
     ) {
         $this->name = $name;
         $this->storage = $storage;
         $this->keyPrefix = $options['key_prefix'] ?? 'circuit_breaker:';
+        $this->logger = $logger ?? new NullLogger();
 
         // Configuration with sensible defaults
         $this->failureThreshold = $options['failure_threshold'] ?? 5;
@@ -371,6 +378,15 @@ class CircuitBreaker
     {
         $failureCount = $this->incrementFailureCount();
 
+        // Log the failure
+        $this->logger->warning('Circuit breaker recorded failure', [
+            'circuit' => $this->name,
+            'failure_count' => $failureCount,
+            'failure_threshold' => $this->failureThreshold,
+            'exception' => $e->getMessage(),
+            'exception_class' => get_class($e),
+        ]);
+
         // Emit failure event
         foreach ($this->onFailure as $callback) {
             $callback($e, $failureCount, $this->name);
@@ -390,15 +406,21 @@ class CircuitBreaker
             return;
         }
 
-        // Log state transition for observability
-        error_log(sprintf(
-            'CircuitBreaker[%s]: State transition %s -> %s (failures=%d, threshold=%d)',
-            $this->name,
-            $oldState,
-            $newState,
-            $this->getFailureCount(),
-            $this->failureThreshold,
-        ));
+        // Log state transition for observability (PSR-3 compliant)
+        $logLevel = match ($newState) {
+            self::STATE_OPEN => 'warning',      // Circuit opened - dependency unhealthy
+            self::STATE_HALF_OPEN => 'info',    // Attempting recovery
+            self::STATE_CLOSED => 'info',       // Recovered
+            default => 'debug',
+        };
+
+        $this->logger->log($logLevel, 'Circuit breaker state transition', [
+            'circuit' => $this->name,
+            'old_state' => $oldState,
+            'new_state' => $newState,
+            'failure_count' => $this->getFailureCount(),
+            'failure_threshold' => $this->failureThreshold,
+        ]);
 
         // Update state
         if ($this->storage !== null) {
