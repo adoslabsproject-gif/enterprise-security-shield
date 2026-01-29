@@ -26,6 +26,19 @@ A complete security solution with ML-based threat detection, bot verification, a
 | **GeoIP Blocking** | Country-level restrictions via MaxMind |
 | **Rate Limiting** | 4 algorithms: sliding window, token bucket, leaky bucket, fixed |
 
+### Enterprise Security (NEW)
+
+| Feature | Description |
+|---------|-------------|
+| **Request Smuggling Detection** | CL.TE, TE.CL, TE.TE attack detection |
+| **WebSocket Protection** | CSWSH detection, origin validation, connection limits |
+| **JWT Security Validation** | alg:none attacks, algorithm confusion, header injection |
+| **GraphQL Protection** | Query depth/complexity limits, batching abuse, introspection control |
+| **DDoS Layer 7** | Slowloris, RUDY, HTTP flood detection |
+| **HTTP/2 Protection** | CONTINUATION flood, Rapid Reset (CVE-2023-44487) |
+| **API Rate Limiting** | Per-endpoint, per-API-key, tier-based limits |
+| **Threat Intelligence** | Auto-updating feeds (FireHOL, Emerging Threats, Abuse.ch) |
+
 ### Resilience Patterns
 
 | Pattern | Description |
@@ -675,24 +688,386 @@ composer cs-check      # PHP-CS-Fixer
 
 ```
 src/
+├── AdminIntegration/  # Admin panel module (7 tabs)
 ├── Anomaly/           # Statistical anomaly detectors
 ├── Bot/               # Bot verification service
 ├── Config/            # Configuration management
 ├── Contracts/         # Interfaces
 ├── Core/              # SecurityShield main class
-├── Detection/         # XSS/SQLi detectors
+├── CSRF/              # CSRF token management
+├── Detection/         # XSS, SQLi, Request Smuggling, DDoS, GraphQL, HTTP/2, WebSocket
+├── FileUpload/        # Secure file upload validation
 ├── GeoIP/             # GeoIP blocking service
 ├── Health/            # Health check system
 ├── Honeypot/          # Trap endpoints
 ├── Integrations/      # WooCommerce, WordPress
 ├── Middleware/        # PSR-15 middleware
-├── ML/                # Machine learning (ThreatClassifier, AnomalyDetector)
+├── ML/                # Machine learning (ThreatClassifier, OnlineLearning, AnomalyDetector)
 ├── Notifications/     # Telegram, Slack, Email
-├── RateLimiting/      # 4 rate limit algorithms
+├── RateLimiting/      # 5 rate limit algorithms (+ API-specific)
 ├── Resilience/        # Circuit breaker, retry, bulkhead
+├── Security/          # JWT validation
 ├── Storage/           # Redis, Database, Null
 ├── Telemetry/         # Tracing, metrics
+├── ThreatIntel/       # Threat feed client & matcher
 └── Utils/             # IP utilities
+```
+
+---
+
+## Enterprise Security Features
+
+### Request Smuggling Detection
+
+Detects HTTP Request Smuggling attacks that exploit discrepancies between front-end and back-end servers.
+
+```php
+use AdosLabs\EnterpriseSecurityShield\Detection\RequestSmugglingDetector;
+
+$detector = new RequestSmugglingDetector();
+
+// Check request headers
+$result = $detector->detect($headers, $rawRequest);
+
+if ($result['detected']) {
+    // Attack type: CL_TE_CONFLICT, DUPLICATE_CL, TE_OBFUSCATION, etc.
+    error_log("Smuggling detected: " . $result['attack_type']);
+    http_response_code(400);
+    exit('Bad Request');
+}
+
+// Sanitize headers (removes dangerous combinations)
+$safeHeaders = $detector->sanitize($headers);
+```
+
+**Detected Attack Types:**
+- CL.TE (Front-end uses Content-Length, back-end uses Transfer-Encoding)
+- TE.CL (Front-end uses Transfer-Encoding, back-end uses Content-Length)
+- TE.TE (Both use Transfer-Encoding but parse obfuscation differently)
+
+---
+
+### WebSocket Protection
+
+Validates WebSocket upgrade requests and detects Cross-Site WebSocket Hijacking (CSWSH).
+
+```php
+use AdosLabs\EnterpriseSecurityShield\Detection\WebSocketProtector;
+
+$protector = new WebSocketProtector([
+    'allowed_origins' => ['example.com', '*.example.com'],
+    'max_connections_per_ip' => 10,
+]);
+
+// Validate upgrade request
+$result = $protector->validateUpgrade($headers, $origin, $clientIp, $connectionCount);
+
+if (!$result['valid']) {
+    // Reject WebSocket connection
+    http_response_code(403);
+    exit(json_encode(['errors' => $result['errors']]));
+}
+
+// Generate accept key for handshake
+$acceptKey = $protector->generateAcceptKey($headers['sec-websocket-key']);
+
+// Check for CSWSH attack
+$cswsh = $protector->detectCSWSH($origin, $referer, $host);
+if ($cswsh['detected']) {
+    error_log("CSWSH attack: " . $cswsh['reason']);
+}
+```
+
+---
+
+### JWT Security Validation
+
+Validates JWT tokens for common attack patterns. **Does NOT verify signatures** - use with a JWT library.
+
+```php
+use AdosLabs\EnterpriseSecurityShield\Security\JWTValidator;
+
+$validator = new JWTValidator([
+    'allowed_algorithms' => ['RS256', 'ES256'],  // Whitelist only!
+    'required_claims' => ['exp', 'iat', 'sub'],
+    'max_token_age' => 86400,
+]);
+
+$result = $validator->validate($token);
+
+if (!$result['valid']) {
+    // Check for attacks
+    if (in_array('ALG_NONE_ATTACK', $result['attacks_detected'])) {
+        error_log("CRITICAL: alg:none attack attempted!");
+    }
+    if (in_array('ALG_CONFUSION', $result['attacks_detected'])) {
+        error_log("WARNING: Possible RS256->HS256 confusion attack");
+    }
+
+    http_response_code(401);
+    exit('Invalid token');
+}
+
+// Token structure is safe, now verify signature with your JWT library
+$payload = $result['payload'];
+```
+
+**Detected Attacks:**
+- `ALG_NONE_ATTACK` - Algorithm set to "none" (bypass signature)
+- `ALG_CONFUSION` - RS256→HS256 confusion (use public key as HMAC secret)
+- `HEADER_INJECTION` - Malicious jku/x5u/jwk headers
+- `SUSPICIOUS_CLAIMS` - Admin role escalation attempts
+
+---
+
+### GraphQL Protection
+
+Protects against GraphQL-specific DoS and abuse patterns.
+
+```php
+use AdosLabs\EnterpriseSecurityShield\Detection\GraphQLProtector;
+
+$protector = new GraphQLProtector([
+    'max_depth' => 10,           // Prevent deeply nested queries
+    'max_complexity' => 1000,    // Prevent expensive queries
+    'max_batch_size' => 10,      // Prevent batching abuse
+    'allow_introspection' => false,  // Disable in production!
+]);
+
+// Analyze single query
+$result = $protector->analyze($query, $variables);
+
+// Analyze batch (array of operations)
+$result = $protector->analyze($batchOperations);
+
+if (!$result['allowed']) {
+    http_response_code(400);
+    exit(json_encode([
+        'errors' => $result['errors'],
+        'attacks' => $result['attacks_detected'],
+    ]));
+}
+
+// Query is safe to execute
+$metrics = $result['metrics'];  // depth, complexity, aliases, operations
+```
+
+**Detected Attacks:**
+- `DEPTH_ATTACK` - Query depth exceeds limit
+- `COMPLEXITY_ATTACK` - Query too expensive
+- `BATCH_ABUSE` - Too many operations in batch
+- `INTROSPECTION_BLOCKED` - Schema discovery attempt
+- `ALIAS_ABUSE` - Excessive aliases (amplification)
+
+---
+
+### DDoS Layer 7 Protection
+
+Detects application-layer DDoS attacks. Works best with server metrics.
+
+```php
+use AdosLabs\EnterpriseSecurityShield\Detection\DDoSProtector;
+
+$protector = new DDoSProtector($storage, [
+    'max_requests_per_window' => 1000,
+    'window_size' => 60,
+    'max_concurrent_connections' => 50,
+    'expensive_endpoints' => [
+        '/api/search' => 5,     // Costs 5 requests
+        '/api/export' => 20,    // Costs 20 requests
+    ],
+]);
+
+// Basic check (flood detection)
+$result = $protector->analyze($clientIp, $path, $method);
+
+// Advanced check with server metrics
+$result = $protector->analyze($clientIp, $path, $method, [
+    'header_receive_time' => 5.2,      // Slowloris detection
+    'header_count' => 10,
+    'body_receive_time' => 30.0,       // RUDY detection
+    'content_length' => 1000,
+    'concurrent_connections' => 45,
+]);
+
+if (!$result['allowed']) {
+    // $result['attack_type']: HTTP_FLOOD, SLOWLORIS, RUDY, etc.
+    http_response_code(429);
+    exit('Too Many Requests');
+}
+```
+
+**Detected Attacks:**
+- `HTTP_FLOOD` - Excessive request rate
+- `SLOWLORIS` - Slow HTTP headers
+- `RUDY` - Slow POST body (R-U-Dead-Yet)
+- `CONNECTION_FLOOD` - Too many concurrent connections
+- `RESOURCE_EXHAUSTION` - Expensive endpoint abuse
+
+---
+
+### HTTP/2 Protection
+
+Detects HTTP/2 protocol-specific attacks. Requires server metrics for full detection.
+
+```php
+use AdosLabs\EnterpriseSecurityShield\Detection\HTTP2Protector;
+
+$protector = new HTTP2Protector([
+    'max_header_list_size' => 16384,
+    'max_concurrent_streams' => 100,
+    'max_resets_per_minute' => 100,
+]);
+
+// Analyze request (requires HTTP/2 metrics from web server)
+$result = $protector->analyze($headers, [
+    'protocol' => 'h2',
+    'continuation_frames' => 3,
+    'rst_stream_count' => 50,
+    'settings_frames' => 2,
+]);
+
+if (!$result['allowed']) {
+    foreach ($result['recommendations'] as $rec) {
+        error_log("HTTP/2 Security: " . $rec);
+    }
+}
+
+// Get recommended nginx/apache config
+echo $protector->getNginxConfig();
+echo $protector->getApacheConfig();
+```
+
+**Detected Attacks:**
+- `CONTINUATION_FLOOD` - CVE-2024-27983
+- `RAPID_RESET` - CVE-2023-44487
+- `HPACK_BOMB` - Header compression abuse
+- `SETTINGS_FLOOD` - Excessive SETTINGS frames
+
+---
+
+### API Rate Limiting
+
+Advanced rate limiting with per-endpoint, per-API-key, and tier-based limits.
+
+```php
+use AdosLabs\EnterpriseSecurityShield\RateLimiting\APIRateLimiter;
+
+$limiter = new APIRateLimiter($storage, [
+    'default_limit' => 60,
+    'default_window' => 60,
+    'algorithm' => 'token_bucket',  // or 'sliding_window', 'fixed_window'
+]);
+
+// Define tiers
+$limiter->defineTier('free', ['limit' => 60, 'burst' => 10]);
+$limiter->defineTier('pro', ['limit' => 1000, 'burst' => 200]);
+$limiter->defineTier('enterprise', ['limit' => 10000, 'burst' => 2000]);
+
+// Set endpoint-specific limits
+$limiter->setEndpointLimit('/api/search', ['limit' => 10, 'cost' => 5]);
+$limiter->setEndpointLimit('/api/export/*', ['limit' => 5, 'cost' => 20]);
+
+// Register API keys
+$limiter->registerApiKey('sk_live_xxx', 'pro');
+
+// Check rate limit
+$result = $limiter->check(
+    identifier: $clientIp,
+    endpoint: '/api/users',
+    apiKey: $request->header('X-API-Key'),
+    cost: 1
+);
+
+if (!$result['allowed']) {
+    header('X-RateLimit-Limit: ' . $result['limit']);
+    header('X-RateLimit-Remaining: ' . $result['remaining']);
+    header('X-RateLimit-Reset: ' . $result['reset']);
+    header('Retry-After: ' . $result['retry_after']);
+    http_response_code(429);
+    exit('Rate limit exceeded');
+}
+```
+
+---
+
+### Threat Intelligence Feeds
+
+Auto-updating threat intelligence from public feeds.
+
+```php
+use AdosLabs\EnterpriseSecurityShield\ThreatIntel\ThreatFeedClient;
+use AdosLabs\EnterpriseSecurityShield\ThreatIntel\ThreatMatcher;
+
+// Initialize feed client
+$feedClient = new ThreatFeedClient($storage, [
+    'cache_ttl' => 21600,  // 6 hours
+]);
+
+// Update feeds (call via cron every 6 hours)
+$result = $feedClient->fetchAllFeeds();
+echo "Updated: " . implode(', ', $result['success']);
+echo "Failed: " . implode(', ', array_keys($result['failed']));
+echo "Total entries: " . $result['total_entries'];
+
+// Check IP against feeds
+$matcher = new ThreatMatcher($storage);
+$matcher->loadFromStorage();
+
+$result = $matcher->matchIp('1.2.3.4');
+if ($result['match']) {
+    echo "Blocked by feed: " . $result['feed'];
+    // $result['type']: 'exact_ip', 'cidr', etc.
+}
+
+// Batch check
+$results = $matcher->matchIpBatch(['1.2.3.4', '5.6.7.8', '9.10.11.12']);
+```
+
+**Included Feeds:**
+- FireHOL Level 1 (high confidence malicious IPs)
+- Emerging Threats Compromised IPs
+- Abuse.ch Feodo Tracker (botnet C&C)
+- Spamhaus DROP (Do Not Route Or Peer)
+- Tor Exit Nodes (disabled by default)
+
+---
+
+### SecurityShield Integration
+
+All enterprise features are integrated into the main SecurityShield class:
+
+```php
+use AdosLabs\EnterpriseSecurityShield\Core\SecurityShield;
+
+$shield = new SecurityShield($storage, $config, $logger);
+
+// Request smuggling
+$result = $shield->analyzeRequestSmuggling($headers, $rawRequest);
+
+// WebSocket validation
+$result = $shield->validateWebSocketUpgrade($headers, $origin, $clientIp);
+
+// JWT validation
+$result = $shield->validateJWT($token);
+
+// GraphQL protection
+$result = $shield->analyzeGraphQL($query, $variables);
+
+// DDoS detection
+$result = $shield->analyzeDDoS($clientIp, $path, $method, $serverMetrics);
+
+// API rate limiting
+$result = $shield->checkAPIRateLimit($identifier, $endpoint, $apiKey);
+
+// Threat intelligence
+$result = $shield->checkThreatIntel($ip);
+
+// Update threat feeds (cron job)
+$result = $shield->updateThreatFeeds();
+
+// HTTP/2 protection
+$result = $shield->analyzeHTTP2($headers, $serverMetrics);
 ```
 
 ---
