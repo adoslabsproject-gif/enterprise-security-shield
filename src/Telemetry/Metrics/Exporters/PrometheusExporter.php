@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Senza1dio\SecurityShield\Telemetry\Metrics\Exporters;
+namespace AdosLabs\EnterpriseSecurityShield\Telemetry\Metrics\Exporters;
 
-use Senza1dio\SecurityShield\Telemetry\Metrics\MetricExporterInterface;
+use AdosLabs\EnterpriseSecurityShield\Telemetry\Metrics\MetricExporterInterface;
 
 /**
  * Prometheus Exporter.

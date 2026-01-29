@@ -9,9 +9,9 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use Senza1dio\SecurityShield\Config\SecurityConfig;
-use Senza1dio\SecurityShield\Integrations\WooCommerce\WooCommerceSecurityMiddleware;
-use Senza1dio\SecurityShield\Storage\NullStorage;
+use AdosLabs\EnterpriseSecurityShield\Config\SecurityConfig;
+use AdosLabs\EnterpriseSecurityShield\Integrations\WooCommerce\WooCommerceSecurityMiddleware;
+use AdosLabs\EnterpriseSecurityShield\Storage\NullStorage;
 
 // Test counter
 $tests_passed = 0;
@@ -47,7 +47,7 @@ test('Whitelist IP bypasses ALL checks (including WooCommerce paths)', function 
     $config = new SecurityConfig();
     $config->setScoreThreshold(50)
            ->setStorage($storage)
-           ->setLogger(new \Senza1dio\SecurityShield\Storage\NullLogger())
+           ->setLogger(new \AdosLabs\EnterpriseSecurityShield\Storage\NullLogger())
            ->addIPWhitelist('127.0.0.1'); // Whitelist test IP
 
     $wooSecurity = new WooCommerceSecurityMiddleware($config);
@@ -76,7 +76,7 @@ test('Non-whitelisted IP accessing suspicious path gets scored', function () {
     $config = new SecurityConfig();
     $config->setScoreThreshold(50)
            ->setStorage($storage)
-           ->setLogger(new \Senza1dio\SecurityShield\Storage\NullLogger());
+           ->setLogger(new \AdosLabs\EnterpriseSecurityShield\Storage\NullLogger());
 
     $wooSecurity = new WooCommerceSecurityMiddleware($config);
 
@@ -105,7 +105,7 @@ test('Legitimate request (not suspicious path) is allowed', function () {
     $config = new SecurityConfig();
     $config->setScoreThreshold(50)
            ->setStorage($storage)
-           ->setLogger(new \Senza1dio\SecurityShield\Storage\NullLogger());
+           ->setLogger(new \AdosLabs\EnterpriseSecurityShield\Storage\NullLogger());
 
     $wooSecurity = new WooCommerceSecurityMiddleware($config);
 
@@ -132,7 +132,7 @@ test('wp-config.php access gets critical score (50 points = instant ban)', funct
     $config = new SecurityConfig();
     $config->setScoreThreshold(50) // Ban at 50 points
            ->setStorage($storage)
-           ->setLogger(new \Senza1dio\SecurityShield\Storage\NullLogger());
+           ->setLogger(new \AdosLabs\EnterpriseSecurityShield\Storage\NullLogger());
 
     $wooSecurity = new WooCommerceSecurityMiddleware($config);
 
@@ -159,7 +159,7 @@ test('WooCommerce REST API is rate-limited (not instantly blocked)', function ()
     $config = new SecurityConfig();
     $config->setScoreThreshold(50)
            ->setStorage($storage)
-           ->setLogger(new \Senza1dio\SecurityShield\Storage\NullLogger());
+           ->setLogger(new \AdosLabs\EnterpriseSecurityShield\Storage\NullLogger());
 
     $wooSecurity = new WooCommerceSecurityMiddleware($config);
 
@@ -189,7 +189,7 @@ test('Parent WAF scanner detection still works', function () {
     $config = new SecurityConfig();
     $config->setScoreThreshold(50)
            ->setStorage($storage)
-           ->setLogger(new \Senza1dio\SecurityShield\Storage\NullLogger());
+           ->setLogger(new \AdosLabs\EnterpriseSecurityShield\Storage\NullLogger());
 
     $wooSecurity = new WooCommerceSecurityMiddleware($config);
 
@@ -216,7 +216,7 @@ test('CIDR range whitelist works correctly', function () {
     $config = new SecurityConfig();
     $config->setScoreThreshold(50)
            ->setStorage($storage)
-           ->setLogger(new \Senza1dio\SecurityShield\Storage\NullLogger())
+           ->setLogger(new \AdosLabs\EnterpriseSecurityShield\Storage\NullLogger())
            ->addIPWhitelist('192.0.2.0/24'); // Whitelist entire subnet
 
     $wooSecurity = new WooCommerceSecurityMiddleware($config);

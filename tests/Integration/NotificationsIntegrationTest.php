@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Senza1dio\SecurityShield\Tests\Integration;
+namespace AdosLabs\EnterpriseSecurityShield\Tests\Integration;
 
 use PHPUnit\Framework\TestCase;
-use Senza1dio\SecurityShield\Notifications\DiscordNotifier;
-use Senza1dio\SecurityShield\Notifications\NotificationManager;
-use Senza1dio\SecurityShield\Notifications\SlackNotifier;
-use Senza1dio\SecurityShield\Notifications\TelegramNotifier;
+use AdosLabs\EnterpriseSecurityShield\Notifications\DiscordNotifier;
+use AdosLabs\EnterpriseSecurityShield\Notifications\NotificationManager;
+use AdosLabs\EnterpriseSecurityShield\Notifications\SlackNotifier;
+use AdosLabs\EnterpriseSecurityShield\Notifications\TelegramNotifier;
 
 /**
  * Integration tests for notification channels.

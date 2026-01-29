@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Senza1dio\SecurityShield\Tests\Integration;
+namespace AdosLabs\EnterpriseSecurityShield\Tests\Integration;
 
 use PHPUnit\Framework\TestCase;
-use Senza1dio\SecurityShield\Config\SecurityConfig;
-use Senza1dio\SecurityShield\Middleware\WafMiddleware;
-use Senza1dio\SecurityShield\Storage\NullLogger;
-use Senza1dio\SecurityShield\Storage\NullStorage;
+use AdosLabs\EnterpriseSecurityShield\Config\SecurityConfig;
+use AdosLabs\EnterpriseSecurityShield\Middleware\WafMiddleware;
+use AdosLabs\EnterpriseSecurityShield\Storage\NullLogger;
+use AdosLabs\EnterpriseSecurityShield\Storage\NullStorage;
 
 /**
  * WAF Concurrency & Proxy Tests.

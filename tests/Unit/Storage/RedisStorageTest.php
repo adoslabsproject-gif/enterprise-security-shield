@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Senza1dio\SecurityShield\Tests\Unit\Storage;
+namespace AdosLabs\EnterpriseSecurityShield\Tests\Unit\Storage;
 
 use PHPUnit\Framework\TestCase;
-use Senza1dio\SecurityShield\Storage\RedisStorage;
+use AdosLabs\EnterpriseSecurityShield\Storage\RedisStorage;
 
 /**
  * Redis Storage Test Suite.
  *
- * @covers \Senza1dio\SecurityShield\Storage\RedisStorage
+ * @covers \AdosLabs\EnterpriseSecurityShield\Storage\RedisStorage
  */
 class RedisStorageTest extends TestCase
 {

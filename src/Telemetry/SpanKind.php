@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Senza1dio\SecurityShield\Telemetry;
+namespace AdosLabs\EnterpriseSecurityShield\Telemetry;
 
 /**
  * OpenTelemetry Span Kind.

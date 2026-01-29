@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Senza1dio\SecurityShield\Resilience;
+namespace AdosLabs\EnterpriseSecurityShield\Resilience;
 
 /**
  * Exception thrown when attempting to use an open circuit.

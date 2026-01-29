@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Senza1dio\SecurityShield\Tests\Unit\Anomaly;
+namespace AdosLabs\EnterpriseSecurityShield\Tests\Unit\Anomaly;
 
 use PHPUnit\Framework\TestCase;
-use Senza1dio\SecurityShield\Anomaly\AnomalyType;
-use Senza1dio\SecurityShield\Anomaly\Detectors\PatternDetector;
+use AdosLabs\EnterpriseSecurityShield\Anomaly\AnomalyType;
+use AdosLabs\EnterpriseSecurityShield\Anomaly\Detectors\PatternDetector;
 
 class PatternDetectorTest extends TestCase
 {

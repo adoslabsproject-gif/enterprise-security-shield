@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Senza1dio\SecurityShield\Notifications;
+namespace AdosLabs\EnterpriseSecurityShield\Notifications;
 
 /**
  * Slack Notifier.

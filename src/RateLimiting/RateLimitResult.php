@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Senza1dio\SecurityShield\RateLimiting;
+namespace AdosLabs\EnterpriseSecurityShield\RateLimiting;
 
 /**
  * Rate Limit Result.

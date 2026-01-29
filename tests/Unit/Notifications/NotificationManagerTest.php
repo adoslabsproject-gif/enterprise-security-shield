@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Senza1dio\SecurityShield\Tests\Unit\Notifications;
+namespace AdosLabs\EnterpriseSecurityShield\Tests\Unit\Notifications;
 
 use PHPUnit\Framework\TestCase;
-use Senza1dio\SecurityShield\Notifications\NotificationManager;
-use Senza1dio\SecurityShield\Notifications\NotifierInterface;
+use AdosLabs\EnterpriseSecurityShield\Notifications\NotificationManager;
+use AdosLabs\EnterpriseSecurityShield\Notifications\NotifierInterface;
 
 class NotificationManagerTest extends TestCase
 {

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Senza1dio\SecurityShield\Tests\Unit\Notifications;
+namespace AdosLabs\EnterpriseSecurityShield\Tests\Unit\Notifications;
 
 use PHPUnit\Framework\TestCase;
-use Senza1dio\SecurityShield\Notifications\TelegramNotifier;
+use AdosLabs\EnterpriseSecurityShield\Notifications\TelegramNotifier;
 
 class TelegramNotifierTest extends TestCase
 {

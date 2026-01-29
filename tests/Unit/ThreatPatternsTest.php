@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Senza1dio\SecurityShield\Tests\Unit;
+namespace AdosLabs\EnterpriseSecurityShield\Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
-use Senza1dio\SecurityShield\Services\ThreatPatterns;
+use AdosLabs\EnterpriseSecurityShield\Services\ThreatPatterns;
 
 /**
  * ENTERPRISE GALAXY: ThreatPatterns Service Comprehensive Test Suite.
@@ -25,7 +25,7 @@ use Senza1dio\SecurityShield\Services\ThreatPatterns;
  * - Threat Score Calculation
  * - Statistics Methods
  *
- * @covers \Senza1dio\SecurityShield\Services\ThreatPatterns
+ * @covers \AdosLabs\EnterpriseSecurityShield\Services\ThreatPatterns
  */
 class ThreatPatternsTest extends TestCase
 {

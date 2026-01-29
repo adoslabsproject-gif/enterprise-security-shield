@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Senza1dio\SecurityShield\Services;
+namespace AdosLabs\EnterpriseSecurityShield\Services;
 
-use Senza1dio\SecurityShield\Contracts\LoggerInterface;
-use Senza1dio\SecurityShield\Contracts\StorageInterface;
+use AdosLabs\EnterpriseSecurityShield\Contracts\LoggerInterface;
+use AdosLabs\EnterpriseSecurityShield\Contracts\StorageInterface;
 
 /**
  * Bot Verification Service.

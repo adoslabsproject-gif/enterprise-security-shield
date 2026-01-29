@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Senza1dio\SecurityShield\Tests\Unit\Telemetry;
+namespace AdosLabs\EnterpriseSecurityShield\Tests\Unit\Telemetry;
 
 use PHPUnit\Framework\TestCase;
-use Senza1dio\SecurityShield\Telemetry\NoOpSpan;
-use Senza1dio\SecurityShield\Telemetry\Samplers\AlwaysOffSampler;
-use Senza1dio\SecurityShield\Telemetry\Samplers\AlwaysOnSampler;
-use Senza1dio\SecurityShield\Telemetry\Samplers\RatioBasedSampler;
-use Senza1dio\SecurityShield\Telemetry\SpanKind;
-use Senza1dio\SecurityShield\Telemetry\Tracer;
+use AdosLabs\EnterpriseSecurityShield\Telemetry\NoOpSpan;
+use AdosLabs\EnterpriseSecurityShield\Telemetry\Samplers\AlwaysOffSampler;
+use AdosLabs\EnterpriseSecurityShield\Telemetry\Samplers\AlwaysOnSampler;
+use AdosLabs\EnterpriseSecurityShield\Telemetry\Samplers\RatioBasedSampler;
+use AdosLabs\EnterpriseSecurityShield\Telemetry\SpanKind;
+use AdosLabs\EnterpriseSecurityShield\Telemetry\Tracer;
 
 class TracerTest extends TestCase
 {

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Senza1dio\SecurityShield\Tests\Unit\Resilience;
+namespace AdosLabs\EnterpriseSecurityShield\Tests\Unit\Resilience;
 
 use PHPUnit\Framework\TestCase;
-use Senza1dio\SecurityShield\Resilience\RetryPolicy;
+use AdosLabs\EnterpriseSecurityShield\Resilience\RetryPolicy;
 
 class RetryPolicyTest extends TestCase
 {

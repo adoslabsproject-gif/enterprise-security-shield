@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Senza1dio\SecurityShield\Tests\Unit\Telemetry;
+namespace AdosLabs\EnterpriseSecurityShield\Tests\Unit\Telemetry;
 
 use PHPUnit\Framework\TestCase;
-use Senza1dio\SecurityShield\Telemetry\Span;
-use Senza1dio\SecurityShield\Telemetry\SpanKind;
-use Senza1dio\SecurityShield\Telemetry\SpanStatus;
+use AdosLabs\EnterpriseSecurityShield\Telemetry\Span;
+use AdosLabs\EnterpriseSecurityShield\Telemetry\SpanKind;
+use AdosLabs\EnterpriseSecurityShield\Telemetry\SpanStatus;
 
 class SpanTest extends TestCase
 {

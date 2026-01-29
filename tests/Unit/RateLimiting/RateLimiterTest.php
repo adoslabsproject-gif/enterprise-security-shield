@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Senza1dio\SecurityShield\Tests\Unit\RateLimiting;
+namespace AdosLabs\EnterpriseSecurityShield\Tests\Unit\RateLimiting;
 
 use PHPUnit\Framework\TestCase;
-use Senza1dio\SecurityShield\RateLimiting\RateLimiter;
-use Senza1dio\SecurityShield\Tests\Fixtures\InMemoryStorage;
+use AdosLabs\EnterpriseSecurityShield\RateLimiting\RateLimiter;
+use AdosLabs\EnterpriseSecurityShield\Tests\Fixtures\InMemoryStorage;
 
 class RateLimiterTest extends TestCase
 {

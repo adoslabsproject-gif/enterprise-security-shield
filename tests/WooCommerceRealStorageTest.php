@@ -19,9 +19,9 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use Senza1dio\SecurityShield\Config\SecurityConfig;
-use Senza1dio\SecurityShield\Integrations\WooCommerce\WooCommerceSecurityMiddleware;
-use Senza1dio\SecurityShield\Storage\DatabaseStorage;
+use AdosLabs\EnterpriseSecurityShield\Config\SecurityConfig;
+use AdosLabs\EnterpriseSecurityShield\Integrations\WooCommerce\WooCommerceSecurityMiddleware;
+use AdosLabs\EnterpriseSecurityShield\Storage\DatabaseStorage;
 
 // Test counter
 $tests_passed = 0;
@@ -104,7 +104,7 @@ test('Rate limiting: Checkout allows 5 requests then blocks', function () use ($
     $config = new SecurityConfig();
     $config->setScoreThreshold(50)
            ->setStorage($storage)
-           ->setLogger(new \Senza1dio\SecurityShield\Storage\NullLogger());
+           ->setLogger(new \AdosLabs\EnterpriseSecurityShield\Storage\NullLogger());
 
     $wooSecurity = new WooCommerceSecurityMiddleware($config);
 
@@ -153,7 +153,7 @@ test('Rate limiting: Add to cart allows 30 requests then blocks', function () us
     $config = new SecurityConfig();
     $config->setScoreThreshold(50)
            ->setStorage($storage)
-           ->setLogger(new \Senza1dio\SecurityShield\Storage\NullLogger());
+           ->setLogger(new \AdosLabs\EnterpriseSecurityShield\Storage\NullLogger());
 
     $wooSecurity = new WooCommerceSecurityMiddleware($config);
 
@@ -202,7 +202,7 @@ test('Score accumulation: Multiple suspicious paths lead to ban', function () us
     $config = new SecurityConfig();
     $config->setScoreThreshold(50)
            ->setStorage($storage)
-           ->setLogger(new \Senza1dio\SecurityShield\Storage\NullLogger());
+           ->setLogger(new \AdosLabs\EnterpriseSecurityShield\Storage\NullLogger());
 
     $wooSecurity = new WooCommerceSecurityMiddleware($config);
 
@@ -253,7 +253,7 @@ test('Ban persistence: Once banned, IP stays banned across requests', function (
     $config = new SecurityConfig();
     $config->setScoreThreshold(50)
            ->setStorage($storage)
-           ->setLogger(new \Senza1dio\SecurityShield\Storage\NullLogger());
+           ->setLogger(new \AdosLabs\EnterpriseSecurityShield\Storage\NullLogger());
 
     $wooSecurity = new WooCommerceSecurityMiddleware($config);
 
@@ -294,7 +294,7 @@ test('Whitelist bypass: Whitelisted IP passes even with suspicious paths', funct
     $config = new SecurityConfig();
     $config->setScoreThreshold(50)
            ->setStorage($storage)
-           ->setLogger(new \Senza1dio\SecurityShield\Storage\NullLogger())
+           ->setLogger(new \AdosLabs\EnterpriseSecurityShield\Storage\NullLogger())
            ->addIPWhitelist('192.0.2.50');
 
     $wooSecurity = new WooCommerceSecurityMiddleware($config);
@@ -336,7 +336,7 @@ test('Rate limiting: Coupon checks allow 10 requests then block', function () us
     $config = new SecurityConfig();
     $config->setScoreThreshold(50)
            ->setStorage($storage)
-           ->setLogger(new \Senza1dio\SecurityShield\Storage\NullLogger());
+           ->setLogger(new \AdosLabs\EnterpriseSecurityShield\Storage\NullLogger());
 
     $wooSecurity = new WooCommerceSecurityMiddleware($config);
 
@@ -386,12 +386,12 @@ test('Framework detection: WordPress admin paths are NOT honeypot (if WordPress 
     define('ABSPATH', '/var/www/html/');
 
     // Force framework detection reset
-    \Senza1dio\SecurityShield\Services\FrameworkDetector::reset();
+    \AdosLabs\EnterpriseSecurityShield\Services\FrameworkDetector::reset();
 
     $config = new SecurityConfig();
     $config->setScoreThreshold(50)
            ->setStorage($storage)
-           ->setLogger(new \Senza1dio\SecurityShield\Storage\NullLogger())
+           ->setLogger(new \AdosLabs\EnterpriseSecurityShield\Storage\NullLogger())
            ->enableHoneypot(true); // Honeypot ENABLED!
 
     $wooSecurity = new WooCommerceSecurityMiddleware($config);

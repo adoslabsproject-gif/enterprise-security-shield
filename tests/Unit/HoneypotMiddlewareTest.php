@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Senza1dio\SecurityShield\Tests\Unit;
+namespace AdosLabs\EnterpriseSecurityShield\Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
-use Senza1dio\SecurityShield\Config\SecurityConfig;
-use Senza1dio\SecurityShield\Middleware\HoneypotMiddleware;
-use Senza1dio\SecurityShield\Tests\Fixtures\InMemoryStorage;
+use AdosLabs\EnterpriseSecurityShield\Config\SecurityConfig;
+use AdosLabs\EnterpriseSecurityShield\Middleware\HoneypotMiddleware;
+use AdosLabs\EnterpriseSecurityShield\Tests\Fixtures\InMemoryStorage;
 
 /**
  * Test Suite for HoneypotMiddleware.

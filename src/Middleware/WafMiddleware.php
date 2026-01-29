@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Senza1dio\SecurityShield\Middleware;
+namespace AdosLabs\EnterpriseSecurityShield\Middleware;
 
 /**
  * WafMiddleware - Backward Compatibility Alias.
@@ -10,4 +10,4 @@ namespace Senza1dio\SecurityShield\Middleware;
  * @deprecated Use SecurityMiddleware instead. This class will be removed in v3.0.
  * @see SecurityMiddleware
  */
-class_alias(SecurityMiddleware::class, 'Senza1dio\SecurityShield\Middleware\WafMiddleware');
+class_alias(SecurityMiddleware::class, 'AdosLabs\EnterpriseSecurityShield\Middleware\WafMiddleware');

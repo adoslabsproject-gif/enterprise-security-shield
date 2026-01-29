@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Senza1dio\SecurityShield\Services\Metrics;
+namespace AdosLabs\EnterpriseSecurityShield\Services\Metrics;
 
-use Senza1dio\SecurityShield\Contracts\MetricsCollectorInterface;
+use AdosLabs\EnterpriseSecurityShield\Contracts\MetricsCollectorInterface;
 
 /**
  * Redis Metrics Collector.

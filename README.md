@@ -618,10 +618,10 @@ src/
 
 ## Known Limitations
 
-1. **Fail-Open Default** - RedisStorage allows traffic during Redis outage
-2. **No ML Model Updates** - Classifier weights are static (no online learning)
+1. **Fail-Open Default** - RedisStorage allows traffic during Redis outage (configurable)
+2. **Static ML Weights** - Classifier trained on 662 events; no online learning (weights updated manually)
 3. **DNS Timeout Risk** - Bot verification can block for up to 30s on slow DNS
-4. **GeoIP Database Required** - GeoIP blocking requires MaxMind database file
+4. **GeoIP Provider Required** - GeoIP blocking requires provider configuration (IPApiProvider included free)
 5. **Clock Skew** - Rate limiting assumes synchronized server clocks
 
 ---
@@ -637,12 +637,14 @@ src/
 
 ### This Package IS NOT
 
-- A replacement for edge WAF (Cloudflare, AWS WAF)
-- DDoS protection (use Cloudflare/AWS Shield)
+- A replacement for edge WAF (Cloudflare, AWS WAF) for volumetric attacks
+- Network-level DDoS protection (use Cloudflare/AWS Shield for L3/L4 attacks)
 - Penetration tested by third party
 - A guarantee of security
 
-**Always use defense in depth. Deploy alongside edge protection.**
+**Note:** This WAF DOES provide application-level DDoS protection via rate limiting (4 algorithms), IP scoring, and auto-ban. For volumetric network attacks (L3/L4), use edge protection in addition.
+
+**Always use defense in depth. Deploy alongside edge protection for maximum security.**
 
 ---
 

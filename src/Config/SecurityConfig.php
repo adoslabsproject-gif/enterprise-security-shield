@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Senza1dio\SecurityShield\Config;
+namespace AdosLabs\EnterpriseSecurityShield\Config;
 
-use Senza1dio\SecurityShield\Contracts\LoggerInterface;
-use Senza1dio\SecurityShield\Contracts\StorageInterface;
+use AdosLabs\EnterpriseSecurityShield\Contracts\LoggerInterface;
+use AdosLabs\EnterpriseSecurityShield\Contracts\StorageInterface;
 
 /**
  * Security Configuration - Fluent Builder API.

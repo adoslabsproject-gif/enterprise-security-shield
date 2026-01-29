@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Senza1dio\SecurityShield\Tests\Unit;
+namespace AdosLabs\EnterpriseSecurityShield\Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
-use Senza1dio\SecurityShield\Config\SecurityConfig;
+use AdosLabs\EnterpriseSecurityShield\Config\SecurityConfig;
 
 /**
  * Test Suite for SecurityConfig.

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Senza1dio\SecurityShield\Tests\Unit\Storage;
+namespace AdosLabs\EnterpriseSecurityShield\Tests\Unit\Storage;
 
 use PHPUnit\Framework\TestCase;
-use Senza1dio\SecurityShield\Storage\NullStorage;
+use AdosLabs\EnterpriseSecurityShield\Storage\NullStorage;
 
 /**
  * Test Suite for NullStorage.
@@ -261,7 +261,7 @@ final class NullStorageTest extends TestCase
     public function testImplementsStorageInterface(): void
     {
         $this->assertInstanceOf(
-            \Senza1dio\SecurityShield\Contracts\StorageInterface::class,
+            \AdosLabs\EnterpriseSecurityShield\Contracts\StorageInterface::class,
             $this->storage,
         );
     }

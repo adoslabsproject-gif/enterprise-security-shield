@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Senza1dio\SecurityShield\Telemetry\Exporters;
+namespace AdosLabs\EnterpriseSecurityShield\Telemetry\Exporters;
 
-use Senza1dio\SecurityShield\Telemetry\SpanExporterInterface;
+use AdosLabs\EnterpriseSecurityShield\Telemetry\SpanExporterInterface;
 
 /**
  * Console Exporter.

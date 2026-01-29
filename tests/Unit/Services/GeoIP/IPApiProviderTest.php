@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Senza1dio\SecurityShield\Tests\Unit\Services\GeoIP;
+namespace AdosLabs\EnterpriseSecurityShield\Tests\Unit\Services\GeoIP;
 
 use PHPUnit\Framework\TestCase;
-use Senza1dio\SecurityShield\Services\GeoIP\IPApiProvider;
+use AdosLabs\EnterpriseSecurityShield\Services\GeoIP\IPApiProvider;
 
 /**
  * IP-API Provider Test Suite.
  *
- * @covers \Senza1dio\SecurityShield\Services\GeoIP\IPApiProvider
+ * @covers \AdosLabs\EnterpriseSecurityShield\Services\GeoIP\IPApiProvider
  */
 class IPApiProviderTest extends TestCase
 {

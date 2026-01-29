@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Senza1dio\SecurityShield\Storage;
+namespace AdosLabs\EnterpriseSecurityShield\Storage;
 
-use Senza1dio\SecurityShield\Contracts\StorageInterface;
+use AdosLabs\EnterpriseSecurityShield\Contracts\StorageInterface;
 
 /**
  * Null Storage Backend - In-Memory (Development/Testing).

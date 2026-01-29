@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Senza1dio\SecurityShield\Telemetry\Samplers;
+namespace AdosLabs\EnterpriseSecurityShield\Telemetry\Samplers;
 
-use Senza1dio\SecurityShield\Telemetry\SamplerInterface;
-use Senza1dio\SecurityShield\Telemetry\SpanKind;
+use AdosLabs\EnterpriseSecurityShield\Telemetry\SamplerInterface;
+use AdosLabs\EnterpriseSecurityShield\Telemetry\SpanKind;
 
 /**
  * Always Off Sampler.

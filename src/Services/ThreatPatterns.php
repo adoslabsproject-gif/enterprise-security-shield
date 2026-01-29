@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Senza1dio\SecurityShield\Services;
+namespace AdosLabs\EnterpriseSecurityShield\Services;
 
-use Senza1dio\SecurityShield\Utils\IPUtils;
+use AdosLabs\EnterpriseSecurityShield\Utils\IPUtils;
 
 /**
  * Threat Pattern Detection - Static Pattern Matching.

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Senza1dio\SecurityShield\Storage;
+namespace AdosLabs\EnterpriseSecurityShield\Storage;
 
-use Senza1dio\SecurityShield\Contracts\LoggerInterface;
+use AdosLabs\EnterpriseSecurityShield\Contracts\LoggerInterface;
 
 /**
  * Null Logger - No-Op Implementation.

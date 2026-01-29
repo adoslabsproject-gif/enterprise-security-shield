@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Senza1dio\SecurityShield\Services;
+namespace AdosLabs\EnterpriseSecurityShield\Services;
 
 /**
  * Webhook Notifier.
@@ -49,7 +49,7 @@ class WebhookNotifier
 
             // Block private IP ranges using IPUtils (comprehensive check)
             if (filter_var($host, FILTER_VALIDATE_IP)) {
-                if (\Senza1dio\SecurityShield\Utils\IPUtils::isPrivateIP($host)) {
+                if (\AdosLabs\EnterpriseSecurityShield\Utils\IPUtils::isPrivateIP($host)) {
                     throw new \InvalidArgumentException("Webhook URL cannot be private/reserved IP: {$url}");
                 }
             }

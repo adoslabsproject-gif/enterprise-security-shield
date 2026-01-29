@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Senza1dio\SecurityShield\Tests\Unit\Services\Metrics;
+namespace AdosLabs\EnterpriseSecurityShield\Tests\Unit\Services\Metrics;
 
 use PHPUnit\Framework\TestCase;
-use Senza1dio\SecurityShield\Services\Metrics\RedisMetricsCollector;
+use AdosLabs\EnterpriseSecurityShield\Services\Metrics\RedisMetricsCollector;
 
 /**
  * Redis Metrics Collector Test Suite.
  *
- * @covers \Senza1dio\SecurityShield\Services\Metrics\RedisMetricsCollector
+ * @covers \AdosLabs\EnterpriseSecurityShield\Services\Metrics\RedisMetricsCollector
  */
 class RedisMetricsCollectorTest extends TestCase
 {

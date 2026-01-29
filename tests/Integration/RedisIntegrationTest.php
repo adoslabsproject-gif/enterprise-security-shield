@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Senza1dio\SecurityShield\Tests\Integration;
+namespace AdosLabs\EnterpriseSecurityShield\Tests\Integration;
 
 use PHPUnit\Framework\TestCase;
-use Senza1dio\SecurityShield\Storage\RedisStorage;
+use AdosLabs\EnterpriseSecurityShield\Storage\RedisStorage;
 
 /**
  * Redis Integration Tests - REAL Redis Connection Required.

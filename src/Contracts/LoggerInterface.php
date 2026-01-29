@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Senza1dio\SecurityShield\Contracts;
+namespace AdosLabs\EnterpriseSecurityShield\Contracts;
 
 /**
  * Logger Interface - PSR-3-like (NOT PSR-3).

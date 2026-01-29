@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Senza1dio\SecurityShield\Anomaly\Detectors;
+namespace AdosLabs\EnterpriseSecurityShield\Anomaly\Detectors;
 
-use Senza1dio\SecurityShield\Anomaly\Anomaly;
-use Senza1dio\SecurityShield\Anomaly\AnomalyType;
-use Senza1dio\SecurityShield\Anomaly\DetectorInterface;
+use AdosLabs\EnterpriseSecurityShield\Anomaly\Anomaly;
+use AdosLabs\EnterpriseSecurityShield\Anomaly\AnomalyType;
+use AdosLabs\EnterpriseSecurityShield\Anomaly\DetectorInterface;
 
 /**
  * Time-Based Anomaly Detector.

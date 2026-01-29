@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Senza1dio\SecurityShield\Contracts;
+namespace AdosLabs\EnterpriseSecurityShield\Contracts;
 
 /**
  * Storage Interface - Framework-Agnostic Data Persistence.

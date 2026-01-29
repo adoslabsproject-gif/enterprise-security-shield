@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Senza1dio\SecurityShield\Services\GeoIP;
+namespace AdosLabs\EnterpriseSecurityShield\Services\GeoIP;
 
 /**
  * GeoIP Provider Interface.

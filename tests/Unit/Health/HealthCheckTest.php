@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Senza1dio\SecurityShield\Tests\Unit\Health;
+namespace AdosLabs\EnterpriseSecurityShield\Tests\Unit\Health;
 
 use PHPUnit\Framework\TestCase;
-use Senza1dio\SecurityShield\Health\CallableHealthCheck;
-use Senza1dio\SecurityShield\Health\HealthCheck;
-use Senza1dio\SecurityShield\Health\HealthStatus;
+use AdosLabs\EnterpriseSecurityShield\Health\CallableHealthCheck;
+use AdosLabs\EnterpriseSecurityShield\Health\HealthCheck;
+use AdosLabs\EnterpriseSecurityShield\Health\HealthStatus;
 
 /**
  * Test Suite for HealthCheck.

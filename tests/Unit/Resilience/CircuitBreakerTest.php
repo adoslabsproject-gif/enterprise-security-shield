@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Senza1dio\SecurityShield\Tests\Unit\Resilience;
+namespace AdosLabs\EnterpriseSecurityShield\Tests\Unit\Resilience;
 
 use PHPUnit\Framework\TestCase;
-use Senza1dio\SecurityShield\Resilience\CircuitBreaker;
-use Senza1dio\SecurityShield\Resilience\CircuitOpenException;
-use Senza1dio\SecurityShield\Tests\Fixtures\InMemoryStorage;
+use AdosLabs\EnterpriseSecurityShield\Resilience\CircuitBreaker;
+use AdosLabs\EnterpriseSecurityShield\Resilience\CircuitOpenException;
+use AdosLabs\EnterpriseSecurityShield\Tests\Fixtures\InMemoryStorage;
 
 class CircuitBreakerTest extends TestCase
 {

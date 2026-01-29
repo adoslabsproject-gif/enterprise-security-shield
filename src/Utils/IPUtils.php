@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Senza1dio\SecurityShield\Utils;
+namespace AdosLabs\EnterpriseSecurityShield\Utils;
 
 /**
  * IP Utilities - Centralized IP Address Operations.

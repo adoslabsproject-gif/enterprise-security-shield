@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Senza1dio\SecurityShield\Health;
+namespace AdosLabs\EnterpriseSecurityShield\Health;
 
 /**
  * Interface for health check implementations.

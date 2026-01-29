@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Senza1dio\SecurityShield\Anomaly;
+namespace AdosLabs\EnterpriseSecurityShield\Anomaly;
 
 /**
  * Detected Anomaly.

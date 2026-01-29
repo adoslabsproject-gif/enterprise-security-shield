@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Senza1dio\SecurityShield\Telemetry\Metrics;
+namespace AdosLabs\EnterpriseSecurityShield\Telemetry\Metrics;
 
 /**
  * Histogram Metric.

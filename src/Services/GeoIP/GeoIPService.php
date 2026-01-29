@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Senza1dio\SecurityShield\Services\GeoIP;
+namespace AdosLabs\EnterpriseSecurityShield\Services\GeoIP;
 
-use Senza1dio\SecurityShield\Contracts\StorageInterface;
-use Senza1dio\SecurityShield\Utils\IPUtils;
+use AdosLabs\EnterpriseSecurityShield\Contracts\StorageInterface;
+use AdosLabs\EnterpriseSecurityShield\Utils\IPUtils;
 
 /**
  * GeoIP Service - Multi-Provider with Redis Caching.

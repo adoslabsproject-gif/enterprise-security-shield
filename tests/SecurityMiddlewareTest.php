@@ -15,14 +15,14 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use Senza1dio\SecurityShield\Config\SecurityConfig;
-use Senza1dio\SecurityShield\Middleware\HoneypotMiddleware;
-use Senza1dio\SecurityShield\Middleware\SecurityMiddleware;
-use Senza1dio\SecurityShield\Services\GeoIP\GeoIPService;
-use Senza1dio\SecurityShield\Services\WebhookNotifier;
-use Senza1dio\SecurityShield\Storage\DatabaseStorage;
-use Senza1dio\SecurityShield\Storage\NullStorage;
-use Senza1dio\SecurityShield\Utils\IPUtils;
+use AdosLabs\EnterpriseSecurityShield\Config\SecurityConfig;
+use AdosLabs\EnterpriseSecurityShield\Middleware\HoneypotMiddleware;
+use AdosLabs\EnterpriseSecurityShield\Middleware\SecurityMiddleware;
+use AdosLabs\EnterpriseSecurityShield\Services\GeoIP\GeoIPService;
+use AdosLabs\EnterpriseSecurityShield\Services\WebhookNotifier;
+use AdosLabs\EnterpriseSecurityShield\Storage\DatabaseStorage;
+use AdosLabs\EnterpriseSecurityShield\Storage\NullStorage;
+use AdosLabs\EnterpriseSecurityShield\Utils\IPUtils;
 
 // Test counter
 $tests_passed = 0;
@@ -107,7 +107,7 @@ test('Empty User-Agent triggers instant ban (100 points)', function () use ($sto
     $config = new SecurityConfig();
     $config->setScoreThreshold(50)
            ->setStorage($storage)
-           ->setLogger(new \Senza1dio\SecurityShield\Storage\NullLogger());
+           ->setLogger(new \AdosLabs\EnterpriseSecurityShield\Storage\NullLogger());
 
     $middleware = new SecurityMiddleware($config);
 
@@ -129,7 +129,7 @@ test('Space-only User-Agent triggers instant ban (bypass attempt)', function () 
     $config = new SecurityConfig();
     $config->setScoreThreshold(50)
            ->setStorage($storage)
-           ->setLogger(new \Senza1dio\SecurityShield\Storage\NullLogger());
+           ->setLogger(new \AdosLabs\EnterpriseSecurityShield\Storage\NullLogger());
 
     $middleware = new SecurityMiddleware($config);
 
@@ -151,7 +151,7 @@ test('Tab/newline User-Agent triggers instant ban', function () use ($storage) {
     $config = new SecurityConfig();
     $config->setScoreThreshold(50)
            ->setStorage($storage)
-           ->setLogger(new \Senza1dio\SecurityShield\Storage\NullLogger());
+           ->setLogger(new \AdosLabs\EnterpriseSecurityShield\Storage\NullLogger());
 
     $middleware = new SecurityMiddleware($config);
 
@@ -178,7 +178,7 @@ test('Direct .env access triggers honeypot', function () use ($storage) {
     $config = new SecurityConfig();
     $config->setScoreThreshold(50)
            ->setStorage($storage)
-           ->setLogger(new \Senza1dio\SecurityShield\Storage\NullLogger())
+           ->setLogger(new \AdosLabs\EnterpriseSecurityShield\Storage\NullLogger())
            ->enableHoneypot(true);
 
     $honeypot = new HoneypotMiddleware($config);
@@ -194,7 +194,7 @@ test('Path traversal /../.env is normalized and detected', function () use ($sto
     $config = new SecurityConfig();
     $config->setScoreThreshold(50)
            ->setStorage($storage)
-           ->setLogger(new \Senza1dio\SecurityShield\Storage\NullLogger())
+           ->setLogger(new \AdosLabs\EnterpriseSecurityShield\Storage\NullLogger())
            ->enableHoneypot(true);
 
     $honeypot = new HoneypotMiddleware($config);
@@ -210,7 +210,7 @@ test('Double-encoded path traversal is detected', function () use ($storage) {
     $config = new SecurityConfig();
     $config->setScoreThreshold(50)
            ->setStorage($storage)
-           ->setLogger(new \Senza1dio\SecurityShield\Storage\NullLogger())
+           ->setLogger(new \AdosLabs\EnterpriseSecurityShield\Storage\NullLogger())
            ->enableHoneypot(true);
 
     $honeypot = new HoneypotMiddleware($config);
@@ -226,7 +226,7 @@ test('Case variation wp-CONFIG.php is detected', function () use ($storage) {
     $config = new SecurityConfig();
     $config->setScoreThreshold(50)
            ->setStorage($storage)
-           ->setLogger(new \Senza1dio\SecurityShield\Storage\NullLogger())
+           ->setLogger(new \AdosLabs\EnterpriseSecurityShield\Storage\NullLogger())
            ->enableHoneypot(true);
 
     $honeypot = new HoneypotMiddleware($config);

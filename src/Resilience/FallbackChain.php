@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Senza1dio\SecurityShield\Resilience;
+namespace AdosLabs\EnterpriseSecurityShield\Resilience;
 
 /**
  * Fallback Chain Pattern Implementation.

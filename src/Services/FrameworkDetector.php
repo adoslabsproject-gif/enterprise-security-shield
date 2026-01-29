@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Senza1dio\SecurityShield\Services;
+namespace AdosLabs\EnterpriseSecurityShield\Services;
 
 /**
  * Framework Detector - Auto-detect application framework.

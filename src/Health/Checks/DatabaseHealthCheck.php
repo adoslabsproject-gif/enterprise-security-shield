@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Senza1dio\SecurityShield\Health\Checks;
+namespace AdosLabs\EnterpriseSecurityShield\Health\Checks;
 
-use Senza1dio\SecurityShield\Health\CheckResult;
-use Senza1dio\SecurityShield\Health\HealthCheckInterface;
+use AdosLabs\EnterpriseSecurityShield\Health\CheckResult;
+use AdosLabs\EnterpriseSecurityShield\Health\HealthCheckInterface;
 
 /**
  * Database Health Check.

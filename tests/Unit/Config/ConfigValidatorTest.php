@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Senza1dio\SecurityShield\Tests\Unit\Config;
+namespace AdosLabs\EnterpriseSecurityShield\Tests\Unit\Config;
 
 use PHPUnit\Framework\TestCase;
-use Senza1dio\SecurityShield\Config\ConfigValidator;
+use AdosLabs\EnterpriseSecurityShield\Config\ConfigValidator;
 
 class ConfigValidatorTest extends TestCase
 {

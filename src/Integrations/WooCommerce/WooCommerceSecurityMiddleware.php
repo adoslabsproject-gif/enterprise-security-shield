@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Senza1dio\SecurityShield\Integrations\WooCommerce;
+namespace AdosLabs\EnterpriseSecurityShield\Integrations\WooCommerce;
 
-use Senza1dio\SecurityShield\Middleware\SecurityMiddleware;
+use AdosLabs\EnterpriseSecurityShield\Middleware\SecurityMiddleware;
 
 /**
  * WooCommerce Security Middleware.

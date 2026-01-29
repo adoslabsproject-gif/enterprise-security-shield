@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Senza1dio\SecurityShield\Tests\Unit;
+namespace AdosLabs\EnterpriseSecurityShield\Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
-use Senza1dio\SecurityShield\Services\BotVerifier;
-use Senza1dio\SecurityShield\Storage\NullLogger;
-use Senza1dio\SecurityShield\Storage\NullStorage;
+use AdosLabs\EnterpriseSecurityShield\Services\BotVerifier;
+use AdosLabs\EnterpriseSecurityShield\Storage\NullLogger;
+use AdosLabs\EnterpriseSecurityShield\Storage\NullStorage;
 
 /**
  * Test Suite for BotVerifier.
