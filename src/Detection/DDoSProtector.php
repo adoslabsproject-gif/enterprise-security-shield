@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AdosLabs\EnterpriseSecurityShield\Detection;
 
-use AdosLabs\EnterpriseSecurityShield\Storage\StorageInterface;
+use AdosLabs\EnterpriseSecurityShield\Contracts\StorageInterface;
 
 /**
  * Layer 7 DDoS Protection.
@@ -280,7 +280,7 @@ final class DDoSProtector
             'detected' => $detected,
             'confidence' => $confidence,
             'reason' => $detected
-                ? "Slow headers detected ({$headersPerSecond:.2f} headers/sec, minimum: {$this->minHeadersPerSecond})"
+                ? sprintf('Slow headers detected (%.2f headers/sec, minimum: %d)', $headersPerSecond, $this->minHeadersPerSecond)
                 : 'Header rate normal',
             'rate' => $headersPerSecond,
         ];
@@ -317,7 +317,7 @@ final class DDoSProtector
             'detected' => $detected,
             'confidence' => $confidence,
             'reason' => $detected
-                ? "Slow POST body detected ({$bytesPerSecond:.0f} bytes/sec, minimum: {$this->minBodyBytesPerSecond})"
+                ? sprintf('Slow POST body detected (%.0f bytes/sec, minimum: %d)', $bytesPerSecond, $this->minBodyBytesPerSecond)
                 : 'Body receive rate normal',
             'rate' => $bytesPerSecond,
         ];

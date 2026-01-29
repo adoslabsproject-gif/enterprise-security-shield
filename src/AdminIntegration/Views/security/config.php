@@ -1,257 +1,247 @@
 <?php
 /**
- * Security Shield Configuration View.
+ * Security Shield Configuration View - Matrix Theme
  *
  * @var array $config Current configuration
  * @var array $presets Available presets
- * @var string $csrfToken CSRF token
+ * @var string $csrf_input CSRF input field
+ * @var string $admin_base_path Admin base path
+ * @var string $page_title Page title
  */
 $config ??= [];
 ?>
-<div class="ess-config">
-    <h1 class="ess-config__title">Security Configuration</h1>
 
-    <!-- Presets -->
-    <div class="ess-presets">
-        <h2 class="ess-presets__title">Quick Presets</h2>
-        <div class="ess-presets__grid">
-            <div class="ess-preset-card <?= ($config['preset'] ?? '') === 'low' ? 'ess-preset-card--active' : '' ?>">
-                <div class="ess-preset-card__header">
-                    <h3 class="ess-preset-card__title">Low Security</h3>
-                    <span class="ess-badge ess-badge--success">Minimal</span>
+<!-- Page Header -->
+<div class="eap-page-header">
+    <div class="eap-page-header__content">
+        <h1 class="eap-page-title"><?= htmlspecialchars($page_title ?? 'Security Configuration') ?></h1>
+        <p class="eap-page-subtitle">Configure WAF settings, rate limits, and threat detection</p>
+    </div>
+</div>
+
+<!-- Quick Presets -->
+<div class="eap-card">
+    <div class="eap-card__header">
+        <h2 class="eap-card__title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                <rect x="3" y="3" width="7" height="7"/>
+                <rect x="14" y="3" width="7" height="7"/>
+                <rect x="14" y="14" width="7" height="7"/>
+                <rect x="3" y="14" width="7" height="7"/>
+            </svg>
+            Quick Presets
+        </h2>
+    </div>
+    <div class="eap-card__body">
+        <div class="eap-grid eap-grid--3">
+            <!-- Low Security -->
+            <div class="eap-category-item <?= ($config['preset'] ?? '') === 'low' ? 'eap-category-item--active' : '' ?>">
+                <div class="eap-flex eap-flex--between eap-flex--center">
+                    <span class="eap-badge eap-badge--success">Low Security</span>
+                    <?php if (($config['preset'] ?? '') === 'low'): ?>
+                        <span class="eap-badge eap-badge--info eap-badge--sm">Active</span>
+                    <?php endif; ?>
                 </div>
-                <p class="ess-preset-card__desc">Basic protection. Allows most traffic, monitors suspicious activity. Best for development environments.</p>
-                <ul class="ess-preset-card__list">
-                    <li class="ess-preset-card__item">Rate limit: 200 req/min</li>
-                    <li class="ess-preset-card__item">Auto-ban: Disabled</li>
-                    <li class="ess-preset-card__item">ML threshold: 80</li>
+                <p class="eap-category-item__desc">Basic protection. Allows most traffic, monitors suspicious activity. Best for development.</p>
+                <ul class="eap-list">
+                    <li>Rate limit: 200 req/min</li>
+                    <li>Auto-ban: Disabled</li>
+                    <li>ML threshold: 80</li>
                 </ul>
-                <form method="POST" action="/security/config/preset">
+                <form method="POST" action="<?= htmlspecialchars($admin_base_path . '/security/config/preset') ?>" class="eap-mt-4">
+                    <?= $csrf_input ?? '' ?>
                     <input type="hidden" name="preset" value="low">
-                    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken ?? '') ?>">
-                    <button type="submit" class="ess-btn ess-btn--sm ess-btn--secondary ess-preset-card__btn">Apply</button>
+                    <button type="submit" class="eap-btn eap-btn--sm eap-btn--secondary">Apply</button>
                 </form>
             </div>
 
-            <div class="ess-preset-card <?= ($config['preset'] ?? '') === 'medium' ? 'ess-preset-card--active' : '' ?>">
-                <div class="ess-preset-card__header">
-                    <h3 class="ess-preset-card__title">Medium Security</h3>
-                    <span class="ess-badge ess-badge--warning">Balanced</span>
+            <!-- Medium Security -->
+            <div class="eap-category-item <?= ($config['preset'] ?? '') === 'medium' ? 'eap-category-item--active' : '' ?>">
+                <div class="eap-flex eap-flex--between eap-flex--center">
+                    <span class="eap-badge eap-badge--warning">Medium Security</span>
+                    <?php if (($config['preset'] ?? '') === 'medium'): ?>
+                        <span class="eap-badge eap-badge--info eap-badge--sm">Active</span>
+                    <?php endif; ?>
                 </div>
-                <p class="ess-preset-card__desc">Balanced protection. Blocks known threats, challenges suspicious traffic. Recommended for most sites.</p>
-                <ul class="ess-preset-card__list">
-                    <li class="ess-preset-card__item">Rate limit: 100 req/min</li>
-                    <li class="ess-preset-card__item">Auto-ban: 24 hours</li>
-                    <li class="ess-preset-card__item">ML threshold: 60</li>
+                <p class="eap-category-item__desc">Balanced protection. Blocks known threats, challenges suspicious traffic. Recommended.</p>
+                <ul class="eap-list">
+                    <li>Rate limit: 100 req/min</li>
+                    <li>Auto-ban: 24 hours</li>
+                    <li>ML threshold: 60</li>
                 </ul>
-                <form method="POST" action="/security/config/preset">
+                <form method="POST" action="<?= htmlspecialchars($admin_base_path . '/security/config/preset') ?>" class="eap-mt-4">
+                    <?= $csrf_input ?? '' ?>
                     <input type="hidden" name="preset" value="medium">
-                    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken ?? '') ?>">
-                    <button type="submit" class="ess-btn ess-btn--sm ess-btn--primary ess-preset-card__btn">Apply</button>
+                    <button type="submit" class="eap-btn eap-btn--sm eap-btn--primary">Apply</button>
                 </form>
             </div>
 
-            <div class="ess-preset-card <?= ($config['preset'] ?? '') === 'high' ? 'ess-preset-card--active' : '' ?>">
-                <div class="ess-preset-card__header">
-                    <h3 class="ess-preset-card__title">High Security</h3>
-                    <span class="ess-badge ess-badge--danger">Strict</span>
+            <!-- High Security -->
+            <div class="eap-category-item <?= ($config['preset'] ?? '') === 'high' ? 'eap-category-item--active' : '' ?>">
+                <div class="eap-flex eap-flex--between eap-flex--center">
+                    <span class="eap-badge eap-badge--danger">High Security</span>
+                    <?php if (($config['preset'] ?? '') === 'high'): ?>
+                        <span class="eap-badge eap-badge--info eap-badge--sm">Active</span>
+                    <?php endif; ?>
                 </div>
-                <p class="ess-preset-card__desc">Maximum protection. Aggressive blocking, strict rate limits. For high-value targets or under attack.</p>
-                <ul class="ess-preset-card__list">
-                    <li class="ess-preset-card__item">Rate limit: 30 req/min</li>
-                    <li class="ess-preset-card__item">Auto-ban: Permanent</li>
-                    <li class="ess-preset-card__item">ML threshold: 40</li>
+                <p class="eap-category-item__desc">Maximum protection. Aggressive blocking, strict rate limits. For high-value targets.</p>
+                <ul class="eap-list">
+                    <li>Rate limit: 30 req/min</li>
+                    <li>Auto-ban: Permanent</li>
+                    <li>ML threshold: 40</li>
                 </ul>
-                <form method="POST" action="/security/config/preset">
+                <form method="POST" action="<?= htmlspecialchars($admin_base_path . '/security/config/preset') ?>" class="eap-mt-4">
+                    <?= $csrf_input ?? '' ?>
                     <input type="hidden" name="preset" value="high">
-                    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken ?? '') ?>">
-                    <button type="submit" class="ess-btn ess-btn--sm ess-btn--danger ess-preset-card__btn">Apply</button>
+                    <button type="submit" class="eap-btn eap-btn--sm eap-btn--danger">Apply</button>
                 </form>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Configuration Form -->
-    <form method="POST" action="/security/config" class="ess-config-form">
-        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken ?? '') ?>">
+<!-- Configuration Form -->
+<form method="POST" action="<?= htmlspecialchars($admin_base_path . '/security/config') ?>" class="eap-form">
+    <?= $csrf_input ?? '' ?>
 
-        <!-- General Settings -->
-        <div class="ess-config-section">
-            <h2 class="ess-config-section__title">General Settings</h2>
-
-            <div class="ess-config-row">
-                <div class="ess-config-field">
-                    <label class="ess-config-field__label" for="ess-enabled">WAF Status</label>
-                    <div class="ess-toggle">
-                        <input type="checkbox" name="enabled" id="ess-enabled" class="ess-toggle__input"
-                               <?= ($config['enabled'] ?? true) ? 'checked' : '' ?>>
-                        <label for="ess-enabled" class="ess-toggle__slider"></label>
-                        <span class="ess-toggle__label">Enable Web Application Firewall</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="ess-config-row">
-                <div class="ess-config-field">
-                    <label class="ess-config-field__label" for="ess-mode">Operating Mode</label>
-                    <select name="mode" id="ess-mode" class="ess-config-field__select">
-                        <option value="monitor" <?= ($config['mode'] ?? '') === 'monitor' ? 'selected' : '' ?>>Monitor Only (Log threats, don't block)</option>
-                        <option value="protect" <?= ($config['mode'] ?? 'protect') === 'protect' ? 'selected' : '' ?>>Protect (Block threats)</option>
-                        <option value="paranoid" <?= ($config['mode'] ?? '') === 'paranoid' ? 'selected' : '' ?>>Paranoid (Block all suspicious traffic)</option>
+    <!-- General Settings -->
+    <div class="eap-card">
+        <div class="eap-card__header">
+            <h2 class="eap-card__title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                    <circle cx="12" cy="12" r="3"/>
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                </svg>
+                General Settings
+            </h2>
+        </div>
+        <div class="eap-card__body">
+            <div class="eap-grid eap-grid--2">
+                <div class="eap-form-group">
+                    <label class="eap-form-label">WAF Status</label>
+                    <select name="enabled" class="eap-input">
+                        <option value="1" <?= ($config['enabled'] ?? true) ? 'selected' : '' ?>>Enabled</option>
+                        <option value="0" <?= !($config['enabled'] ?? true) ? 'selected' : '' ?>>Disabled</option>
                     </select>
-                    <p class="ess-config-field__help">Monitor mode is useful for testing before enabling blocking.</p>
+                    <span class="eap-form-hint">Enable or disable the Web Application Firewall</span>
                 </div>
-            </div>
-        </div>
-
-        <!-- Rate Limiting -->
-        <div class="ess-config-section">
-            <h2 class="ess-config-section__title">Rate Limiting</h2>
-
-            <div class="ess-config-row ess-config-row--grid">
-                <div class="ess-config-field">
-                    <label class="ess-config-field__label" for="ess-rate-limit">Requests per Minute</label>
-                    <input type="number" name="rate_limit" id="ess-rate-limit" class="ess-config-field__input"
-                           value="<?= htmlspecialchars($config['rate_limit'] ?? 100) ?>" min="10" max="1000">
-                    <p class="ess-config-field__help">Maximum requests per IP per minute.</p>
-                </div>
-
-                <div class="ess-config-field">
-                    <label class="ess-config-field__label" for="ess-burst-limit">Burst Limit</label>
-                    <input type="number" name="burst_limit" id="ess-burst-limit" class="ess-config-field__input"
-                           value="<?= htmlspecialchars($config['burst_limit'] ?? 20) ?>" min="5" max="100">
-                    <p class="ess-config-field__help">Allowed burst requests before rate limiting.</p>
-                </div>
-            </div>
-
-            <div class="ess-config-row">
-                <div class="ess-config-field">
-                    <label class="ess-config-field__label" for="ess-rate-limit-action">Rate Limit Action</label>
-                    <select name="rate_limit_action" id="ess-rate-limit-action" class="ess-config-field__select">
-                        <option value="throttle" <?= ($config['rate_limit_action'] ?? '') === 'throttle' ? 'selected' : '' ?>>Throttle (Delay responses)</option>
-                        <option value="challenge" <?= ($config['rate_limit_action'] ?? 'challenge') === 'challenge' ? 'selected' : '' ?>>Challenge (Show CAPTCHA)</option>
-                        <option value="block" <?= ($config['rate_limit_action'] ?? '') === 'block' ? 'selected' : '' ?>>Block (Return 429)</option>
+                <div class="eap-form-group">
+                    <label class="eap-form-label">Operating Mode</label>
+                    <select name="mode" class="eap-input">
+                        <option value="monitor" <?= ($config['mode'] ?? '') === 'monitor' ? 'selected' : '' ?>>Monitor Only</option>
+                        <option value="protect" <?= ($config['mode'] ?? 'protect') === 'protect' ? 'selected' : '' ?>>Protect</option>
+                        <option value="paranoid" <?= ($config['mode'] ?? '') === 'paranoid' ? 'selected' : '' ?>>Paranoid</option>
                     </select>
+                    <span class="eap-form-hint">Monitor logs threats, Protect blocks them</span>
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- ML Detection -->
-        <div class="ess-config-section">
-            <h2 class="ess-config-section__title">ML Threat Detection</h2>
-
-            <div class="ess-config-row">
-                <div class="ess-config-field">
-                    <label class="ess-config-field__label" for="ess-ml-enabled">ML Detection</label>
-                    <div class="ess-toggle">
-                        <input type="checkbox" name="ml_enabled" id="ess-ml-enabled" class="ess-toggle__input"
-                               <?= ($config['ml_enabled'] ?? true) ? 'checked' : '' ?>>
-                        <label for="ess-ml-enabled" class="ess-toggle__slider"></label>
-                        <span class="ess-toggle__label">Enable ML-based threat classification</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="ess-config-row ess-config-row--grid">
-                <div class="ess-config-field">
-                    <label class="ess-config-field__label" for="ess-ml-threshold">Detection Threshold</label>
-                    <input type="range" name="ml_threshold" id="ess-ml-threshold" class="ess-config-field__range"
-                           value="<?= htmlspecialchars($config['ml_threshold'] ?? 60) ?>" min="20" max="95" step="5">
-                    <div class="ess-config-field__range-labels">
-                        <span>Aggressive (20)</span>
-                        <span class="ess-config-field__range-value" data-ess-range-value><?= $config['ml_threshold'] ?? 60 ?></span>
-                        <span>Permissive (95)</span>
-                    </div>
-                    <p class="ess-config-field__help">Lower values = more aggressive blocking.</p>
-                </div>
-
-                <div class="ess-config-field">
-                    <label class="ess-config-field__label" for="ess-confidence-threshold">Confidence Threshold</label>
-                    <input type="range" name="confidence_threshold" id="ess-confidence-threshold" class="ess-config-field__range"
-                           value="<?= htmlspecialchars($config['confidence_threshold'] ?? 70) ?>" min="50" max="99" step="1">
-                    <div class="ess-config-field__range-labels">
-                        <span>50%</span>
-                        <span class="ess-config-field__range-value" data-ess-range-value><?= $config['confidence_threshold'] ?? 70 ?>%</span>
-                        <span>99%</span>
-                    </div>
-                    <p class="ess-config-field__help">Minimum confidence for automated actions.</p>
-                </div>
-            </div>
+    <!-- Rate Limiting -->
+    <div class="eap-card">
+        <div class="eap-card__header">
+            <h2 class="eap-card__title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                    <circle cx="12" cy="12" r="10"/>
+                    <polyline points="12 6 12 12 16 14"/>
+                </svg>
+                Rate Limiting
+            </h2>
         </div>
-
-        <!-- Bot Management -->
-        <div class="ess-config-section">
-            <h2 class="ess-config-section__title">Bot Management</h2>
-
-            <div class="ess-config-row">
-                <div class="ess-config-field">
-                    <label class="ess-config-field__label">Verified Bot Actions</label>
-                    <div class="ess-checkbox-group">
-                        <label class="ess-checkbox">
-                            <input type="checkbox" name="allow_search_bots" class="ess-checkbox__input"
-                                   <?= ($config['allow_search_bots'] ?? true) ? 'checked' : '' ?>>
-                            <span class="ess-checkbox__label">Allow Search Engine Bots (Google, Bing, etc.)</span>
-                        </label>
-                        <label class="ess-checkbox">
-                            <input type="checkbox" name="allow_social_bots" class="ess-checkbox__input"
-                                   <?= ($config['allow_social_bots'] ?? true) ? 'checked' : '' ?>>
-                            <span class="ess-checkbox__label">Allow Social Media Bots (Facebook, Twitter, etc.)</span>
-                        </label>
-                        <label class="ess-checkbox">
-                            <input type="checkbox" name="allow_ai_bots" class="ess-checkbox__input"
-                                   <?= ($config['allow_ai_bots'] ?? true) ? 'checked' : '' ?>>
-                            <span class="ess-checkbox__label">Allow AI Bots (GPTBot, Claude, etc.)</span>
-                        </label>
-                        <label class="ess-checkbox">
-                            <input type="checkbox" name="allow_monitoring_bots" class="ess-checkbox__input"
-                                   <?= ($config['allow_monitoring_bots'] ?? true) ? 'checked' : '' ?>>
-                            <span class="ess-checkbox__label">Allow Monitoring Bots (Pingdom, UptimeRobot, etc.)</span>
-                        </label>
-                    </div>
+        <div class="eap-card__body">
+            <div class="eap-grid eap-grid--3">
+                <div class="eap-form-group">
+                    <label class="eap-form-label">Requests per Minute</label>
+                    <input type="number" name="rate_limit" class="eap-input"
+                           value="<?= (int) ($config['rate_limit'] ?? 100) ?>" min="10" max="1000">
+                    <span class="eap-form-hint">Max requests per IP per minute</span>
                 </div>
-            </div>
-
-            <div class="ess-config-row">
-                <div class="ess-config-field">
-                    <label class="ess-config-field__label" for="ess-bot-verification">Bot Verification Method</label>
-                    <select name="bot_verification" id="ess-bot-verification" class="ess-config-field__select">
-                        <option value="dns" <?= ($config['bot_verification'] ?? 'dns') === 'dns' ? 'selected' : '' ?>>DNS Verification (Reverse + Forward DNS)</option>
-                        <option value="ip_range" <?= ($config['bot_verification'] ?? '') === 'ip_range' ? 'selected' : '' ?>>IP Range Only</option>
-                        <option value="both" <?= ($config['bot_verification'] ?? '') === 'both' ? 'selected' : '' ?>>Both DNS + IP Range</option>
-                        <option value="none" <?= ($config['bot_verification'] ?? '') === 'none' ? 'selected' : '' ?>>No Verification (Trust User-Agent)</option>
+                <div class="eap-form-group">
+                    <label class="eap-form-label">Burst Limit</label>
+                    <input type="number" name="burst_limit" class="eap-input"
+                           value="<?= (int) ($config['burst_limit'] ?? 20) ?>" min="5" max="100">
+                    <span class="eap-form-hint">Allowed burst before rate limiting</span>
+                </div>
+                <div class="eap-form-group">
+                    <label class="eap-form-label">Rate Limit Action</label>
+                    <select name="rate_limit_action" class="eap-input">
+                        <option value="throttle" <?= ($config['rate_limit_action'] ?? '') === 'throttle' ? 'selected' : '' ?>>Throttle</option>
+                        <option value="challenge" <?= ($config['rate_limit_action'] ?? 'challenge') === 'challenge' ? 'selected' : '' ?>>Challenge</option>
+                        <option value="block" <?= ($config['rate_limit_action'] ?? '') === 'block' ? 'selected' : '' ?>>Block (429)</option>
                     </select>
-                    <p class="ess-config-field__help">DNS verification is the most secure but adds latency.</p>
+                    <span class="eap-form-hint">Action when limit exceeded</span>
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- Auto-Ban Settings -->
-        <div class="ess-config-section">
-            <h2 class="ess-config-section__title">Auto-Ban Settings</h2>
-
-            <div class="ess-config-row">
-                <div class="ess-config-field">
-                    <label class="ess-config-field__label" for="ess-auto-ban">Auto-Ban</label>
-                    <div class="ess-toggle">
-                        <input type="checkbox" name="auto_ban_enabled" id="ess-auto-ban" class="ess-toggle__input"
-                               <?= ($config['auto_ban_enabled'] ?? true) ? 'checked' : '' ?>>
-                        <label for="ess-auto-ban" class="ess-toggle__slider"></label>
-                        <span class="ess-toggle__label">Automatically ban repeat offenders</span>
-                    </div>
+    <!-- ML Detection -->
+    <div class="eap-card">
+        <div class="eap-card__header">
+            <h2 class="eap-card__title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                    <path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                </svg>
+                ML Threat Detection
+            </h2>
+        </div>
+        <div class="eap-card__body">
+            <div class="eap-grid eap-grid--3">
+                <div class="eap-form-group">
+                    <label class="eap-form-label">ML Detection</label>
+                    <select name="ml_enabled" class="eap-input">
+                        <option value="1" <?= ($config['ml_enabled'] ?? true) ? 'selected' : '' ?>>Enabled</option>
+                        <option value="0" <?= !($config['ml_enabled'] ?? true) ? 'selected' : '' ?>>Disabled</option>
+                    </select>
+                    <span class="eap-form-hint">ML-based threat classification</span>
+                </div>
+                <div class="eap-form-group">
+                    <label class="eap-form-label">Detection Threshold</label>
+                    <input type="number" name="ml_threshold" class="eap-input"
+                           value="<?= (int) ($config['ml_threshold'] ?? 60) ?>" min="20" max="95" step="5">
+                    <span class="eap-form-hint">Lower = more aggressive (20-95)</span>
+                </div>
+                <div class="eap-form-group">
+                    <label class="eap-form-label">Confidence Threshold</label>
+                    <input type="number" name="confidence_threshold" class="eap-input"
+                           value="<?= (int) ($config['confidence_threshold'] ?? 70) ?>" min="50" max="99">
+                    <span class="eap-form-hint">Min confidence for actions (%)</span>
                 </div>
             </div>
+        </div>
+    </div>
 
-            <div class="ess-config-row ess-config-row--grid">
-                <div class="ess-config-field">
-                    <label class="ess-config-field__label" for="ess-ban-threshold">Ban Threshold (Score)</label>
-                    <input type="number" name="ban_threshold" id="ess-ban-threshold" class="ess-config-field__input"
-                           value="<?= htmlspecialchars($config['ban_threshold'] ?? 500) ?>" min="100" max="2000">
-                    <p class="ess-config-field__help">Cumulative threat score before auto-ban.</p>
+    <!-- Auto-Ban Settings -->
+    <div class="eap-card">
+        <div class="eap-card__header">
+            <h2 class="eap-card__title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
+                </svg>
+                Auto-Ban Settings
+            </h2>
+        </div>
+        <div class="eap-card__body">
+            <div class="eap-grid eap-grid--3">
+                <div class="eap-form-group">
+                    <label class="eap-form-label">Auto-Ban</label>
+                    <select name="auto_ban_enabled" class="eap-input">
+                        <option value="1" <?= ($config['auto_ban_enabled'] ?? true) ? 'selected' : '' ?>>Enabled</option>
+                        <option value="0" <?= !($config['auto_ban_enabled'] ?? true) ? 'selected' : '' ?>>Disabled</option>
+                    </select>
+                    <span class="eap-form-hint">Auto-ban repeat offenders</span>
                 </div>
-
-                <div class="ess-config-field">
-                    <label class="ess-config-field__label" for="ess-ban-duration">Ban Duration</label>
-                    <select name="ban_duration" id="ess-ban-duration" class="ess-config-field__select">
+                <div class="eap-form-group">
+                    <label class="eap-form-label">Ban Threshold (Score)</label>
+                    <input type="number" name="ban_threshold" class="eap-input"
+                           value="<?= (int) ($config['ban_threshold'] ?? 500) ?>" min="100" max="2000">
+                    <span class="eap-form-hint">Cumulative score before ban</span>
+                </div>
+                <div class="eap-form-group">
+                    <label class="eap-form-label">Ban Duration</label>
+                    <select name="ban_duration" class="eap-input">
                         <option value="3600" <?= ($config['ban_duration'] ?? 0) == 3600 ? 'selected' : '' ?>>1 Hour</option>
                         <option value="21600" <?= ($config['ban_duration'] ?? 0) == 21600 ? 'selected' : '' ?>>6 Hours</option>
                         <option value="86400" <?= ($config['ban_duration'] ?? 86400) == 86400 ? 'selected' : '' ?>>24 Hours</option>
@@ -259,77 +249,119 @@ $config ??= [];
                         <option value="2592000" <?= ($config['ban_duration'] ?? 0) == 2592000 ? 'selected' : '' ?>>30 Days</option>
                         <option value="0" <?= ($config['ban_duration'] ?? 0) == 0 ? 'selected' : '' ?>>Permanent</option>
                     </select>
+                    <span class="eap-form-hint">How long to ban IPs</span>
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- Payload Analysis -->
-        <div class="ess-config-section">
-            <h2 class="ess-config-section__title">Payload Analysis</h2>
-
-            <div class="ess-config-row">
-                <div class="ess-config-field">
-                    <label class="ess-config-field__label">Detection Rules</label>
-                    <div class="ess-checkbox-group">
-                        <label class="ess-checkbox">
-                            <input type="checkbox" name="detect_sqli" class="ess-checkbox__input"
-                                   <?= ($config['detect_sqli'] ?? true) ? 'checked' : '' ?>>
-                            <span class="ess-checkbox__label">SQL Injection Detection</span>
-                        </label>
-                        <label class="ess-checkbox">
-                            <input type="checkbox" name="detect_xss" class="ess-checkbox__input"
-                                   <?= ($config['detect_xss'] ?? true) ? 'checked' : '' ?>>
-                            <span class="ess-checkbox__label">XSS (Cross-Site Scripting) Detection</span>
-                        </label>
-                        <label class="ess-checkbox">
-                            <input type="checkbox" name="detect_path_traversal" class="ess-checkbox__input"
-                                   <?= ($config['detect_path_traversal'] ?? true) ? 'checked' : '' ?>>
-                            <span class="ess-checkbox__label">Path Traversal Detection</span>
-                        </label>
-                        <label class="ess-checkbox">
-                            <input type="checkbox" name="detect_rce" class="ess-checkbox__input"
-                                   <?= ($config['detect_rce'] ?? true) ? 'checked' : '' ?>>
-                            <span class="ess-checkbox__label">Remote Code Execution Detection</span>
-                        </label>
-                        <label class="ess-checkbox">
-                            <input type="checkbox" name="detect_file_inclusion" class="ess-checkbox__input"
-                                   <?= ($config['detect_file_inclusion'] ?? true) ? 'checked' : '' ?>>
-                            <span class="ess-checkbox__label">File Inclusion Detection (LFI/RFI)</span>
-                        </label>
-                    </div>
-                </div>
-            </div>
+    <!-- Detection Rules -->
+    <div class="eap-card">
+        <div class="eap-card__header">
+            <h2 class="eap-card__title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                </svg>
+                Payload Detection Rules
+            </h2>
         </div>
-
-        <!-- GeoIP Settings -->
-        <div class="ess-config-section">
-            <h2 class="ess-config-section__title">GeoIP Settings</h2>
-
-            <div class="ess-config-row">
-                <div class="ess-config-field">
-                    <label class="ess-config-field__label" for="ess-geoip-mode">GeoIP Mode</label>
-                    <select name="geoip_mode" id="ess-geoip-mode" class="ess-config-field__select">
-                        <option value="disabled" <?= ($config['geoip_mode'] ?? '') === 'disabled' ? 'selected' : '' ?>>Disabled</option>
-                        <option value="whitelist" <?= ($config['geoip_mode'] ?? '') === 'whitelist' ? 'selected' : '' ?>>Whitelist (Allow only selected countries)</option>
-                        <option value="blacklist" <?= ($config['geoip_mode'] ?? 'blacklist') === 'blacklist' ? 'selected' : '' ?>>Blacklist (Block selected countries)</option>
+        <div class="eap-card__body">
+            <div class="eap-grid eap-grid--2">
+                <div class="eap-form-group">
+                    <label class="eap-form-label">SQL Injection Detection</label>
+                    <select name="detect_sqli" class="eap-input">
+                        <option value="1" <?= ($config['detect_sqli'] ?? true) ? 'selected' : '' ?>>Enabled</option>
+                        <option value="0" <?= !($config['detect_sqli'] ?? true) ? 'selected' : '' ?>>Disabled</option>
+                    </select>
+                </div>
+                <div class="eap-form-group">
+                    <label class="eap-form-label">XSS Detection</label>
+                    <select name="detect_xss" class="eap-input">
+                        <option value="1" <?= ($config['detect_xss'] ?? true) ? 'selected' : '' ?>>Enabled</option>
+                        <option value="0" <?= !($config['detect_xss'] ?? true) ? 'selected' : '' ?>>Disabled</option>
+                    </select>
+                </div>
+                <div class="eap-form-group">
+                    <label class="eap-form-label">Path Traversal Detection</label>
+                    <select name="detect_path_traversal" class="eap-input">
+                        <option value="1" <?= ($config['detect_path_traversal'] ?? true) ? 'selected' : '' ?>>Enabled</option>
+                        <option value="0" <?= !($config['detect_path_traversal'] ?? true) ? 'selected' : '' ?>>Disabled</option>
+                    </select>
+                </div>
+                <div class="eap-form-group">
+                    <label class="eap-form-label">Remote Code Execution Detection</label>
+                    <select name="detect_rce" class="eap-input">
+                        <option value="1" <?= ($config['detect_rce'] ?? true) ? 'selected' : '' ?>>Enabled</option>
+                        <option value="0" <?= !($config['detect_rce'] ?? true) ? 'selected' : '' ?>>Disabled</option>
                     </select>
                 </div>
             </div>
+        </div>
+    </div>
 
-            <div class="ess-config-row">
-                <div class="ess-config-field">
-                    <label class="ess-config-field__label" for="ess-geoip-countries">Countries</label>
-                    <textarea name="geoip_countries" id="ess-geoip-countries" class="ess-config-field__textarea"
-                              rows="3" placeholder="Enter country codes, one per line (e.g., CN, RU, KP)"><?= htmlspecialchars($config['geoip_countries'] ?? '') ?></textarea>
-                    <p class="ess-config-field__help">Use ISO 3166-1 alpha-2 country codes.</p>
+    <!-- Bot Management -->
+    <div class="eap-card">
+        <div class="eap-card__header">
+            <h2 class="eap-card__title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+                Bot Management
+            </h2>
+        </div>
+        <div class="eap-card__body">
+            <div class="eap-grid eap-grid--2">
+                <div class="eap-form-group">
+                    <label class="eap-form-label">Allow Search Bots</label>
+                    <select name="allow_search_bots" class="eap-input">
+                        <option value="1" <?= ($config['allow_search_bots'] ?? true) ? 'selected' : '' ?>>Yes</option>
+                        <option value="0" <?= !($config['allow_search_bots'] ?? true) ? 'selected' : '' ?>>No</option>
+                    </select>
+                    <span class="eap-form-hint">Google, Bing, etc.</span>
+                </div>
+                <div class="eap-form-group">
+                    <label class="eap-form-label">Allow Social Bots</label>
+                    <select name="allow_social_bots" class="eap-input">
+                        <option value="1" <?= ($config['allow_social_bots'] ?? true) ? 'selected' : '' ?>>Yes</option>
+                        <option value="0" <?= !($config['allow_social_bots'] ?? true) ? 'selected' : '' ?>>No</option>
+                    </select>
+                    <span class="eap-form-hint">Facebook, Twitter, etc.</span>
+                </div>
+                <div class="eap-form-group">
+                    <label class="eap-form-label">Allow AI Bots</label>
+                    <select name="allow_ai_bots" class="eap-input">
+                        <option value="1" <?= ($config['allow_ai_bots'] ?? true) ? 'selected' : '' ?>>Yes</option>
+                        <option value="0" <?= !($config['allow_ai_bots'] ?? true) ? 'selected' : '' ?>>No</option>
+                    </select>
+                    <span class="eap-form-hint">GPTBot, Claude, etc.</span>
+                </div>
+                <div class="eap-form-group">
+                    <label class="eap-form-label">Bot Verification Method</label>
+                    <select name="bot_verification" class="eap-input">
+                        <option value="dns" <?= ($config['bot_verification'] ?? 'dns') === 'dns' ? 'selected' : '' ?>>DNS Verification</option>
+                        <option value="ip_range" <?= ($config['bot_verification'] ?? '') === 'ip_range' ? 'selected' : '' ?>>IP Range Only</option>
+                        <option value="both" <?= ($config['bot_verification'] ?? '') === 'both' ? 'selected' : '' ?>>Both DNS + IP</option>
+                        <option value="none" <?= ($config['bot_verification'] ?? '') === 'none' ? 'selected' : '' ?>>No Verification</option>
+                    </select>
+                    <span class="eap-form-hint">How to verify legitimate bots</span>
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- Form Actions -->
-        <div class="ess-config-actions">
-            <button type="submit" class="ess-btn ess-btn--primary ess-btn--lg">Save Configuration</button>
-            <button type="reset" class="ess-btn ess-btn--secondary ess-btn--lg">Reset Changes</button>
-        </div>
-    </form>
-</div>
+    <!-- Form Actions -->
+    <div class="eap-form-actions">
+        <button type="submit" class="eap-btn eap-btn--primary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                <polyline points="17 21 17 13 7 13 7 21"/>
+                <polyline points="7 3 7 8 15 8"/>
+            </svg>
+            Save Configuration
+        </button>
+        <button type="reset" class="eap-btn eap-btn--secondary">Reset Changes</button>
+    </div>
+</form>

@@ -34,6 +34,14 @@ use Psr\Log\LoggerInterface;
  */
 final class SecurityController extends BaseController
 {
+    /**
+     * CSS files for all Security Shield views.
+     */
+    private const EXTRA_STYLES = [
+        '/module-assets/enterprise-security-shield/css/ess-dashboard.css',
+        '/module-assets/enterprise-security-shield/css/ess-components.css',
+    ];
+
     private ?StorageInterface $storage = null;
 
     private ?SecurityConfig $securityConfig = null;
@@ -94,7 +102,14 @@ final class SecurityController extends BaseController
         }
 
         // Fallback to database storage
-        $this->storage = new DatabaseStorage($this->db);
+        // DatabaseStorage requires PDO, extract from DatabasePool
+        $connection = $this->db->acquire();
+        try {
+            $pdo = $connection->getPdo();
+            $this->storage = new DatabaseStorage($pdo);
+        } finally {
+            $connection->release();
+        }
 
         return $this->storage;
     }
@@ -125,6 +140,7 @@ final class SecurityController extends BaseController
             'banned_ips' => $bannedIps,
             'honeypot_stats' => $honeypotStats,
             'page_title' => 'Security Dashboard',
+            'extra_styles' => self::EXTRA_STYLES,
         ]);
     }
 
@@ -158,6 +174,7 @@ final class SecurityController extends BaseController
             'search' => $search,
             'whitelist' => $whitelist,
             'page_title' => 'IP Management',
+            'extra_styles' => self::EXTRA_STYLES,
         ]);
     }
 
@@ -299,6 +316,99 @@ final class SecurityController extends BaseController
     }
 
     /**
+     * Clear expired bans.
+     * POST /security/ips/clear-expired.
+     */
+    public function clearExpiredBans(): Response
+    {
+        $result = $this->db->execute(
+            'DELETE FROM security_shield_bans WHERE expires_at IS NOT NULL AND expires_at < NOW()',
+        );
+
+        $count = $result->rowCount() ?? 0;
+
+        $this->audit('security.bans.clear_expired', ['count' => $count]);
+
+        if ($this->isAjaxRequest()) {
+            return $this->json(['success' => true, 'message' => "Cleared {$count} expired bans"]);
+        }
+
+        return $this->withFlash('success', "Cleared {$count} expired bans", $this->adminUrl('security/ips'));
+    }
+
+    /**
+     * IP lookup - show IP history and status.
+     * GET /security/ips/lookup.
+     */
+    public function ipLookup(): Response
+    {
+        $ip = trim($_GET['ip'] ?? '');
+
+        if (empty($ip) || !filter_var($ip, FILTER_VALIDATE_IP)) {
+            return $this->withFlash('error', 'Invalid IP address', $this->adminUrl('security/ips'));
+        }
+
+        $connection = $this->db->acquire();
+        $pdo = $connection->getPdo();
+
+        try {
+            // Check ban status
+            $stmt = $pdo->prepare('SELECT * FROM security_shield_bans WHERE ip = ?');
+            $stmt->execute([$ip]);
+            $ban = $stmt->fetch(\PDO::FETCH_ASSOC) ?: null;
+
+            // Check whitelist status
+            $stmt = $pdo->prepare('SELECT * FROM security_shield_whitelist WHERE ip = ?');
+            $stmt->execute([$ip]);
+            $whitelist = $stmt->fetch(\PDO::FETCH_ASSOC) ?: null;
+
+            // Get threat score
+            $stmt = $pdo->prepare('SELECT score FROM security_shield_scores WHERE ip = ?');
+            $stmt->execute([$ip]);
+            $scoreRow = $stmt->fetch(\PDO::FETCH_ASSOC);
+            $score = $scoreRow ? (int) $scoreRow['score'] : 0;
+
+            // Get recent events
+            $stmt = $pdo->prepare(
+                'SELECT id, type, created_at, data FROM security_shield_events
+                 WHERE ip = ? ORDER BY created_at DESC LIMIT 50',
+            );
+            $stmt->execute([$ip]);
+            $events = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+            // Format events
+            foreach ($events as &$event) {
+                $data = json_decode($event['data'] ?? '{}', true) ?: [];
+                $event['path'] = $data['path'] ?? '';
+                $event['user_agent'] = $data['user_agent'] ?? '';
+                $event['score'] = $data['score'] ?? 0;
+                $event['action'] = $data['action'] ?? 'ALLOW';
+                $event['time'] = $event['created_at'];
+            }
+            unset($event);
+
+            $ipInfo = [
+                'ip' => $ip,
+                'is_banned' => $ban !== null,
+                'is_whitelisted' => $whitelist !== null,
+                'ban' => $ban,
+                'whitelist' => $whitelist,
+                'score' => $score,
+                'events' => $events,
+                'event_count' => count($events),
+            ];
+
+            return $this->view('security/ip-lookup', [
+                'page_title' => 'IP Lookup: ' . $ip,
+                'ipInfo' => $ipInfo,
+                'extra_styles' => self::EXTRA_STYLES,
+            ]);
+        } finally {
+            $connection->release();
+        }
+    }
+
+    /**
      * Security events log
      * GET /security/events.
      */
@@ -380,6 +490,7 @@ final class SecurityController extends BaseController
             ],
             'event_types' => $eventTypes,
             'page_title' => 'Security Events',
+            'extra_styles' => self::EXTRA_STYLES,
         ]);
     }
 
@@ -419,6 +530,7 @@ final class SecurityController extends BaseController
         return $this->view('security/config', [
             'config' => $config,
             'page_title' => 'Security Configuration',
+            'extra_styles' => self::EXTRA_STYLES,
         ]);
     }
 
@@ -464,6 +576,7 @@ final class SecurityController extends BaseController
             'rules' => $rules,
             'detection_stats' => $detectionStats,
             'page_title' => 'WAF Rules',
+            'extra_styles' => self::EXTRA_STYLES,
         ]);
     }
 
@@ -505,6 +618,7 @@ final class SecurityController extends BaseController
             'ml_stats' => $mlStats,
             'classifications' => $recentClassifications,
             'page_title' => 'ML Threat Detection',
+            'extra_styles' => self::EXTRA_STYLES,
         ]);
     }
 
@@ -559,6 +673,7 @@ final class SecurityController extends BaseController
             'endpoints' => $endpoints,
             'stats' => $rateLimitStats,
             'page_title' => 'Rate Limiting',
+            'extra_styles' => self::EXTRA_STYLES,
         ]);
     }
 
@@ -582,6 +697,157 @@ final class SecurityController extends BaseController
         $this->audit('security.ratelimit.update', $config);
 
         return $this->withFlash('success', 'Rate limit settings saved', $this->adminUrl('security/ratelimit'));
+    }
+
+    /**
+     * Apply a security preset.
+     * POST /security/config/preset.
+     */
+    public function applyPreset(): Response
+    {
+        $body = $this->getBody();
+        $preset = $body['preset'] ?? '';
+
+        $presets = [
+            'low' => [
+                'rate_limit_max' => 200,
+                'rate_limit_window' => 60,
+                'rate_limit_login' => 10,
+                'rate_limit_api' => 2000,
+                'ml_threshold' => 80,
+                'auto_ban_enabled' => false,
+                'ban_duration' => 3600,
+                'ban_threshold' => 1000,
+                'mode' => 'monitor',
+            ],
+            'medium' => [
+                'rate_limit_max' => 100,
+                'rate_limit_window' => 60,
+                'rate_limit_login' => 5,
+                'rate_limit_api' => 1000,
+                'ml_threshold' => 60,
+                'auto_ban_enabled' => true,
+                'ban_duration' => 86400,
+                'ban_threshold' => 500,
+                'mode' => 'protect',
+            ],
+            'high' => [
+                'rate_limit_max' => 30,
+                'rate_limit_window' => 60,
+                'rate_limit_login' => 3,
+                'rate_limit_api' => 500,
+                'ml_threshold' => 40,
+                'auto_ban_enabled' => true,
+                'ban_duration' => 0, // Permanent
+                'ban_threshold' => 200,
+                'mode' => 'paranoid',
+            ],
+        ];
+
+        if (!isset($presets[$preset])) {
+            return $this->withFlash('error', 'Invalid preset', $this->adminUrl('security/config'));
+        }
+
+        $config = $presets[$preset];
+        $config['preset'] = $preset;
+
+        $this->saveConfigToDatabase($config);
+
+        $this->audit('security.preset.apply', ['preset' => $preset]);
+
+        return $this->withFlash('success', "Security preset '{$preset}' applied", $this->adminUrl('security/config'));
+    }
+
+    /**
+     * Export security events as CSV.
+     * GET /security/events/export.
+     */
+    public function exportEvents(): Response
+    {
+        $filters = [
+            'type' => $_GET['type'] ?? null,
+            'action' => $_GET['action'] ?? null,
+            'ip' => $_GET['ip'] ?? null,
+            'date_from' => $_GET['date_from'] ?? null,
+            'date_to' => $_GET['date_to'] ?? null,
+        ];
+
+        $connection = $this->db->acquire();
+        $pdo = $connection->getPdo();
+
+        try {
+            $sql = 'SELECT id, type, ip, created_at, data FROM security_shield_events WHERE 1=1';
+            $params = [];
+
+            if (!empty($filters['type'])) {
+                $sql .= ' AND type = :type';
+                $params[':type'] = $filters['type'];
+            }
+            if (!empty($filters['ip'])) {
+                $sql .= ' AND ip = :ip';
+                $params[':ip'] = $filters['ip'];
+            }
+            if (!empty($filters['date_from'])) {
+                $sql .= ' AND created_at >= :date_from';
+                $params[':date_from'] = $filters['date_from'] . ' 00:00:00';
+            }
+            if (!empty($filters['date_to'])) {
+                $sql .= ' AND created_at <= :date_to';
+                $params[':date_to'] = $filters['date_to'] . ' 23:59:59';
+            }
+
+            $sql .= ' ORDER BY created_at DESC LIMIT 10000';
+
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute($params);
+            $events = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+            // Build CSV
+            $csv = "ID,Type,IP,Timestamp,Path,User Agent,Score,Action\n";
+
+            foreach ($events as $event) {
+                $data = json_decode($event['data'] ?? '{}', true) ?: [];
+                $csv .= sprintf(
+                    "%s,%s,%s,%s,%s,%s,%s,%s\n",
+                    $event['id'],
+                    $this->escapeCsv($event['type'] ?? ''),
+                    $this->escapeCsv($event['ip'] ?? ''),
+                    $this->escapeCsv($event['created_at'] ?? ''),
+                    $this->escapeCsv($data['path'] ?? ''),
+                    $this->escapeCsv($data['user_agent'] ?? ''),
+                    $data['score'] ?? 0,
+                    $this->escapeCsv($data['action'] ?? 'ALLOW'),
+                );
+            }
+
+            $this->audit('security.events.export', ['count' => count($events), 'filters' => $filters]);
+
+            $filename = 'security_events_' . date('Y-m-d_His') . '.csv';
+
+            return new Response(
+                body: $csv,
+                status: 200,
+                headers: [
+                    'Content-Type' => 'text/csv; charset=utf-8',
+                    'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+                    'Content-Length' => (string) strlen($csv),
+                ],
+            );
+        } finally {
+            $connection->release();
+        }
+    }
+
+    /**
+     * Escape a value for CSV.
+     */
+    private function escapeCsv(string $value): string
+    {
+        if (str_contains($value, ',') || str_contains($value, '"') || str_contains($value, "\n")) {
+            return '"' . str_replace('"', '""', $value) . '"';
+        }
+
+        return $value;
     }
 
     // =========================================================================

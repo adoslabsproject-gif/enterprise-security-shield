@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AdosLabs\EnterpriseSecurityShield\ThreatIntel;
 
-use AdosLabs\EnterpriseSecurityShield\Storage\StorageInterface;
+use AdosLabs\EnterpriseSecurityShield\Contracts\StorageInterface;
 
 /**
  * Threat Intelligence Feed Client.

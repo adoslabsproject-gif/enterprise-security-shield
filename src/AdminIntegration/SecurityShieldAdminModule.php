@@ -240,6 +240,21 @@ final class SecurityShieldAdminModule implements AdminModuleInterface
                 'path' => '/security/ips/whitelist/remove',
                 'handler' => [SecurityController::class, 'removeFromWhitelist'],
             ],
+            [
+                'method' => 'POST',
+                'path' => '/security/ips/remove-whitelist',
+                'handler' => [SecurityController::class, 'removeFromWhitelist'],
+            ],
+            [
+                'method' => 'POST',
+                'path' => '/security/ips/clear-expired',
+                'handler' => [SecurityController::class, 'clearExpiredBans'],
+            ],
+            [
+                'method' => 'GET',
+                'path' => '/security/ips/lookup',
+                'handler' => [SecurityController::class, 'ipLookup'],
+            ],
 
             // Events Log
             [
@@ -252,6 +267,11 @@ final class SecurityShieldAdminModule implements AdminModuleInterface
                 'path' => '/security/events/clear',
                 'handler' => [SecurityController::class, 'clearEvents'],
             ],
+            [
+                'method' => 'GET',
+                'path' => '/security/events/export',
+                'handler' => [SecurityController::class, 'exportEvents'],
+            ],
 
             // Configuration
             [
@@ -263,6 +283,11 @@ final class SecurityShieldAdminModule implements AdminModuleInterface
                 'method' => 'POST',
                 'path' => '/security/config/save',
                 'handler' => [SecurityController::class, 'saveConfig'],
+            ],
+            [
+                'method' => 'POST',
+                'path' => '/security/config/preset',
+                'handler' => [SecurityController::class, 'applyPreset'],
             ],
 
             // WAF Rules

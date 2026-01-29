@@ -1,219 +1,319 @@
 <?php
 /**
- * Security Shield IP Management View.
+ * Security Shield IP Management View - Matrix Theme
  *
  * @var array $bannedIps List of banned IPs
  * @var array $whitelistedIps List of whitelisted IPs
  * @var array $ipStats IP statistics
- * @var string $csrfToken CSRF token
+ * @var string $csrf_input CSRF input field
+ * @var string $admin_base_path Admin base path
+ * @var string $page_title Page title
  */
+$bannedIps ??= [];
+$whitelistedIps ??= [];
+$ipStats ??= [];
 ?>
-<div class="ess-ips">
-    <h1 class="ess-ips__title">IP Management</h1>
 
-    <!-- Quick Actions -->
-    <div class="ess-quick-actions">
-        <div class="ess-quick-actions__card">
-            <h3 class="ess-quick-actions__title">Quick Ban</h3>
-            <form method="POST" action="/security/ips/ban" class="ess-quick-actions__form">
-                <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken ?? '') ?>">
-                <div class="ess-input-group">
-                    <input type="text" name="ip" class="ess-input-group__input" placeholder="IP address (e.g., 192.168.1.1)"
+<!-- Page Header -->
+<div class="eap-page-header">
+    <div class="eap-page-header__content">
+        <h1 class="eap-page-title"><?= htmlspecialchars($page_title ?? 'IP Management') ?></h1>
+        <p class="eap-page-subtitle">Manage banned and whitelisted IP addresses</p>
+    </div>
+</div>
+
+<!-- Stats Grid -->
+<div class="eap-stats-grid eap-stats-grid--4">
+    <div class="eap-stat-card eap-stat-card--danger">
+        <div class="eap-stat-card__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
+            </svg>
+        </div>
+        <div class="eap-stat-card__content">
+            <span class="eap-stat-card__value"><?= number_format($ipStats['total_banned'] ?? count($bannedIps)) ?></span>
+            <span class="eap-stat-card__label">Banned IPs</span>
+        </div>
+    </div>
+
+    <div class="eap-stat-card eap-stat-card--success">
+        <div class="eap-stat-card__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                <polyline points="22 4 12 14.01 9 11.01"/>
+            </svg>
+        </div>
+        <div class="eap-stat-card__content">
+            <span class="eap-stat-card__value"><?= number_format($ipStats['total_whitelisted'] ?? count($whitelistedIps)) ?></span>
+            <span class="eap-stat-card__label">Whitelisted IPs</span>
+        </div>
+    </div>
+
+    <div class="eap-stat-card eap-stat-card--warning">
+        <div class="eap-stat-card__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="12 6 12 12 16 14"/>
+            </svg>
+        </div>
+        <div class="eap-stat-card__content">
+            <span class="eap-stat-card__value"><?= number_format($ipStats['banned_today'] ?? 0) ?></span>
+            <span class="eap-stat-card__label">Banned Today</span>
+        </div>
+    </div>
+
+    <div class="eap-stat-card eap-stat-card--info">
+        <div class="eap-stat-card__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+            </svg>
+        </div>
+        <div class="eap-stat-card__content">
+            <span class="eap-stat-card__value"><?= number_format($ipStats['auto_banned'] ?? 0) ?></span>
+            <span class="eap-stat-card__label">Auto-Banned</span>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="eap-grid eap-grid--3">
+    <!-- Quick Ban -->
+    <div class="eap-card">
+        <div class="eap-card__header">
+            <h3 class="eap-card__title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
+                </svg>
+                Quick Ban
+            </h3>
+        </div>
+        <div class="eap-card__body">
+            <form method="POST" action="<?= htmlspecialchars($admin_base_path . '/security/ips/ban') ?>">
+                <?= $csrf_input ?? '' ?>
+                <div class="eap-form-group">
+                    <label class="eap-form-label">IP Address</label>
+                    <input type="text" name="ip" class="eap-input" placeholder="e.g., 192.168.1.1"
                            pattern="^(\d{1,3}\.){3}\d{1,3}(\/\d{1,2})?$" required>
-                    <button type="submit" class="ess-btn ess-btn--danger">Ban</button>
                 </div>
-                <div class="ess-input-group ess-input-group--mt">
-                    <input type="text" name="reason" class="ess-input-group__input" placeholder="Reason (optional)">
+                <div class="eap-form-group">
+                    <label class="eap-form-label">Reason (optional)</label>
+                    <input type="text" name="reason" class="eap-input" placeholder="Ban reason">
                 </div>
+                <button type="submit" class="eap-btn eap-btn--danger">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
+                    </svg>
+                    Ban IP
+                </button>
             </form>
         </div>
+    </div>
 
-        <div class="ess-quick-actions__card">
-            <h3 class="ess-quick-actions__title">Quick Whitelist</h3>
-            <form method="POST" action="/security/ips/whitelist" class="ess-quick-actions__form">
-                <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken ?? '') ?>">
-                <div class="ess-input-group">
-                    <input type="text" name="ip" class="ess-input-group__input" placeholder="IP address (e.g., 192.168.1.1)"
+    <!-- Quick Whitelist -->
+    <div class="eap-card">
+        <div class="eap-card__header">
+            <h3 class="eap-card__title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                    <polyline points="22 4 12 14.01 9 11.01"/>
+                </svg>
+                Quick Whitelist
+            </h3>
+        </div>
+        <div class="eap-card__body">
+            <form method="POST" action="<?= htmlspecialchars($admin_base_path . '/security/ips/whitelist') ?>">
+                <?= $csrf_input ?? '' ?>
+                <div class="eap-form-group">
+                    <label class="eap-form-label">IP Address</label>
+                    <input type="text" name="ip" class="eap-input" placeholder="e.g., 192.168.1.1"
                            pattern="^(\d{1,3}\.){3}\d{1,3}(\/\d{1,2})?$" required>
-                    <button type="submit" class="ess-btn ess-btn--success">Whitelist</button>
                 </div>
-                <div class="ess-input-group ess-input-group--mt">
-                    <input type="text" name="label" class="ess-input-group__input" placeholder="Label (e.g., Office IP)">
+                <div class="eap-form-group">
+                    <label class="eap-form-label">Label (optional)</label>
+                    <input type="text" name="label" class="eap-input" placeholder="e.g., Office IP">
                 </div>
+                <button type="submit" class="eap-btn eap-btn--success">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                        <polyline points="22 4 12 14.01 9 11.01"/>
+                    </svg>
+                    Whitelist IP
+                </button>
             </form>
         </div>
+    </div>
 
-        <div class="ess-quick-actions__card">
-            <h3 class="ess-quick-actions__title">IP Lookup</h3>
-            <form method="GET" action="/security/ips/lookup" class="ess-quick-actions__form">
-                <div class="ess-input-group">
-                    <input type="text" name="ip" class="ess-input-group__input" placeholder="IP address to lookup"
+    <!-- IP Lookup -->
+    <div class="eap-card">
+        <div class="eap-card__header">
+            <h3 class="eap-card__title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                    <circle cx="11" cy="11" r="8"/>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                </svg>
+                IP Lookup
+            </h3>
+        </div>
+        <div class="eap-card__body">
+            <form method="GET" action="<?= htmlspecialchars($admin_base_path . '/security/ips/lookup') ?>">
+                <div class="eap-form-group">
+                    <label class="eap-form-label">IP Address</label>
+                    <input type="text" name="ip" class="eap-input" placeholder="IP to lookup"
                            pattern="^(\d{1,3}\.){3}\d{1,3}$" required>
-                    <button type="submit" class="ess-btn ess-btn--primary">Lookup</button>
                 </div>
+                <div class="eap-form-group">
+                    <span class="eap-form-hint">Check IP status and history</span>
+                </div>
+                <button type="submit" class="eap-btn eap-btn--primary">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                        <circle cx="11" cy="11" r="8"/>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                    </svg>
+                    Lookup
+                </button>
             </form>
         </div>
     </div>
+</div>
 
-    <!-- IP Statistics -->
-    <div class="ess-stats-row">
-        <div class="ess-stats-row__item">
-            <span class="ess-stats-row__value"><?= number_format($ipStats['total_banned'] ?? 0) ?></span>
-            <span class="ess-stats-row__label">Banned IPs</span>
-        </div>
-        <div class="ess-stats-row__item">
-            <span class="ess-stats-row__value"><?= number_format($ipStats['total_whitelisted'] ?? 0) ?></span>
-            <span class="ess-stats-row__label">Whitelisted IPs</span>
-        </div>
-        <div class="ess-stats-row__item">
-            <span class="ess-stats-row__value"><?= number_format($ipStats['banned_today'] ?? 0) ?></span>
-            <span class="ess-stats-row__label">Banned Today</span>
-        </div>
-        <div class="ess-stats-row__item">
-            <span class="ess-stats-row__value"><?= number_format($ipStats['auto_banned'] ?? 0) ?></span>
-            <span class="ess-stats-row__label">Auto-Banned</span>
+<!-- Banned IPs -->
+<div class="eap-card">
+    <div class="eap-card__header">
+        <h2 class="eap-card__title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
+            </svg>
+            Banned IP Addresses
+        </h2>
+        <div class="eap-flex eap-flex--gap-2">
+            <span class="eap-badge eap-badge--danger"><?= count($bannedIps) ?> IPs</span>
+            <form method="POST" action="<?= htmlspecialchars($admin_base_path . '/security/ips/clear-expired') ?>" class="eap-inline-form">
+                <?= $csrf_input ?? '' ?>
+                <button type="submit" class="eap-btn eap-btn--sm eap-btn--secondary">Clear Expired</button>
+            </form>
         </div>
     </div>
-
-    <!-- Tabs -->
-    <div class="ess-tabs" data-ess-tabs>
-        <div class="ess-tabs__nav">
-            <button type="button" class="ess-tabs__btn ess-tabs__btn--active" data-ess-tab="banned">
-                Banned IPs
-                <span class="ess-tabs__count"><?= count($bannedIps ?? []) ?></span>
-            </button>
-            <button type="button" class="ess-tabs__btn" data-ess-tab="whitelisted">
-                Whitelisted IPs
-                <span class="ess-tabs__count"><?= count($whitelistedIps ?? []) ?></span>
-            </button>
-        </div>
-
-        <!-- Banned IPs Tab -->
-        <div class="ess-tabs__panel ess-tabs__panel--active" data-ess-panel="banned">
-            <div class="ess-table-card">
-                <div class="ess-table-card__header">
-                    <h3 class="ess-table-card__title">Banned IP Addresses</h3>
-                    <div class="ess-table-card__actions">
-                        <form method="POST" action="/security/ips/clear-expired" class="ess-form--inline">
-                            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken ?? '') ?>">
-                            <button type="submit" class="ess-btn ess-btn--sm ess-btn--secondary">Clear Expired</button>
-                        </form>
-                    </div>
-                </div>
-                <div class="ess-table-card__wrapper">
-                    <table class="ess-table">
-                        <thead class="ess-table__head">
-                            <tr class="ess-table__row">
-                                <th class="ess-table__th">IP Address</th>
-                                <th class="ess-table__th">Country</th>
-                                <th class="ess-table__th">Reason</th>
-                                <th class="ess-table__th">Banned At</th>
-                                <th class="ess-table__th">Expires</th>
-                                <th class="ess-table__th">Source</th>
-                                <th class="ess-table__th">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody class="ess-table__body">
-                            <?php foreach ($bannedIps ?? [] as $banned): ?>
-                            <tr class="ess-table__row">
-                                <td class="ess-table__td">
-                                    <code class="ess-code"><?= htmlspecialchars($banned['ip'] ?? '') ?></code>
-                                </td>
-                                <td class="ess-table__td">
-                                    <?= htmlspecialchars($banned['country'] ?? 'Unknown') ?>
-                                </td>
-                                <td class="ess-table__td">
-                                    <span class="ess-truncate" title="<?= htmlspecialchars($banned['reason'] ?? '') ?>">
-                                        <?= htmlspecialchars(substr($banned['reason'] ?? 'No reason', 0, 30)) ?>
-                                    </span>
-                                </td>
-                                <td class="ess-table__td ess-table__td--muted">
-                                    <?= htmlspecialchars($banned['banned_at'] ?? '') ?>
-                                </td>
-                                <td class="ess-table__td">
-                                    <?php if (empty($banned['expires_at'])): ?>
-                                    <span class="ess-badge ess-badge--danger">Permanent</span>
-                                    <?php else: ?>
-                                    <span class="ess-datetime" data-timestamp="<?= htmlspecialchars($banned['expires_at']) ?>">
-                                        <?= htmlspecialchars($banned['expires_at']) ?>
-                                    </span>
-                                    <?php endif; ?>
-                                </td>
-                                <td class="ess-table__td">
-                                    <span class="ess-badge ess-badge--<?= ($banned['source'] ?? '') === 'auto' ? 'warning' : 'secondary' ?>">
-                                        <?= htmlspecialchars(ucfirst($banned['source'] ?? 'manual')) ?>
-                                    </span>
-                                </td>
-                                <td class="ess-table__td">
-                                    <form method="POST" action="/security/ips/unban" class="ess-form--inline">
-                                        <input type="hidden" name="ip" value="<?= htmlspecialchars($banned['ip'] ?? '') ?>">
-                                        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken ?? '') ?>">
-                                        <button type="submit" class="ess-btn ess-btn--sm ess-btn--success">Unban</button>
-                                    </form>
-                                </td>
-                            </tr>
-                            <?php endforeach; ?>
-                            <?php if (empty($bannedIps)): ?>
-                            <tr class="ess-table__row">
-                                <td class="ess-table__td ess-table__td--empty" colspan="7">No banned IPs</td>
-                            </tr>
-                            <?php endif; ?>
-                        </tbody>
-                    </table>
-                </div>
+    <div class="eap-card__body eap-card__body--no-padding">
+        <?php if (empty($bannedIps)): ?>
+            <div class="eap-empty-state">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="48" height="48">
+                    <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <p>No banned IPs</p>
+                <span class="eap-text--muted">All clear!</span>
             </div>
-        </div>
-
-        <!-- Whitelisted IPs Tab -->
-        <div class="ess-tabs__panel" data-ess-panel="whitelisted">
-            <div class="ess-table-card">
-                <div class="ess-table-card__header">
-                    <h3 class="ess-table-card__title">Whitelisted IP Addresses</h3>
-                </div>
-                <div class="ess-table-card__wrapper">
-                    <table class="ess-table">
-                        <thead class="ess-table__head">
-                            <tr class="ess-table__row">
-                                <th class="ess-table__th">IP Address / Range</th>
-                                <th class="ess-table__th">Label</th>
-                                <th class="ess-table__th">Added At</th>
-                                <th class="ess-table__th">Added By</th>
-                                <th class="ess-table__th">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody class="ess-table__body">
-                            <?php foreach ($whitelistedIps ?? [] as $whitelisted): ?>
-                            <tr class="ess-table__row">
-                                <td class="ess-table__td">
-                                    <code class="ess-code"><?= htmlspecialchars($whitelisted['ip'] ?? '') ?></code>
-                                </td>
-                                <td class="ess-table__td">
-                                    <?= htmlspecialchars($whitelisted['label'] ?? '-') ?>
-                                </td>
-                                <td class="ess-table__td ess-table__td--muted">
-                                    <?= htmlspecialchars($whitelisted['added_at'] ?? '') ?>
-                                </td>
-                                <td class="ess-table__td">
-                                    <?= htmlspecialchars($whitelisted['added_by'] ?? 'System') ?>
-                                </td>
-                                <td class="ess-table__td">
-                                    <form method="POST" action="/security/ips/remove-whitelist" class="ess-form--inline">
-                                        <input type="hidden" name="ip" value="<?= htmlspecialchars($whitelisted['ip'] ?? '') ?>">
-                                        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken ?? '') ?>">
-                                        <button type="submit" class="ess-btn ess-btn--sm ess-btn--danger">Remove</button>
-                                    </form>
-                                </td>
-                            </tr>
-                            <?php endforeach; ?>
-                            <?php if (empty($whitelistedIps)): ?>
-                            <tr class="ess-table__row">
-                                <td class="ess-table__td ess-table__td--empty" colspan="5">No whitelisted IPs</td>
-                            </tr>
+        <?php else: ?>
+            <table class="eap-table">
+                <thead>
+                    <tr>
+                        <th>IP Address</th>
+                        <th>Country</th>
+                        <th>Reason</th>
+                        <th>Banned At</th>
+                        <th>Expires</th>
+                        <th>Source</th>
+                        <th class="eap-table__cell--center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($bannedIps as $banned): ?>
+                    <tr>
+                        <td>
+                            <a href="<?= htmlspecialchars($admin_base_path . '/security/ips/lookup?ip=' . urlencode($banned['ip'] ?? '')) ?>" class="eap-link">
+                                <code class="eap-code"><?= htmlspecialchars($banned['ip'] ?? '') ?></code>
+                            </a>
+                        </td>
+                        <td><?= htmlspecialchars($banned['country'] ?? 'Unknown') ?></td>
+                        <td class="eap-table__cell--muted eap-table__cell--truncate" title="<?= htmlspecialchars($banned['reason'] ?? '') ?>">
+                            <?= htmlspecialchars(substr($banned['reason'] ?? 'No reason', 0, 30)) ?>
+                        </td>
+                        <td class="eap-table__cell--mono"><?= htmlspecialchars($banned['banned_at'] ?? '') ?></td>
+                        <td>
+                            <?php if (empty($banned['expires_at'])): ?>
+                                <span class="eap-badge eap-badge--danger">Permanent</span>
+                            <?php else: ?>
+                                <span class="eap-table__cell--mono"><?= htmlspecialchars($banned['expires_at']) ?></span>
                             <?php endif; ?>
-                        </tbody>
-                    </table>
-                </div>
+                        </td>
+                        <td>
+                            <span class="eap-badge eap-badge--<?= ($banned['source'] ?? '') === 'auto' ? 'warning' : 'secondary' ?>">
+                                <?= htmlspecialchars(ucfirst($banned['source'] ?? 'manual')) ?>
+                            </span>
+                        </td>
+                        <td class="eap-table__cell--center">
+                            <form method="POST" action="<?= htmlspecialchars($admin_base_path . '/security/ips/unban') ?>" class="eap-inline-form">
+                                <?= $csrf_input ?? '' ?>
+                                <input type="hidden" name="ip" value="<?= htmlspecialchars($banned['ip'] ?? '') ?>">
+                                <button type="submit" class="eap-btn eap-btn--sm eap-btn--success">Unban</button>
+                            </form>
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        <?php endif; ?>
+    </div>
+</div>
+
+<!-- Whitelisted IPs -->
+<div class="eap-card">
+    <div class="eap-card__header">
+        <h2 class="eap-card__title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                <polyline points="22 4 12 14.01 9 11.01"/>
+            </svg>
+            Whitelisted IP Addresses
+        </h2>
+        <span class="eap-badge eap-badge--success"><?= count($whitelistedIps) ?> IPs</span>
+    </div>
+    <div class="eap-card__body eap-card__body--no-padding">
+        <?php if (empty($whitelistedIps)): ?>
+            <div class="eap-empty-state">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="48" height="48">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                    <polyline points="22 4 12 14.01 9 11.01"/>
+                </svg>
+                <p>No whitelisted IPs</p>
+                <span class="eap-text--muted">Add trusted IPs to bypass security checks</span>
             </div>
-        </div>
+        <?php else: ?>
+            <table class="eap-table">
+                <thead>
+                    <tr>
+                        <th>IP Address / Range</th>
+                        <th>Label</th>
+                        <th>Added At</th>
+                        <th>Added By</th>
+                        <th class="eap-table__cell--center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($whitelistedIps as $whitelisted): ?>
+                    <tr>
+                        <td>
+                            <a href="<?= htmlspecialchars($admin_base_path . '/security/ips/lookup?ip=' . urlencode($whitelisted['ip'] ?? '')) ?>" class="eap-link">
+                                <code class="eap-code"><?= htmlspecialchars($whitelisted['ip'] ?? '') ?></code>
+                            </a>
+                        </td>
+                        <td><?= htmlspecialchars($whitelisted['label'] ?? '-') ?></td>
+                        <td class="eap-table__cell--mono"><?= htmlspecialchars($whitelisted['added_at'] ?? '') ?></td>
+                        <td><?= htmlspecialchars($whitelisted['added_by'] ?? 'System') ?></td>
+                        <td class="eap-table__cell--center">
+                            <form method="POST" action="<?= htmlspecialchars($admin_base_path . '/security/ips/remove-whitelist') ?>" class="eap-inline-form">
+                                <?= $csrf_input ?? '' ?>
+                                <input type="hidden" name="ip" value="<?= htmlspecialchars($whitelisted['ip'] ?? '') ?>">
+                                <button type="submit" class="eap-btn eap-btn--sm eap-btn--danger">Remove</button>
+                            </form>
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        <?php endif; ?>
     </div>
 </div>

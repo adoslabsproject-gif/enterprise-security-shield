@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AdosLabs\EnterpriseSecurityShield\RateLimiting;
 
-use AdosLabs\EnterpriseSecurityShield\Storage\StorageInterface;
+use AdosLabs\EnterpriseSecurityShield\Contracts\StorageInterface;
 
 /**
  * API-Specific Rate Limiter.
