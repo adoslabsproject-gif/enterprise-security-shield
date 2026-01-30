@@ -305,6 +305,11 @@ final class XSSAnalyzer
 
     /**
      * Decode various input encodings.
+     *
+     * CRITICAL: Unicode normalization is applied to catch bypass attempts like:
+     * - <script\u0101> (homoglyph attack using ā instead of a)
+     * - ＜script＞ (fullwidth characters)
+     * - <scrİpt> (Turkish dotted I)
      */
     private function decodeInput(string $input): string
     {
@@ -343,8 +348,52 @@ final class XSSAnalyzer
             $decoded,
         ) ?? $decoded;
 
+        // CRITICAL: Unicode normalization (NFKC) to catch homoglyph attacks
+        // This converts:
+        // - Fullwidth chars: ＜ → <, ＞ → >
+        // - Compatibility chars: ℌ → H, ℓ → l
+        // - Combined chars: ā → a (in some cases)
+        // - Superscripts/subscripts: ¹ → 1
+        if (function_exists('normalizer_normalize')) {
+            $normalized = \Normalizer::normalize($decoded, \Normalizer::NFKC);
+            if ($normalized !== false) {
+                $decoded = $normalized;
+            }
+        }
+
+        // Additional homoglyph normalization for common XSS bypass chars
+        // These are NOT covered by NFKC normalization
+        // Using Unicode code points to avoid encoding issues
+        $homoglyphs = [
+            // Angle brackets (fullwidth and other variants)
+            "\u{FF1C}" => '<', "\u{FF1E}" => '>', // Fullwidth < >
+            "\u{3008}" => '<', "\u{3009}" => '>', // CJK angle brackets
+            "\u{2039}" => '<', "\u{203A}" => '>', // Single guillemets
+            // Quotes (curly/smart quotes)
+            "\u{FF02}" => '"', "\u{FF07}" => "'", // Fullwidth quotes
+            "\u{201C}" => '"', "\u{201D}" => '"', // Curly double quotes
+            "\u{2018}" => "'", "\u{2019}" => "'", // Curly single quotes
+            "\u{FF40}" => '`', // Fullwidth backtick
+            // Parentheses (fullwidth)
+            "\u{FF08}" => '(', "\u{FF09}" => ')',
+            "\u{FF3B}" => '[', "\u{FF3D}" => ']',
+            "\u{FF5B}" => '{', "\u{FF5D}" => '}',
+            // Slashes (fullwidth)
+            "\u{FF0F}" => '/', "\u{FF3C}" => '\\',
+            // Equals (fullwidth)
+            "\u{FF1D}" => '=',
+            // Letters commonly used in XSS
+            "\u{017F}" => 's', // Long s
+            "\u{0131}" => 'i', // Turkish dotless i
+            "\u{0130}" => 'I', // Turkish dotted I
+        ];
+        $decoded = strtr($decoded, $homoglyphs);
+
         // Remove null bytes
         $decoded = str_replace("\x00", '', $decoded);
+
+        // Remove Unicode control characters (except newline/tab)
+        $decoded = preg_replace('/[\x{200B}-\x{200F}\x{2028}-\x{202F}\x{FEFF}]/u', '', $decoded) ?? $decoded;
 
         return $decoded;
     }

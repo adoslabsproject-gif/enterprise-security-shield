@@ -195,9 +195,9 @@ final class SQLTokenizer
             $decoded,
         ) ?? $decoded;
 
-        // Hex escape sequences (0xXX)
+        // Hex escape sequences (0xXX) - single byte
         $decoded = preg_replace_callback(
-            '/0x([0-9a-fA-F]{2})/',
+            '/0x([0-9a-fA-F]{2})(?![0-9a-fA-F])/',
             fn ($m) => chr((int) hexdec($m[1])),
             $decoded,
         ) ?? $decoded;
@@ -206,6 +206,32 @@ final class SQLTokenizer
         $decoded = preg_replace_callback(
             "/X'([0-9a-fA-F]+)'/i",
             fn ($m) => pack('H*', $m[1]),
+            $decoded,
+        ) ?? $decoded;
+
+        // CRITICAL: MySQL hex literals like 0x3d (=) or 0x554e494f4e (UNION)
+        // These are used to bypass WAF by encoding operators/keywords
+        // Example: 1 OR 0x3d=0x3d bypasses detection of 1 OR 1=1
+        $decoded = preg_replace_callback(
+            '/0x([0-9a-fA-F]{2,})/',
+            function ($m) {
+                $hex = $m[1];
+                // Only decode if it looks like ASCII text (all bytes 0x20-0x7E)
+                $bytes = str_split($hex, 2);
+                $allPrintable = true;
+                foreach ($bytes as $byte) {
+                    $val = (int) hexdec($byte);
+                    if ($val < 0x20 || $val > 0x7E) {
+                        $allPrintable = false;
+                        break;
+                    }
+                }
+                if ($allPrintable && strlen($hex) >= 2) {
+                    return pack('H*', $hex);
+                }
+
+                return $m[0]; // Keep original if not printable ASCII
+            },
             $decoded,
         ) ?? $decoded;
 
@@ -265,10 +291,30 @@ final class SQLTokenizer
             ];
         }
 
-        // Multi-line comment (/* */)
+        // Multi-line comment (/* */) or MySQL conditional comment (/*!50000 ... */)
         if (str_starts_with($remaining, '/*')) {
             $end = strpos($remaining, '*/', 2);
             $value = $end === false ? $remaining : substr($remaining, 0, $end + 2);
+
+            // CRITICAL: MySQL conditional comments /*!50000 UNION */ are NOT comments!
+            // They contain executable SQL that runs on MySQL version >= specified
+            // Pattern: /*!NNNNN sql_code */ where NNNNN is version number
+            // Example: /*!50000 UNION SELECT */ executes UNION SELECT on MySQL 5.0+
+            if (preg_match('/^\/\*!\d*\s*(.+?)\s*\*\/$/s', $value, $matches)) {
+                // Extract the SQL inside and tokenize it recursively
+                // Return the content as if it were regular SQL, not a comment
+                $innerSql = $matches[1];
+
+                // Return the inner SQL as tokens by re-tokenizing
+                // For now, mark the whole thing as DANGEROUS (will be caught by analyzer)
+                return [
+                    'type' => self::T_KEYWORD, // Treat as keyword to trigger detection
+                    'value' => $innerSql,
+                    'position' => $position,
+                    'original' => $value,
+                    'bypass_type' => 'mysql_conditional_comment',
+                ];
+            }
 
             return [
                 'type' => self::T_COMMENT,

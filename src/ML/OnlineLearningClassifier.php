@@ -278,21 +278,130 @@ final class OnlineLearningClassifier
     }
 
     /**
+     * ANTI-POISONING CONFIGURATION.
+     *
+     * Rate limiting prevents attackers from flooding the model with malicious samples.
+     * Validation ensures only legitimate security events can train the model.
+     */
+    private const ANTI_POISONING = [
+        // Max samples per minute from single source (IP/session)
+        'max_samples_per_minute' => 10,
+        // Max samples per hour from single source
+        'max_samples_per_hour' => 100,
+        // Minimum confidence from pattern-based detection to auto-learn
+        'min_confidence_for_auto_learn' => 0.7,
+        // Classes that CANNOT be learned directly (must come from verified events)
+        'protected_classes' => ['LEGITIMATE'],
+    ];
+
+    /**
+     * Rate limit tracking for anti-poisoning.
+     *
+     * @var array<string, array{minute: int, hour: int, last_minute: int, last_hour: int}>
+     */
+    private array $learnRateLimits = [];
+
+    /**
+     * Check rate limit for learning operations.
+     */
+    private function checkLearnRateLimit(string $sourceId): bool
+    {
+        $now = time();
+        $currentMinute = (int) floor($now / 60);
+        $currentHour = (int) floor($now / 3600);
+
+        if (!isset($this->learnRateLimits[$sourceId])) {
+            $this->learnRateLimits[$sourceId] = [
+                'minute' => 0,
+                'hour' => 0,
+                'last_minute' => $currentMinute,
+                'last_hour' => $currentHour,
+            ];
+        }
+
+        $limit = &$this->learnRateLimits[$sourceId];
+
+        // Reset minute counter if new minute
+        if ($limit['last_minute'] !== $currentMinute) {
+            $limit['minute'] = 0;
+            $limit['last_minute'] = $currentMinute;
+        }
+
+        // Reset hour counter if new hour
+        if ($limit['last_hour'] !== $currentHour) {
+            $limit['hour'] = 0;
+            $limit['last_hour'] = $currentHour;
+        }
+
+        // Check limits
+        if ($limit['minute'] >= self::ANTI_POISONING['max_samples_per_minute']) {
+            return false;
+        }
+        if ($limit['hour'] >= self::ANTI_POISONING['max_samples_per_hour']) {
+            return false;
+        }
+
+        // Increment counters
+        $limit['minute']++;
+        $limit['hour']++;
+
+        return true;
+    }
+
+    /**
      * Learn from a labeled security event (ONLINE LEARNING).
      *
      * This is the core ML function - it updates the model incrementally
      * without needing to retrain from scratch.
      *
+     * SECURITY: Implements anti-poisoning measures:
+     * 1. Rate limiting - prevents flooding with malicious samples
+     * 2. Class protection - 'LEGITIMATE' class cannot be easily poisoned
+     * 3. Weight validation - prevents extreme weight values
+     * 4. Logging - all learn operations are logged for audit
+     *
      * @param array<string, mixed> $features Request features
      * @param string $trueClass The actual classification (ground truth)
      * @param float $weight Sample weight (default 1.0, use < 1.0 for uncertain labels)
+     * @param string|null $sourceId Optional source identifier for rate limiting
+     * @param bool $bypassProtection Set to true ONLY for verified admin operations
      */
-    public function learn(array $features, string $trueClass, float $weight = 1.0): void
-    {
+    public function learn(
+        array $features,
+        string $trueClass,
+        float $weight = 1.0,
+        ?string $sourceId = null,
+        bool $bypassProtection = false,
+    ): void {
         if (!in_array($trueClass, self::CLASSES, true)) {
             $this->logger->warning('Invalid class for learning', ['class' => $trueClass]);
 
             return;
+        }
+
+        // ANTI-POISONING: Validate weight (prevent extreme values)
+        $weight = max(0.1, min(2.0, $weight));
+
+        // ANTI-POISONING: Protected classes require bypass flag
+        if (in_array($trueClass, self::ANTI_POISONING['protected_classes'], true) && !$bypassProtection) {
+            $this->logger->warning('Attempted to learn protected class without bypass', [
+                'class' => $trueClass,
+                'source' => $sourceId,
+            ]);
+
+            return;
+        }
+
+        // ANTI-POISONING: Rate limiting
+        if ($sourceId !== null && !$bypassProtection) {
+            if (!$this->checkLearnRateLimit($sourceId)) {
+                $this->logger->warning('Learn rate limit exceeded', [
+                    'source' => $sourceId,
+                    'class' => $trueClass,
+                ]);
+
+                return;
+            }
         }
 
         // Extract feature keys
