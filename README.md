@@ -1072,35 +1072,97 @@ $result = $shield->analyzeHTTP2($headers, $serverMetrics);
 
 ---
 
-## Known Limitations
+## What This WAF Actually Does
 
-1. **Fail-Open Default** - RedisStorage allows traffic during Redis outage (configurable)
-2. **DNS Timeout Risk** - Bot verification can block for up to 30s on slow DNS
-3. **GeoIP Provider Required** - GeoIP blocking requires provider configuration (IPApiProvider included free)
-4. **Clock Skew** - Rate limiting assumes synchronized server clocks
-5. **ML Warm-Up** - Online learning needs ~50 samples before improving on initial weights
+### Attack Detection & Blocking
+
+| Attack Type | Detection Method | Real-Time Blocking |
+|-------------|------------------|-------------------|
+| **SQL Injection** | Tokenizer-based analysis (not just regex), detects UNION, boolean, stacked queries | Yes |
+| **XSS Attacks** | Multi-pass HTML entity decoding, DOM analysis, event handler detection | Yes |
+| **Request Smuggling** | CL.TE, TE.CL, TE.TE header analysis | Yes |
+| **Path Traversal** | Pattern + normalization bypass detection | Yes |
+| **Command Injection** | Shell metacharacter and command pattern detection | Yes |
+| **GraphQL Abuse** | Query depth, complexity, batching limits | Yes |
+| **JWT Attacks** | alg:none, algorithm confusion, header injection | Yes |
+
+### Machine Learning (Real, Not Marketing)
+
+| Component | Implementation | Verification |
+|-----------|---------------|--------------|
+| **Naive Bayes Classifier** | `src/ML/ThreatClassifier.php` - 800+ lines | Probabilistic classification with feature extraction |
+| **Online Learning** | `src/ML/OnlineLearningClassifier.php` | Incremental training, concept drift handling |
+| **Anomaly Detection** | `src/ML/AnomalyDetector.php` | Z-Score + IQR statistical analysis |
+| **Training Data** | 662 real security events, 188 attack patterns | Pre-trained weights included |
+
+### DDoS Protection (Layer 7)
+
+| Attack | Detection | How It Works |
+|--------|-----------|--------------|
+| **HTTP Flood** | Request rate analysis | Atomic rate limiting with Redis Lua scripts |
+| **Slowloris** | Header receive timing | Detects slow header transmission |
+| **RUDY** | Body receive timing | Detects slow POST body attacks |
+| **HTTP/2 Rapid Reset** | RST_STREAM counting | CVE-2023-44487 detection |
+
+### Rate Limiting (4 Algorithms)
+
+All use **atomic operations** (Lua scripts) to prevent race conditions:
+- Sliding Window (most accurate)
+- Token Bucket (burst-tolerant)
+- Leaky Bucket (smooth enforcement)
+- Fixed Window (simple)
 
 ---
 
-## Security Considerations
+## Architecture: Where This WAF Fits
 
-### This Package IS
+```
+Internet
+    │
+    ▼
+┌─────────────────────────────┐
+│   Edge WAF (Cloudflare)     │  ◄── Volumetric DDoS (L3/L4), CDN
+│   - Network-level attacks   │
+│   - Bandwidth attacks       │
+└─────────────────────────────┘
+    │
+    ▼
+┌─────────────────────────────┐
+│   This WAF (PHP)            │  ◄── Application attacks (L7)
+│   - SQLi, XSS, RCE          │
+│   - Business logic abuse    │
+│   - Bot detection           │
+│   - ML threat scoring       │
+└─────────────────────────────┘
+    │
+    ▼
+┌─────────────────────────────┐
+│   Your Application          │
+└─────────────────────────────┘
+```
 
-- A layer of defense for PHP applications
-- ML-based threat classification
-- Bot verification and honeypot system
-- Rate limiting and IP scoring
+**Use BOTH layers for complete protection.**
 
-### This Package IS NOT
+---
 
-- A replacement for edge WAF (Cloudflare, AWS WAF) for volumetric attacks
-- Network-level DDoS protection (use Cloudflare/AWS Shield for L3/L4 attacks)
-- Penetration tested by third party
-- A guarantee of security
+## Known Limitations
 
-**Note:** This WAF DOES provide application-level DDoS protection via rate limiting (4 algorithms), IP scoring, and auto-ban. For volumetric network attacks (L3/L4), use edge protection in addition.
+1. **Fail-Open Default** - Allows traffic during Redis outage (configurable to fail-closed)
+2. **DNS Timeout** - Bot verification can block up to 30s on slow DNS (timeout configurable)
+3. **No L3/L4 Protection** - Cannot stop volumetric network floods (use edge WAF)
+4. **No Third-Party Audit** - Not penetration tested by external security firm
+5. **ML Warm-Up** - Online learning needs ~50 samples before improving
 
-**Always use defense in depth. Deploy alongside edge protection for maximum security.**
+---
+
+## Transparency
+
+This project is honest about what it does and doesn't do:
+
+- **No penetration test** - We haven't paid for a third-party security audit
+- **Defense in depth** - Use alongside Cloudflare/AWS WAF, not instead of
+- **Open source** - All code is inspectable, no black boxes
+- **Security audit included** - See `docs/SECURITY-AUDIT.md` for known vulnerabilities we've documented ourselves
 
 ---
 
