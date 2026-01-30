@@ -426,4 +426,81 @@ class NullStorage implements StorageInterface
 
         return $newValue;
     }
+
+    /**
+     * {@inheritDoc}
+     *
+     * IN-MEMORY ATOMIC RATE LIMIT CHECK
+     * ==================================
+     *
+     * For in-memory storage, this is naturally atomic because PHP is single-threaded.
+     * No race conditions possible within a single request.
+     *
+     * NOTE: Race conditions between concurrent requests are NOT simulated
+     * because NullStorage is designed for unit testing logic, not concurrency.
+     */
+    public function atomicRateLimitCheck(string $key, int $limit, int $window, int $cost = 1): array
+    {
+        $now = time();
+
+        // Check if we have an existing entry
+        if (!isset($this->cache[$key])) {
+            // New entry
+            $this->cache[$key] = [
+                'value' => $cost,
+                'expires_at' => $now + $window,
+            ];
+
+            return [
+                'allowed' => $cost <= $limit,
+                'count' => $cost,
+                'remaining' => max(0, $limit - $cost),
+                'reset' => $now + $window,
+            ];
+        }
+
+        // Check expiration
+        if ($now > $this->cache[$key]['expires_at']) {
+            // Window expired - reset
+            $this->cache[$key] = [
+                'value' => $cost,
+                'expires_at' => $now + $window,
+            ];
+
+            return [
+                'allowed' => $cost <= $limit,
+                'count' => $cost,
+                'remaining' => max(0, $limit - $cost),
+                'reset' => $now + $window,
+            ];
+        }
+
+        // Get current count
+        $currentCount = is_numeric($this->cache[$key]['value'])
+            ? (int) $this->cache[$key]['value']
+            : 0;
+        $resetTime = $this->cache[$key]['expires_at'];
+
+        // Check if adding cost would exceed limit
+        if ($currentCount + $cost > $limit) {
+            // Over limit - don't increment
+            return [
+                'allowed' => false,
+                'count' => $currentCount,
+                'remaining' => max(0, $limit - $currentCount),
+                'reset' => $resetTime,
+            ];
+        }
+
+        // Under limit - increment
+        $newCount = $currentCount + $cost;
+        $this->cache[$key]['value'] = $newCount;
+
+        return [
+            'allowed' => true,
+            'count' => $newCount,
+            'remaining' => max(0, $limit - $newCount),
+            'reset' => $resetTime,
+        ];
+    }
 }

@@ -1059,4 +1059,162 @@ class DatabaseStorage implements StorageInterface
 
         return 0;
     }
+
+    /**
+     * {@inheritDoc}
+     *
+     * ATOMIC RATE LIMIT CHECK - CRITICAL FOR SECURITY
+     * ================================================
+     *
+     * This method MUST be atomic to prevent race conditions.
+     *
+     * DUAL-STORAGE STRATEGY:
+     * 1. If Redis available: Use Lua script (sub-ms, atomic)
+     * 2. If Redis down: Use PostgreSQL transaction (5-10ms, atomic)
+     *
+     * RACE CONDITION PREVENTED:
+     * - Non-atomic: Thread A reads 99, Thread B reads 99, both allow, actual = 101
+     * - Atomic: Lua script runs entirely in Redis, no interleaving possible
+     */
+    public function atomicRateLimitCheck(string $key, int $limit, int $window, int $cost = 1): array
+    {
+        $now = time();
+
+        // Fast path: Redis with Lua script (atomic, sub-millisecond)
+        if ($this->redis) {
+            try {
+                $fullKey = $this->keyPrefix . $key;
+
+                // Lua script: Atomic increment + limit check
+                $lua = <<<'LUA'
+                        local key = KEYS[1]
+                        local limit = tonumber(ARGV[1])
+                        local window = tonumber(ARGV[2])
+                        local cost = tonumber(ARGV[3])
+
+                        -- Increment counter
+                        local current = redis.call('INCRBY', key, cost)
+
+                        -- Set TTL only on first increment
+                        if current == cost then
+                            redis.call('EXPIRE', key, window)
+                        end
+
+                        -- Get TTL for reset time
+                        local ttl = redis.call('TTL', key)
+                        if ttl < 0 then ttl = window end
+
+                        -- Check if over limit
+                        if current > limit then
+                            -- Over limit: decrement back
+                            redis.call('DECRBY', key, cost)
+                            return {0, current - cost, ttl}
+                        end
+
+                        return {1, current, ttl}
+                    LUA;
+
+                $result = $this->redis->eval($lua, [$fullKey, $limit, $window, $cost], 1);
+
+                if (is_array($result) && count($result) >= 3) {
+                    $allowed = (int) $result[0] === 1;
+                    $count = (int) $result[1];
+                    $ttl = (int) $result[2];
+
+                    return [
+                        'allowed' => $allowed,
+                        'count' => $count,
+                        'remaining' => max(0, $limit - $count),
+                        'reset' => $now + $ttl,
+                    ];
+                }
+            } catch (\RedisException $e) {
+                // Fall through to database
+            }
+        }
+
+        // Slow path: PostgreSQL with transaction (atomic, 5-10ms)
+        try {
+            $this->pdo->beginTransaction();
+
+            // Use SELECT FOR UPDATE to lock the row
+            $stmt = $this->pdo->prepare('
+                SELECT count, EXTRACT(EPOCH FROM expires_at)::INTEGER as expires_epoch
+                FROM rate_limits
+                WHERE key = :key
+                FOR UPDATE
+            ');
+            $stmt->execute([':key' => $key]);
+            $row = $stmt->fetch(\PDO::FETCH_ASSOC);
+
+            $expiresAt = date('Y-m-d H:i:s', $now + $window);
+
+            if (!$row || (isset($row['expires_epoch']) && $row['expires_epoch'] < $now)) {
+                // New window or expired: insert/reset with cost
+                $stmt = $this->pdo->prepare('
+                    INSERT INTO rate_limits (key, count, expires_at)
+                    VALUES (:key, :cost, :expires_at)
+                    ON CONFLICT (key) DO UPDATE
+                    SET count = :cost, expires_at = :expires_at
+                ');
+                $stmt->execute([
+                    ':key' => $key,
+                    ':cost' => $cost,
+                    ':expires_at' => $expiresAt,
+                ]);
+
+                $this->pdo->commit();
+
+                return [
+                    'allowed' => $cost <= $limit,
+                    'count' => $cost,
+                    'remaining' => max(0, $limit - $cost),
+                    'reset' => $now + $window,
+                ];
+            }
+
+            $currentCount = (int) $row['count'];
+            $newCount = $currentCount + $cost;
+            $resetTime = (int) ($row['expires_epoch'] ?? ($now + $window));
+
+            if ($newCount > $limit) {
+                // Over limit - don't increment
+                $this->pdo->commit();
+
+                return [
+                    'allowed' => false,
+                    'count' => $currentCount,
+                    'remaining' => max(0, $limit - $currentCount),
+                    'reset' => $resetTime,
+                ];
+            }
+
+            // Under limit - increment
+            $stmt = $this->pdo->prepare('
+                UPDATE rate_limits SET count = count + :cost WHERE key = :key
+            ');
+            $stmt->execute([':cost' => $cost, ':key' => $key]);
+
+            $this->pdo->commit();
+
+            return [
+                'allowed' => true,
+                'count' => $newCount,
+                'remaining' => max(0, $limit - $newCount),
+                'reset' => $resetTime,
+            ];
+        } catch (\PDOException $e) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+
+            // Fail open - allow request on complete storage failure
+            return [
+                'allowed' => true,
+                'count' => 0,
+                'remaining' => $limit,
+                'reset' => $now + $window,
+            ];
+        }
+    }
 }

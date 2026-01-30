@@ -284,6 +284,34 @@ interface StorageInterface
     public function exists(string $key): bool;
 
     /**
+     * Atomic rate limit check and increment.
+     *
+     * CRITICAL: This MUST be a single atomic operation.
+     * Implementations must use Lua scripts (Redis) or transactions (DB).
+     *
+     * RACE CONDITION WITHOUT ATOMICITY:
+     * - Thread A: reads count=99, decides allowed, writes count=100
+     * - Thread B: reads count=99 (before A writes), decides allowed, writes count=100
+     * - Result: 2 requests pass but only 1 counted!
+     *
+     * CORRECT ATOMIC IMPLEMENTATION (Redis Lua):
+     * ```lua
+     * local count = redis.call('INCRBY', key, cost)
+     * if count == cost then redis.call('EXPIRE', key, window) end
+     * if count > limit then return {0, count} end -- rejected
+     * return {1, count} -- allowed
+     * ```
+     *
+     * @param string $key Rate limit key (e.g., "rate:ip:1.2.3.4")
+     * @param int $limit Maximum requests allowed
+     * @param int $window Time window in seconds
+     * @param int $cost Request cost (usually 1)
+     *
+     * @return array{allowed: bool, count: int, remaining: int, reset: int}
+     */
+    public function atomicRateLimitCheck(string $key, int $limit, int $window, int $cost = 1): array;
+
+    /**
      * Generic atomic increment operation.
      *
      * Used by resilience patterns (CircuitBreaker, Bulkhead, RateLimiter)

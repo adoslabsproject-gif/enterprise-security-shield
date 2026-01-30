@@ -697,4 +697,87 @@ class RedisStorage implements StorageInterface
             return 0;
         }
     }
+
+    /**
+     * {@inheritDoc}
+     *
+     * ATOMIC rate limit check using Lua script.
+     * This is the ONLY correct way to implement distributed rate limiting.
+     *
+     * The Lua script performs in a single atomic operation:
+     * 1. Increment counter
+     * 2. Set TTL on first request
+     * 3. Check if over limit
+     * 4. Return result
+     *
+     * NO race conditions possible because Redis executes Lua atomically.
+     */
+    public function atomicRateLimitCheck(string $key, int $limit, int $window, int $cost = 1): array
+    {
+        $fullKey = $this->keyPrefix . $key;
+        $now = time();
+
+        // Lua script: Atomic increment + limit check
+        // Returns: [allowed (0/1), current_count, ttl_remaining]
+        $lua = <<<'LUA'
+                local key = KEYS[1]
+                local limit = tonumber(ARGV[1])
+                local window = tonumber(ARGV[2])
+                local cost = tonumber(ARGV[3])
+
+                -- Increment counter
+                local current = redis.call('INCRBY', key, cost)
+
+                -- Set TTL only on first increment (when current == cost)
+                if current == cost then
+                    redis.call('EXPIRE', key, window)
+                end
+
+                -- Get TTL for reset time
+                local ttl = redis.call('TTL', key)
+                if ttl < 0 then ttl = window end
+
+                -- Check if over limit
+                if current > limit then
+                    -- Over limit: decrement back (we shouldn't count this request)
+                    redis.call('DECRBY', key, cost)
+                    return {0, current - cost, ttl}
+                end
+
+                return {1, current, ttl}
+            LUA;
+
+        try {
+            $result = $this->redis->eval($lua, [$fullKey, $limit, $window, $cost], 1);
+
+            if (!is_array($result) || count($result) < 3) {
+                // Lua failed - fail open (allow request)
+                return [
+                    'allowed' => true,
+                    'count' => 0,
+                    'remaining' => $limit,
+                    'reset' => $now + $window,
+                ];
+            }
+
+            $allowed = (int) $result[0] === 1;
+            $count = (int) $result[1];
+            $ttl = (int) $result[2];
+
+            return [
+                'allowed' => $allowed,
+                'count' => $count,
+                'remaining' => max(0, $limit - $count),
+                'reset' => $now + $ttl,
+            ];
+        } catch (\RedisException $e) {
+            // Fail open - allow request on Redis failure
+            return [
+                'allowed' => true,
+                'count' => 0,
+                'remaining' => $limit,
+                'reset' => $now + $window,
+            ];
+        }
+    }
 }

@@ -944,4 +944,78 @@ final class RedisSentinelStorage implements StorageInterface
     {
         $this->close();
     }
+
+    /**
+     * {@inheritDoc}
+     *
+     * ATOMIC RATE LIMIT CHECK - CRITICAL FOR SECURITY
+     * ================================================
+     *
+     * Uses Lua script for atomic check-and-increment.
+     * Sentinel failover is handled automatically via execute() wrapper.
+     */
+    public function atomicRateLimitCheck(string $key, int $limit, int $window, int $cost = 1): array
+    {
+        $now = time();
+
+        $lua = <<<'LUA'
+                local key = KEYS[1]
+                local limit = tonumber(ARGV[1])
+                local window = tonumber(ARGV[2])
+                local cost = tonumber(ARGV[3])
+
+                -- Increment counter
+                local current = redis.call('INCRBY', key, cost)
+
+                -- Set TTL only on first increment
+                if current == cost then
+                    redis.call('EXPIRE', key, window)
+                end
+
+                -- Get TTL for reset time
+                local ttl = redis.call('TTL', key)
+                if ttl < 0 then ttl = window end
+
+                -- Check if over limit
+                if current > limit then
+                    -- Over limit: decrement back
+                    redis.call('DECRBY', key, cost)
+                    return {0, current - cost, ttl}
+                end
+
+                return {1, current, ttl}
+            LUA;
+
+        $failValue = [
+            'allowed' => !$this->failClosed,
+            'count' => 0,
+            'remaining' => $limit,
+            'reset' => $now + $window,
+        ];
+
+        return $this->execute(function (\Redis $redis) use ($key, $limit, $window, $cost, $now, $lua) {
+            $fullKey = $this->keyPrefix . $key;
+            $result = $redis->eval($lua, [$fullKey, $limit, $window, $cost], 1);
+
+            if (!is_array($result) || count($result) < 3) {
+                return [
+                    'allowed' => true,
+                    'count' => 0,
+                    'remaining' => $limit,
+                    'reset' => $now + $window,
+                ];
+            }
+
+            $allowed = (int) $result[0] === 1;
+            $count = (int) $result[1];
+            $ttl = (int) $result[2];
+
+            return [
+                'allowed' => $allowed,
+                'count' => $count,
+                'remaining' => max(0, $limit - $count),
+                'reset' => $now + $ttl,
+            ];
+        }, $failValue);
+    }
 }

@@ -266,4 +266,54 @@ class InMemoryStorage implements StorageInterface
 
         return $newValue;
     }
+
+    /**
+     * {@inheritDoc}
+     *
+     * In-memory atomic rate limit check for testing.
+     */
+    public function atomicRateLimitCheck(string $key, int $limit, int $window, int $cost = 1): array
+    {
+        $now = time();
+
+        // Get or initialize rate limit data
+        if (!isset($this->data[$key]) || ($this->data[$key]['expires'] !== null && $this->data[$key]['expires'] < $now)) {
+            // New entry or expired
+            $this->data[$key] = [
+                'value' => $cost,
+                'expires' => $now + $window,
+            ];
+
+            return [
+                'allowed' => $cost <= $limit,
+                'count' => $cost,
+                'remaining' => max(0, $limit - $cost),
+                'reset' => $now + $window,
+            ];
+        }
+
+        $currentCount = is_numeric($this->data[$key]['value']) ? (int) $this->data[$key]['value'] : 0;
+        $resetTime = $this->data[$key]['expires'] !== null ? (int) $this->data[$key]['expires'] : $now + $window;
+
+        // Check if adding cost would exceed limit
+        if ($currentCount + $cost > $limit) {
+            return [
+                'allowed' => false,
+                'count' => $currentCount,
+                'remaining' => max(0, $limit - $currentCount),
+                'reset' => $resetTime,
+            ];
+        }
+
+        // Under limit - increment
+        $newCount = $currentCount + $cost;
+        $this->data[$key]['value'] = $newCount;
+
+        return [
+            'allowed' => true,
+            'count' => $newCount,
+            'remaining' => max(0, $limit - $newCount),
+            'reset' => $resetTime,
+        ];
+    }
 }
