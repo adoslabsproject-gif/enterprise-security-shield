@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace AdosLabs\EnterpriseSecurityShield\Notifications;
 
+use AdosLabs\EnterprisePSR3Logger\LoggerFacade as Logger;
+
 /**
  * Notification Manager.
  *
@@ -147,6 +149,9 @@ class NotificationManager
 
         foreach ($channelNames as $name) {
             if (!isset($this->channels[$name])) {
+                Logger::channel('api')->warning('NotificationManager channel not found', [
+                    'channel' => $name,
+                ]);
                 $errors[$name] = 'Channel not found';
                 continue;
             }
@@ -154,6 +159,9 @@ class NotificationManager
             $channel = $this->channels[$name];
 
             if (!$channel->isConfigured()) {
+                Logger::channel('api')->warning('NotificationManager channel not configured', [
+                    'channel' => $name,
+                ]);
                 $errors[$name] = 'Channel not configured';
                 continue;
             }
@@ -163,9 +171,17 @@ class NotificationManager
                 $results[$name] = $success;
 
                 if (!$success) {
+                    Logger::channel('api')->error('NotificationManager alert send failed', [
+                        'channel' => $name,
+                        'title' => $title,
+                    ]);
                     $errors[$name] = 'Send failed';
                 }
             } catch (\Throwable $e) {
+                Logger::channel('api')->error('NotificationManager alert exception', [
+                    'channel' => $name,
+                    'error' => $e->getMessage(),
+                ]);
                 $results[$name] = false;
                 $errors[$name] = $e->getMessage();
 
@@ -194,6 +210,9 @@ class NotificationManager
 
         foreach ($channelNames as $name) {
             if (!isset($this->channels[$name])) {
+                Logger::channel('api')->warning('NotificationManager send channel not found', [
+                    'channel' => $name,
+                ]);
                 $errors[$name] = 'Channel not found';
                 continue;
             }
@@ -201,6 +220,9 @@ class NotificationManager
             $channel = $this->channels[$name];
 
             if (!$channel->isConfigured()) {
+                Logger::channel('api')->warning('NotificationManager send channel not configured', [
+                    'channel' => $name,
+                ]);
                 $errors[$name] = 'Channel not configured';
                 continue;
             }
@@ -210,9 +232,16 @@ class NotificationManager
                 $results[$name] = $success;
 
                 if (!$success) {
+                    Logger::channel('api')->error('NotificationManager send failed', [
+                        'channel' => $name,
+                    ]);
                     $errors[$name] = 'Send failed';
                 }
             } catch (\Throwable $e) {
+                Logger::channel('api')->error('NotificationManager send exception', [
+                    'channel' => $name,
+                    'error' => $e->getMessage(),
+                ]);
                 $results[$name] = false;
                 $errors[$name] = $e->getMessage();
 

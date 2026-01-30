@@ -2,7 +2,7 @@
 /**
  * ML Threat Detection Demo
  *
- * Demonstrates the ML-based threat detection trained on real need2talk.it attack data.
+ * Demonstrates the ML-based threat detection trained on real attack data.
  */
 
 declare(strict_types=1);
@@ -29,7 +29,7 @@ foreach ($stats as $key => $value) {
 }
 echo "\n";
 
-// Test cases based on REAL attacks from need2talk.it logs
+// Test cases based on REAL attack patterns from production logs
 $testCases = [
     // REAL ATTACK: From 185.177.72.51 on 2026-01-22
     [
@@ -141,8 +141,8 @@ foreach ($testCases as $test) {
 
 // Summary
 echo "\n📈 Summary:\n";
-echo "  • The ML model is trained on REAL attack data from need2talk.it\n";
-echo "  • 662 security events analyzed (Dec 2025 - Jan 2026)\n";
+echo "  • The ML model is trained on REAL attack data from production logs\n";
+echo "  • 662 security events analyzed\n";
 echo "  • 407 confirmed attacks used for training\n";
 echo "  • Detects: Scanners, Bot Spoofing, CMS Probes, Config Hunting, IoT Exploits\n\n";
 

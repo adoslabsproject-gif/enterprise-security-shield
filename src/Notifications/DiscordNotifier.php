@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace AdosLabs\EnterpriseSecurityShield\Notifications;
 
+use AdosLabs\EnterprisePSR3Logger\LoggerFacade as Logger;
+
 /**
  * Discord Notifier.
  *
@@ -70,6 +72,7 @@ class DiscordNotifier implements NotifierInterface
     public function send(string $message, array $context = []): bool
     {
         if (!$this->isConfigured()) {
+            Logger::channel('api')->warning('DiscordNotifier not configured');
             return false;
         }
 
@@ -87,6 +90,7 @@ class DiscordNotifier implements NotifierInterface
     public function alert(string $title, string $message, array $context = []): bool
     {
         if (!$this->isConfigured()) {
+            Logger::channel('api')->warning('DiscordNotifier alert called but not configured');
             return false;
         }
 
@@ -119,6 +123,7 @@ class DiscordNotifier implements NotifierInterface
         ?string $imageUrl = null,
     ): bool {
         if (!$this->isConfigured()) {
+            Logger::channel('api')->warning('DiscordNotifier sendEmbed called but not configured');
             return false;
         }
 
@@ -150,6 +155,7 @@ class DiscordNotifier implements NotifierInterface
     public function success(string $title, string $message, array $context = []): bool
     {
         if (!$this->isConfigured()) {
+            Logger::channel('api')->warning('DiscordNotifier success called but not configured');
             return false;
         }
 
@@ -173,6 +179,7 @@ class DiscordNotifier implements NotifierInterface
     public function warning(string $title, string $message, array $context = []): bool
     {
         if (!$this->isConfigured()) {
+            Logger::channel('api')->warning('DiscordNotifier warning called but not configured');
             return false;
         }
 
@@ -281,6 +288,7 @@ class DiscordNotifier implements NotifierInterface
             $json = json_encode($payload);
 
             if ($json === false) {
+                Logger::channel('api')->error('DiscordNotifier JSON encoding failed');
                 return false;
             }
 
@@ -305,6 +313,9 @@ class DiscordNotifier implements NotifierInterface
             return $httpCode === 204 || $httpCode === 200;
 
         } catch (\Throwable $e) {
+            Logger::channel('api')->error('DiscordNotifier request failed', [
+                'error' => $e->getMessage(),
+            ]);
             return false;
         }
     }

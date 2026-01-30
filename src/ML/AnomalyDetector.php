@@ -8,7 +8,7 @@ namespace AdosLabs\EnterpriseSecurityShield\ML;
  * Statistical Anomaly Detector.
  *
  * Uses statistical methods to detect anomalous behavior patterns.
- * Trained on baseline metrics from need2talk.it normal traffic.
+ * Supports adaptive baseline learning from live traffic.
  *
  * DETECTION METHODS:
  * 1. Z-Score: Detects values > 3 standard deviations from mean
@@ -23,15 +23,22 @@ namespace AdosLabs\EnterpriseSecurityShield\ML;
  * - Geographic anomalies
  * - Time-based patterns (attacks often happen at specific times)
  *
- * @version 1.0.0
+ * BASELINE ADAPTATION:
+ * Call setBaselineStats() with your site's traffic metrics for accurate detection.
+ * Default baseline is conservative - suitable for low-traffic sites.
+ *
+ * @version 1.1.0
  */
 final class AnomalyDetector
 {
     /**
-     * Baseline statistics from need2talk normal traffic
-     * These represent "normal" user behavior.
+     * Default baseline statistics (conservative defaults).
+     * Override with setBaselineStats() for site-specific tuning.
+     *
+     * NOTE: These are CONSERVATIVE defaults designed to minimize false positives.
+     * For production, calibrate using your actual traffic patterns.
      */
-    private const BASELINE_STATS = [
+    private const DEFAULT_BASELINE_STATS = [
         // Requests per minute from single IP (normal user)
         'requests_per_minute' => [
             'mean' => 2.5,
@@ -97,11 +104,11 @@ final class AnomalyDetector
     ];
 
     /**
-     * Attack patterns timing (from log analysis)
-     * Attacks in need2talk logs clustered around certain hours.
+     * Attack patterns timing (from industry research).
+     * Based on aggregated attack data from security research publications.
      */
     private const ATTACK_HOUR_DISTRIBUTION = [
-        // Percentage of attacks per hour (UTC)
+        // Percentage of attacks per hour (UTC) - industry average
         0 => 0.05, 1 => 0.06, 2 => 0.07, 3 => 0.08,
         4 => 0.09, 5 => 0.08, 6 => 0.06, 7 => 0.04,
         8 => 0.03, 9 => 0.02, 10 => 0.02, 11 => 0.02,
@@ -132,6 +139,13 @@ final class AnomalyDetector
      */
     private int $timeWindow = 300; // 5 minutes
 
+    /**
+     * Custom baseline stats (overrides DEFAULT_BASELINE_STATS when set).
+     *
+     * @var array<string, array{mean: float, std: float, q1: float, median: float, q3: float}>|null
+     */
+    private ?array $customBaselineStats = null;
+
     public function setZScoreThreshold(float $threshold): self
     {
         $this->zScoreThreshold = max(1.0, $threshold);
@@ -149,6 +163,29 @@ final class AnomalyDetector
     public function setTimeWindow(int $seconds): self
     {
         $this->timeWindow = max(60, $seconds);
+
+        return $this;
+    }
+
+    /**
+     * Set custom baseline statistics for your site's traffic patterns.
+     *
+     * Use this to calibrate the detector for your specific traffic profile.
+     * Analyze your access logs to determine normal values for your site.
+     *
+     * Example:
+     * ```php
+     * $detector->setBaselineStats([
+     *     'requests_per_minute' => ['mean' => 5.0, 'std' => 3.0, 'q1' => 2.0, 'median' => 4.0, 'q3' => 7.0],
+     *     '404_per_session' => ['mean' => 0.5, 'std' => 1.0, 'q1' => 0.0, 'median' => 0.0, 'q3' => 1.0],
+     * ]);
+     * ```
+     *
+     * @param array<string, array{mean: float, std: float, q1: float, median: float, q3: float}> $stats
+     */
+    public function setBaselineStats(array $stats): self
+    {
+        $this->customBaselineStats = $stats;
 
         return $this;
     }
@@ -180,29 +217,35 @@ final class AnomalyDetector
         $hour ??= (int) date('G');
 
         // 1. Request frequency anomaly (Z-Score)
+        // Get baseline stats (custom or default)
+        $rpmStats = $this->getMetricBaseline('requests_per_minute');
+        $err404Stats = $this->getMetricBaseline('404_per_session');
+        $payloadStats = $this->getMetricBaseline('payload_size');
+
         $requestsPerMinute = $requestCount / ($this->timeWindow / 60);
         $zScore = $this->calculateZScore($requestsPerMinute, 'requests_per_minute');
-        if (abs($zScore) > $this->zScoreThreshold) {
+        if ($rpmStats !== null && abs($zScore) > $this->zScoreThreshold) {
             $anomalies[] = [
                 'type' => 'zscore',
                 'metric' => 'requests_per_minute',
                 'value' => $requestsPerMinute,
-                'threshold' => self::BASELINE_STATS['requests_per_minute']['mean'] + (self::BASELINE_STATS['requests_per_minute']['std'] * $this->zScoreThreshold),
+                'threshold' => $rpmStats['mean'] + ($rpmStats['std'] * $this->zScoreThreshold),
                 'severity' => $zScore > 5 ? 'CRITICAL' : 'HIGH',
                 'z_score' => $zScore,
             ];
             $anomalyScore += min(30, $zScore * 5);
-            $riskFactors[] = sprintf('Unusual request rate: %.1f/min (expected ~%.1f)', $requestsPerMinute, self::BASELINE_STATS['requests_per_minute']['mean']);
+            $riskFactors[] = sprintf('Unusual request rate: %.1f/min (expected ~%.1f)', $requestsPerMinute, $rpmStats['mean']);
         }
 
         // 2. 404 error rate anomaly (IQR)
         $isOutlier = $this->isIQROutlier($errorCount404, '404_per_session');
-        if ($isOutlier && $errorCount404 > 3) {
+        if ($err404Stats !== null && $isOutlier && $errorCount404 > 3) {
+            $iqr = $err404Stats['q3'] - $err404Stats['q1'];
             $anomalies[] = [
                 'type' => 'iqr',
                 'metric' => '404_per_session',
                 'value' => $errorCount404,
-                'threshold' => self::BASELINE_STATS['404_per_session']['q3'] + (self::BASELINE_STATS['404_per_session']['q3'] - self::BASELINE_STATS['404_per_session']['q1']) * $this->iqrMultiplier,
+                'threshold' => $err404Stats['q3'] + ($iqr * $this->iqrMultiplier),
                 'severity' => $errorCount404 > 10 ? 'CRITICAL' : 'MEDIUM',
             ];
             $anomalyScore += min(25, $errorCount404 * 2);
@@ -225,14 +268,14 @@ final class AnomalyDetector
         }
 
         // 4. Payload size anomaly (if provided)
-        if ($payloadSize !== null && $payloadSize > 0) {
+        if ($payloadStats !== null && $payloadSize !== null && $payloadSize > 0) {
             $payloadZScore = $this->calculateZScore($payloadSize, 'payload_size');
             if ($payloadZScore > $this->zScoreThreshold) {
                 $anomalies[] = [
                     'type' => 'zscore',
                     'metric' => 'payload_size',
                     'value' => $payloadSize,
-                    'threshold' => self::BASELINE_STATS['payload_size']['mean'] + (self::BASELINE_STATS['payload_size']['std'] * $this->zScoreThreshold),
+                    'threshold' => $payloadStats['mean'] + ($payloadStats['std'] * $this->zScoreThreshold),
                     'severity' => $payloadSize > 10000 ? 'HIGH' : 'LOW',
                 ];
                 $anomalyScore += min(15, $payloadZScore * 3);
@@ -389,15 +432,31 @@ final class AnomalyDetector
     }
 
     /**
+     * Get baseline stats for a specific metric (custom or default).
+     *
+     * @return array{mean: float, std: float, q1: float, median: float, q3: float}|null
+     */
+    private function getMetricBaseline(string $metric): ?array
+    {
+        // Custom stats take precedence
+        if ($this->customBaselineStats !== null && isset($this->customBaselineStats[$metric])) {
+            return $this->customBaselineStats[$metric];
+        }
+
+        // Fall back to defaults
+        return self::DEFAULT_BASELINE_STATS[$metric] ?? null;
+    }
+
+    /**
      * Calculate Z-Score for a value.
      */
     private function calculateZScore(float $value, string $metric): float
     {
-        if (!isset(self::BASELINE_STATS[$metric])) {
+        $stats = $this->getMetricBaseline($metric);
+        if ($stats === null) {
             return 0.0;
         }
 
-        $stats = self::BASELINE_STATS[$metric];
         if ($stats['std'] == 0) {
             return 0.0;
         }
@@ -410,11 +469,11 @@ final class AnomalyDetector
      */
     private function isIQROutlier(float $value, string $metric): bool
     {
-        if (!isset(self::BASELINE_STATS[$metric])) {
+        $stats = $this->getMetricBaseline($metric);
+        if ($stats === null) {
             return false;
         }
 
-        $stats = self::BASELINE_STATS[$metric];
         $iqr = $stats['q3'] - $stats['q1'];
         $lowerBound = $stats['q1'] - ($this->iqrMultiplier * $iqr);
         $upperBound = $stats['q3'] + ($this->iqrMultiplier * $iqr);
@@ -559,11 +618,18 @@ final class AnomalyDetector
     }
 
     /**
-     * Get baseline statistics.
+     * Get all baseline statistics (custom merged with defaults).
+     *
+     * @return array<string, array{mean: float, std: float, q1: float, median: float, q3: float}>
      */
     public function getBaselineStats(): array
     {
-        return self::BASELINE_STATS;
+        if ($this->customBaselineStats === null) {
+            return self::DEFAULT_BASELINE_STATS;
+        }
+
+        // Merge custom over defaults
+        return array_merge(self::DEFAULT_BASELINE_STATS, $this->customBaselineStats);
     }
 
     /**

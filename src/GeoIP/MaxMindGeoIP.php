@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace AdosLabs\EnterpriseSecurityShield\GeoIP;
 
+use AdosLabs\EnterprisePSR3Logger\LoggerFacade as Logger;
+
 /**
- * GeoIP Service.
+ * MaxMind GeoIP - Simple Local Database GeoIP Provider.
  *
- * IP geolocation using MaxMind GeoLite2 database.
- * Provides country, city, ASN, and organization lookup.
+ * IP geolocation using MaxMind GeoLite2 local database.
+ * For multi-provider with Redis caching, use Services\GeoIP\GeoIPService.
  *
  * USAGE:
  * 1. Download GeoLite2-Country.mmdb from MaxMind (free account required)
@@ -18,13 +20,14 @@ namespace AdosLabs\EnterpriseSecurityShield\GeoIP;
  * - Country/City lookup
  * - ASN (Autonomous System Number) lookup
  * - Organization name lookup
- * - Caching for performance
+ * - In-memory caching
  * - Country blocking
  * - ASN blocking (block entire hosting providers)
  *
  * @version 1.0.0
+ * @see \AdosLabs\EnterpriseSecurityShield\Services\GeoIP\GeoIPService For enterprise multi-provider version
  */
-final class GeoIPService
+final class MaxMindGeoIP
 {
     private ?string $databasePath = null;
 
@@ -234,6 +237,10 @@ final class GeoIPService
             return $this->cacheResult($ip, $result);
         } catch (\Throwable $e) {
             $this->lastError = $e->getMessage();
+            Logger::channel('api')->warning('MaxMind GeoIP lookup failed', [
+                'ip' => $ip,
+                'error' => $e->getMessage(),
+            ]);
 
             return $this->lookupFallback($ip);
         }
@@ -351,6 +358,10 @@ final class GeoIPService
             return true;
         } catch (\Throwable $e) {
             $this->lastError = 'Failed to initialize GeoIP reader: ' . $e->getMessage();
+            Logger::channel('api')->error('MaxMind GeoIP reader initialization failed', [
+                'database_path' => $this->databasePath,
+                'error' => $e->getMessage(),
+            ]);
 
             return false;
         }
@@ -433,6 +444,10 @@ final class GeoIPService
             return $this->cacheResult($ip, $result);
         } catch (\Throwable $e) {
             $this->lastError = 'Fallback lookup exception: ' . $e->getMessage();
+            Logger::channel('api')->warning('MaxMind GeoIP fallback lookup failed', [
+                'ip' => $ip,
+                'error' => $e->getMessage(),
+            ]);
 
             return $this->emptyResult($this->lastError);
         }

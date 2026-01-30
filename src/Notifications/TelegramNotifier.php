@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace AdosLabs\EnterpriseSecurityShield\Notifications;
 
+use AdosLabs\EnterprisePSR3Logger\LoggerFacade as Logger;
+
 /**
  * Telegram Notifier.
  *
@@ -79,6 +81,7 @@ class TelegramNotifier implements NotifierInterface
     public function send(string $message, array $context = []): bool
     {
         if (!$this->isConfigured()) {
+            Logger::channel('api')->warning('TelegramNotifier not configured');
             return false;
         }
 
@@ -93,6 +96,7 @@ class TelegramNotifier implements NotifierInterface
     public function alert(string $title, string $message, array $context = []): bool
     {
         if (!$this->isConfigured()) {
+            Logger::channel('api')->warning('TelegramNotifier alert called but not configured');
             return false;
         }
 
@@ -119,6 +123,7 @@ class TelegramNotifier implements NotifierInterface
     public function sendWithButtons(string $message, array $buttons): bool
     {
         if (!$this->isConfigured()) {
+            Logger::channel('api')->warning('TelegramNotifier sendWithButtons called but not configured');
             return false;
         }
 
@@ -138,6 +143,7 @@ class TelegramNotifier implements NotifierInterface
     public function sendDocument(string $filePath, ?string $caption = null): bool
     {
         if (!$this->isConfigured()) {
+            Logger::channel('api')->warning('TelegramNotifier sendDocument called but not configured');
             return false;
         }
 
@@ -161,6 +167,9 @@ class TelegramNotifier implements NotifierInterface
 
         // File upload
         if (!file_exists($filePath)) {
+            Logger::channel('api')->error('TelegramNotifier document file not found', [
+                'file_path' => $filePath,
+            ]);
             return false;
         }
 
@@ -180,6 +189,7 @@ class TelegramNotifier implements NotifierInterface
     public function sendLocation(float $latitude, float $longitude): bool
     {
         if (!$this->isConfigured()) {
+            Logger::channel('api')->warning('TelegramNotifier sendLocation called but not configured');
             return false;
         }
 
@@ -251,6 +261,10 @@ class TelegramNotifier implements NotifierInterface
             curl_close($ch);
 
             if (!is_string($response) || $httpCode !== 200) {
+                Logger::channel('api')->error('TelegramNotifier request failed', [
+                    'http_code' => $httpCode,
+                    'response' => is_string($response) ? substr($response, 0, 200) : null,
+                ]);
                 return false;
             }
 
@@ -259,6 +273,9 @@ class TelegramNotifier implements NotifierInterface
             return is_array($result) && ($result['ok'] ?? false) === true;
 
         } catch (\Throwable $e) {
+            Logger::channel('api')->error('TelegramNotifier request exception', [
+                'error' => $e->getMessage(),
+            ]);
             return false;
         }
     }
@@ -289,6 +306,9 @@ class TelegramNotifier implements NotifierInterface
             curl_close($ch);
 
             if (!is_string($response) || $httpCode !== 200) {
+                Logger::channel('api')->error('TelegramNotifier multipart request failed', [
+                    'http_code' => $httpCode,
+                ]);
                 return false;
             }
 
@@ -297,6 +317,9 @@ class TelegramNotifier implements NotifierInterface
             return is_array($result) && ($result['ok'] ?? false) === true;
 
         } catch (\Throwable $e) {
+            Logger::channel('api')->error('TelegramNotifier multipart request exception', [
+                'error' => $e->getMessage(),
+            ]);
             return false;
         }
     }

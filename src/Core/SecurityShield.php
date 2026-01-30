@@ -14,7 +14,7 @@ use AdosLabs\EnterpriseSecurityShield\Detection\RequestSmugglingDetector;
 use AdosLabs\EnterpriseSecurityShield\Detection\SQLiDetector;
 use AdosLabs\EnterpriseSecurityShield\Detection\WebSocketProtector;
 use AdosLabs\EnterpriseSecurityShield\Detection\XSSDetector;
-use AdosLabs\EnterpriseSecurityShield\GeoIP\GeoIPService;
+use AdosLabs\EnterpriseSecurityShield\GeoIP\MaxMindGeoIP;
 use AdosLabs\EnterpriseSecurityShield\ML\AnomalyDetector;
 use AdosLabs\EnterpriseSecurityShield\ML\OnlineLearningClassifier;
 use AdosLabs\EnterpriseSecurityShield\ML\RequestAnalyzer;
@@ -64,7 +64,7 @@ final class SecurityShield
 
     private ?BotVerificationService $botVerifier = null;
 
-    private ?GeoIPService $geoIP = null;
+    private ?MaxMindGeoIP $geoIP = null;
 
     private ?SQLiDetector $sqliDetector = null;
 
@@ -531,9 +531,9 @@ final class SecurityShield
         return $this->botVerifier ??= new BotVerificationService();
     }
 
-    public function getGeoIP(): GeoIPService
+    public function getGeoIP(): MaxMindGeoIP
     {
-        return $this->geoIP ??= new GeoIPService();
+        return $this->geoIP ??= new MaxMindGeoIP();
     }
 
     public function getSQLiDetector(): SQLiDetector

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace AdosLabs\EnterpriseSecurityShield\Services\GeoIP;
 
+use AdosLabs\EnterprisePSR3Logger\LoggerFacade as Logger;
+
 /**
  * IP-API.com Provider - FREE GeoIP Service.
  *
@@ -105,6 +107,10 @@ class IPApiProvider implements GeoIPInterface
             ];
 
         } catch (\Throwable $e) {
+            Logger::channel('api')->warning('IPApiProvider lookup failed', [
+                'ip' => $ip,
+                'error' => $e->getMessage(),
+            ]);
             // Graceful degradation
             return null;
         }

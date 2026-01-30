@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace AdosLabs\EnterpriseSecurityShield\Notifications;
 
+use AdosLabs\EnterprisePSR3Logger\LoggerFacade as Logger;
+
 /**
  * Slack Notifier.
  *
@@ -77,6 +79,7 @@ class SlackNotifier implements NotifierInterface
     public function send(string $message, array $context = []): bool
     {
         if (!$this->isConfigured()) {
+            Logger::channel('api')->warning('SlackNotifier not configured');
             return false;
         }
 
@@ -94,6 +97,7 @@ class SlackNotifier implements NotifierInterface
     public function alert(string $title, string $message, array $context = []): bool
     {
         if (!$this->isConfigured()) {
+            Logger::channel('api')->warning('SlackNotifier alert called but not configured');
             return false;
         }
 
@@ -126,6 +130,7 @@ class SlackNotifier implements NotifierInterface
     public function sendBlocks(array $blocks, ?string $fallbackText = null): bool
     {
         if (!$this->isConfigured()) {
+            Logger::channel('api')->warning('SlackNotifier sendBlocks called but not configured');
             return false;
         }
 
@@ -147,6 +152,7 @@ class SlackNotifier implements NotifierInterface
     public function sendWithColor(string $message, string $color, array $context = []): bool
     {
         if (!$this->isConfigured()) {
+            Logger::channel('api')->warning('SlackNotifier sendWithColor called but not configured');
             return false;
         }
 
@@ -248,6 +254,7 @@ class SlackNotifier implements NotifierInterface
             $json = json_encode($payload);
 
             if ($json === false) {
+                Logger::channel('api')->error('SlackNotifier JSON encoding failed');
                 return false;
             }
 
@@ -271,6 +278,9 @@ class SlackNotifier implements NotifierInterface
             return $response === 'ok' || $httpCode === 200;
 
         } catch (\Throwable $e) {
+            Logger::channel('api')->error('SlackNotifier request failed', [
+                'error' => $e->getMessage(),
+            ]);
             return false;
         }
     }

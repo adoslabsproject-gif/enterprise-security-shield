@@ -93,6 +93,18 @@ CREATE TABLE IF NOT EXISTS security_shield_bot_cache (
     INDEX idx_expires (expires_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Rate Limits Table (for atomic rate limiting with key-based counting)
+CREATE TABLE IF NOT EXISTS security_shield_rate_limits (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `key` VARCHAR(255) NOT NULL,
+    count INT UNSIGNED NOT NULL DEFAULT 0,
+    expires_at TIMESTAMP NOT NULL,
+
+    UNIQUE KEY uk_key (`key`),
+    INDEX idx_key (`key`),
+    INDEX idx_expires (expires_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Insert default configuration
 INSERT IGNORE INTO security_shield_config (`key`, `value`) VALUES
     ('score_threshold', '50'),
@@ -114,6 +126,7 @@ BEGIN
     DELETE FROM security_shield_scores WHERE expires_at < NOW();
     DELETE FROM security_shield_request_counts WHERE expires_at < NOW();
     DELETE FROM security_shield_bot_cache WHERE expires_at < NOW();
+    DELETE FROM security_shield_rate_limits WHERE expires_at < NOW();
     DELETE FROM security_shield_events WHERE created_at < DATE_SUB(NOW(), INTERVAL 90 DAY);
 END//
 

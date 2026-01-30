@@ -101,6 +101,19 @@ CREATE TABLE IF NOT EXISTS security_shield_bot_cache (
 CREATE INDEX IF NOT EXISTS idx_security_bot_cache_ip ON security_shield_bot_cache(ip);
 CREATE INDEX IF NOT EXISTS idx_security_bot_cache_expires ON security_shield_bot_cache(expires_at);
 
+-- Rate Limits Table (for atomic rate limiting with key-based counting)
+CREATE TABLE IF NOT EXISTS security_shield_rate_limits (
+    id BIGSERIAL PRIMARY KEY,
+    key VARCHAR(255) NOT NULL UNIQUE,
+    count INTEGER NOT NULL DEFAULT 0,
+    expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+
+    CONSTRAINT security_shield_rate_limits_key_check CHECK (key <> '')
+);
+
+CREATE INDEX IF NOT EXISTS idx_security_rate_limits_key ON security_shield_rate_limits(key);
+CREATE INDEX IF NOT EXISTS idx_security_rate_limits_expires ON security_shield_rate_limits(expires_at);
+
 -- Insert default configuration
 INSERT INTO security_shield_config (key, value) VALUES
     ('score_threshold', '50'),
@@ -119,6 +132,7 @@ BEGIN
     DELETE FROM security_shield_scores WHERE expires_at < NOW();
     DELETE FROM security_shield_request_counts WHERE expires_at < NOW();
     DELETE FROM security_shield_bot_cache WHERE expires_at < NOW();
+    DELETE FROM security_shield_rate_limits WHERE expires_at < NOW();
     DELETE FROM security_shield_events WHERE created_at < NOW() - INTERVAL '90 days';
 END;
 $$ LANGUAGE plpgsql;

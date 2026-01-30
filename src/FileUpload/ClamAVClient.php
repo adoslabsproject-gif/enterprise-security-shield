@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace AdosLabs\EnterpriseSecurityShield\FileUpload;
 
+use AdosLabs\EnterprisePSR3Logger\LoggerFacade as Logger;
+
 /**
  * ClamAV Antivirus Client.
  *
@@ -154,6 +156,10 @@ final class ClamAVClient
             try {
                 $results[$filePath] = $this->scanFile($filePath);
             } catch (ClamAVException $e) {
+                Logger::channel('security')->error('ClamAV batch scan failed', [
+                    'file_path' => $filePath,
+                    'error' => $e->getMessage(),
+                ]);
                 $results[$filePath] = [
                     'clean' => false,
                     'virus' => null,
@@ -290,6 +296,7 @@ final class ClamAVClient
         try {
             $ping = $this->ping();
             if (!$ping) {
+                Logger::channel('security')->warning('ClamAV daemon not responding to ping');
                 return [
                     'healthy' => false,
                     'version' => null,
@@ -308,6 +315,9 @@ final class ClamAVClient
                 'error' => null,
             ];
         } catch (ClamAVException $e) {
+            Logger::channel('security')->error('ClamAV health check failed', [
+                'error' => $e->getMessage(),
+            ]);
             return [
                 'healthy' => false,
                 'version' => null,
@@ -391,6 +401,11 @@ final class ClamAVClient
         );
 
         if ($connection === false) {
+            Logger::channel('security')->error('ClamAV connection failed', [
+                'socket' => $this->socket,
+                'errno' => $errno,
+                'errstr' => $errstr,
+            ]);
             throw new ClamAVException("Failed to connect to ClamAV: [{$errno}] {$errstr}");
         }
 
@@ -413,6 +428,7 @@ final class ClamAVClient
         $written = @fwrite($connection, $data);
 
         if ($written === false || $written !== strlen($data)) {
+            Logger::channel('security')->error('ClamAV write failed');
             throw new ClamAVException('Failed to write to ClamAV');
         }
     }
@@ -432,6 +448,7 @@ final class ClamAVClient
             $chunk = @fread($connection, self::CHUNK_SIZE);
 
             if ($chunk === false) {
+                Logger::channel('security')->error('ClamAV read failed');
                 throw new ClamAVException('Failed to read from ClamAV');
             }
 
@@ -444,6 +461,7 @@ final class ClamAVClient
             // Check for timeout
             $meta = stream_get_meta_data($connection);
             if ($meta['timed_out']) {
+                Logger::channel('security')->error('ClamAV connection timed out');
                 throw new ClamAVException('Connection to ClamAV timed out');
             }
 

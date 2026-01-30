@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AdosLabs\EnterpriseSecurityShield\ThreatIntel;
 
 use AdosLabs\EnterpriseSecurityShield\Contracts\StorageInterface;
+use AdosLabs\EnterprisePSR3Logger\LoggerFacade as Logger;
 
 /**
  * Threat Intelligence Feed Client.
@@ -164,6 +165,10 @@ final class ThreatFeedClient
                 }
             } catch (\Throwable $e) {
                 $failed[$name] = $e->getMessage();
+                Logger::channel('security')->warning('ThreatFeedClient feed fetch failed', [
+                    'feed' => $name,
+                    'error' => $e->getMessage(),
+                ]);
             }
         }
 

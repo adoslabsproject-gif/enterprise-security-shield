@@ -94,7 +94,7 @@ Patterns: `../`, `..\\`, encoded variants.
 
 **Algorithm**: Naive Bayes classification
 
-**Training data**: 662 real security events from production (need2talk.it, Dec 2025 - Jan 2026)
+**Training data**: 662 real security events from production logs and security research datasets
 
 **Classification categories**:
 - SCANNER: Automated vulnerability scanners

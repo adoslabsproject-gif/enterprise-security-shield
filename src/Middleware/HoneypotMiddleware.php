@@ -95,6 +95,13 @@ class HoneypotMiddleware
     private array $trustedProxies = [];
 
     /**
+     * Compiled regex cache for wildcard matching (thread-safe, instance-level).
+     *
+     * @var array<string, string>
+     */
+    private array $regexCache = [];
+
+    /**
      * Default honeypot paths (50+ traps)
      * These are common paths attackers scan for vulnerabilities.
      */
@@ -469,14 +476,18 @@ class HoneypotMiddleware
      */
     private function wildcardMatch(string $pattern, string $subject): bool
     {
-        // Cache compiled regex patterns to avoid recompilation on every request
-        static $regexCache = [];
+        // Use instance-level cache instead of static for thread-safety in async environments
+        // (Swoole, ReactPHP, RoadRunner) where static variables are shared across coroutines
+        if (!isset($this->regexCache[$pattern])) {
+            $this->regexCache[$pattern] = '/^' . str_replace(['\*', '\?'], ['.*', '.'], preg_quote($pattern, '/')) . '$/i';
 
-        if (!isset($regexCache[$pattern])) {
-            $regexCache[$pattern] = '/^' . str_replace(['\*', '\?'], ['.*', '.'], preg_quote($pattern, '/')) . '$/i';
+            // Limit cache size to prevent memory growth
+            if (count($this->regexCache) > 1000) {
+                $this->regexCache = array_slice($this->regexCache, -500, null, true);
+            }
         }
 
-        return preg_match($regexCache[$pattern], $subject) === 1;
+        return preg_match($this->regexCache[$pattern], $subject) === 1;
     }
 
     /**
@@ -655,7 +666,14 @@ class HoneypotMiddleware
             try {
                 $this->storage->logSecurityEvent('honeypot', $ip, $this->intelligence);
             } catch (\Throwable $e) {
-                // Ignore storage errors
+                // Log storage failures - security events must not be silently lost
+                if ($this->logger !== null) {
+                    $this->logger->error('Failed to persist honeypot security event', [
+                        'ip' => $ip,
+                        'error' => $e->getMessage(),
+                        'intelligence' => $this->intelligence,
+                    ]);
+                }
             }
         }
     }
@@ -665,7 +683,12 @@ class HoneypotMiddleware
     // ========================================
 
     /**
-     * Generate fake .env file with honeypot credentials.
+     * Generate fake .env file with dynamically randomized honeypot credentials.
+     *
+     * SECURITY: All credentials are randomly generated per-request to:
+     * 1. Prevent attackers from fingerprinting honeypots
+     * 2. Make each response unique (no pattern matching)
+     * 3. Waste attacker time validating fake credentials
      *
      * @return string Fake env file content
      */
@@ -677,38 +700,55 @@ class HoneypotMiddleware
             header('Content-Type: text/plain');
         }
 
-        // Randomize fake database types to waste bot time
+        // Generate cryptographically random credentials each time
+        $randomHex = fn (int $len): string => bin2hex(random_bytes(max(1, $len)));
+        $randomBase64 = fn (int $len): string => rtrim(base64_encode(random_bytes(max(1, $len))), '=');
+        $randomAlphaNum = fn (int $len): string => substr(str_replace(['/', '+', '='], '', $randomBase64(max(1, $len * 2))), 0, $len);
+
+        // Randomize fake database types
         $fakeDbTypes = [
             [
                 'connection' => 'mysql',
                 'port' => 3306,
-                'database' => 'prod_db_live',
-                'username' => 'dbadmin',
-                'password' => 'P@ssw0rd!Fake123',
+                'database' => 'prod_' . $randomAlphaNum(8),
+                'username' => 'db_admin_' . $randomAlphaNum(4),
+                'password' => $randomAlphaNum(12) . '!' . $randomHex(4),
             ],
             [
                 'connection' => 'pgsql',
                 'port' => 5432,
-                'database' => 'postgres_production',
-                'username' => 'postgres',
-                'password' => 'Pg$Admin2024!Fake',
+                'database' => 'postgres_' . $randomAlphaNum(6),
+                'username' => 'pg_' . $randomAlphaNum(6),
+                'password' => $randomAlphaNum(16) . '$' . $randomHex(4),
             ],
             [
                 'connection' => 'mongodb',
                 'port' => 27017,
-                'database' => 'mongo_prod_db',
-                'username' => 'mongo_admin',
-                'password' => 'M0ng0DB!P@ss456',
+                'database' => 'mongo_' . $randomAlphaNum(8),
+                'username' => 'mongo_' . $randomAlphaNum(5),
+                'password' => $randomAlphaNum(14) . '@' . $randomHex(4),
             ],
         ];
 
         $selectedDb = $fakeDbTypes[array_rand($fakeDbTypes)];
 
+        // Generate unique AWS-style access key (always starts with AKIA for access keys)
+        $awsAccessKey = 'AKIA' . strtoupper($randomAlphaNum(16));
+        $awsSecretKey = $randomBase64(30);
+
+        // Generate unique API keys
+        $stripeKey = 'sk_live_' . $randomAlphaNum(24);
+        $twilioToken = $randomHex(32);
+        $sendgridKey = 'SG.' . $randomBase64(22) . '.' . $randomBase64(43);
+
+        // Generate unique app key
+        $appKey = 'base64:' . $randomBase64(32);
+
         return <<<ENV
             # Production Environment Configuration
             APP_NAME=ProductionApp
             APP_ENV=production
-            APP_KEY=base64:FAKE_KEY_aB3dEfGhIjKlMnOpQrStUvWxYz0123456789
+            APP_KEY={$appKey}
             APP_DEBUG=false
             APP_URL=https://api.production.internal
 
@@ -722,23 +762,23 @@ class HoneypotMiddleware
 
             # Redis Configuration
             REDIS_HOST=redis-cluster.internal.cloud
-            REDIS_PASSWORD=R3d1s!FakeP@ss789
+            REDIS_PASSWORD={$randomAlphaNum(16)}
             REDIS_PORT=6379
 
-            # AWS Credentials (FAKE)
-            AWS_ACCESS_KEY_ID=AKIAFAKEACCESSKEY12345
-            AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+            # AWS Credentials
+            AWS_ACCESS_KEY_ID={$awsAccessKey}
+            AWS_SECRET_ACCESS_KEY={$awsSecretKey}
             AWS_DEFAULT_REGION=us-east-1
-            AWS_BUCKET=production-backups-fake
+            AWS_BUCKET=production-backups-{$randomAlphaNum(8)}
 
-            # API Keys (FAKE)
-            STRIPE_SECRET=fake_stripe_key_51H4a8KBhX9zP2mQ7rYnW3fA0sLd6eUi
-            TWILIO_AUTH_TOKEN=FAKE_twilio_auth_token_useless
-            SENDGRID_API_KEY=SG.FakeKey123456789.AbCdEfGhIjKlMnOp
+            # API Keys
+            STRIPE_SECRET={$stripeKey}
+            TWILIO_AUTH_TOKEN={$twilioToken}
+            SENDGRID_API_KEY={$sendgridKey}
 
-            # Admin Credentials (FAKE)
-            ADMIN_EMAIL=admin@production-internal.fake
-            ADMIN_PASSWORD=Admin!P@ssw0rd123Fake
+            # Admin Credentials
+            ADMIN_EMAIL=admin@{$randomAlphaNum(8)}.internal
+            ADMIN_PASSWORD={$randomAlphaNum(12)}!{$randomHex(4)}
 
             ENV;
     }

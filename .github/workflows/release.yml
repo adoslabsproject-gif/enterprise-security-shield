@@ -8,6 +8,9 @@ on:
     tags:
       - 'v[0-9]+.[0-9]+.[0-9]+'
       - 'v[0-9]+.[0-9]+.[0-9]+-*'
+    # IMPORTANT: Do NOT trigger on branch pushes
+    branches-ignore:
+      - '**'
   workflow_dispatch:
     inputs:
       version:
@@ -19,30 +22,9 @@ permissions:
   contents: write
 
 jobs:
-  # This job checks if we should actually run
-  check:
-    name: Check if release should run
-    runs-on: ubuntu-latest
-    outputs:
-      should_release: ${{ steps.check.outputs.should_release }}
-    steps:
-      - name: Check trigger
-        id: check
-        run: |
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            echo "should_release=true" >> $GITHUB_OUTPUT
-          elif [[ "${{ github.ref }}" == refs/tags/v* ]]; then
-            echo "should_release=true" >> $GITHUB_OUTPUT
-          else
-            echo "should_release=false" >> $GITHUB_OUTPUT
-            echo "::notice::Skipping release - not a tag push"
-          fi
-
   release:
     name: Create Release
     runs-on: ubuntu-latest
-    needs: check
-    if: needs.check.outputs.should_release == 'true'
 
     steps:
       - name: Checkout code

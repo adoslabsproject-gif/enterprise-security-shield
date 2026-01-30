@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AdosLabs\EnterpriseSecurityShield\Storage;
 
 use AdosLabs\EnterpriseSecurityShield\Contracts\StorageInterface;
+use AdosLabs\EnterprisePSR3Logger\LoggerFacade as Logger;
 
 /**
  * Redis Storage Backend - High Performance.
@@ -50,7 +51,10 @@ class RedisStorage implements StorageInterface
         try {
             return $this->redis->setex($key, $ttl, (string) $score) !== false;
         } catch (\RedisException $e) {
-            // Graceful degradation - return false but don't crash app
+            Logger::channel('database')->error('WAF Redis setScore failed', [
+                'ip' => $ip,
+                'error' => $e->getMessage(),
+            ]);
             return false;
         }
     }
@@ -73,7 +77,10 @@ class RedisStorage implements StorageInterface
 
             return is_numeric($score) ? (int) $score : null;
         } catch (\RedisException $e) {
-            // Graceful degradation - treat as key not found
+            Logger::channel('database')->error('WAF Redis getScore failed', [
+                'ip' => $ip,
+                'error' => $e->getMessage(),
+            ]);
             return null;
         }
     }
@@ -135,8 +142,11 @@ class RedisStorage implements StorageInterface
 
             return $result;
         } catch (\RedisException $e) {
-            // FAIL-OPEN: Return 0 (not actual score)
-            // Attacker scores low during outage but site stays online
+            Logger::channel('database')->error('WAF Redis incrementScore failed (FAIL-OPEN)', [
+                'ip' => $ip,
+                'points' => $points,
+                'error' => $e->getMessage(),
+            ]);
             return 0;
         }
     }
@@ -188,8 +198,10 @@ class RedisStorage implements StorageInterface
 
             return is_int($exists) && $exists > 0;
         } catch (\RedisException $e) {
-            // FAIL-OPEN: Assume not banned (availability over security)
-            // For fail-closed: Return true instead (security over availability)
+            Logger::channel('database')->error('WAF Redis isBanned check failed', [
+                'ip' => $ip,
+                'error' => $e->getMessage(),
+            ]);
             return false;
         }
     }
@@ -215,7 +227,10 @@ class RedisStorage implements StorageInterface
 
             return is_int($exists) && $exists > 0;
         } catch (\RedisException $e) {
-            // FAIL-OPEN: Assume not banned (availability over security)
+            Logger::channel('database')->error('WAF Redis isIpBannedCached check failed', [
+                'ip' => $ip,
+                'error' => $e->getMessage(),
+            ]);
             return false;
         }
     }
@@ -238,7 +253,11 @@ class RedisStorage implements StorageInterface
         try {
             return $this->redis->setex($key, $duration, $data) !== false;
         } catch (\RedisException $e) {
-            // Graceful degradation - ban not applied but app continues
+            Logger::channel('security')->error('WAF Redis banIP failed', [
+                'ip' => $ip,
+                'reason' => $reason,
+                'error' => $e->getMessage(),
+            ]);
             return false;
         }
     }
@@ -335,8 +354,11 @@ class RedisStorage implements StorageInterface
             // Mark as logged for 60 seconds
             $this->redis->setex($dedupKey, 60, '1');
         } catch (\RedisException $e) {
-            // Dedup failed - log warning but continue (better than losing events)
-            error_log('RedisStorage: Event dedup check failed - ' . $e->getMessage());
+            Logger::channel('database')->warning('WAF Redis event dedup check failed', [
+                'type' => $type,
+                'ip' => $ip,
+                'error' => $e->getMessage(),
+            ]);
         }
 
         $key = $this->keyPrefix . 'events:' . $type;
@@ -358,8 +380,11 @@ class RedisStorage implements StorageInterface
 
             return true;
         } catch (\RedisException $e) {
-            // Log but don't block - event logging shouldn't break security checks
-            error_log('RedisStorage: Event logging failed - ' . $e->getMessage());
+            Logger::channel('database')->error('WAF Redis event logging failed', [
+                'type' => $type,
+                'ip' => $ip,
+                'error' => $e->getMessage(),
+            ]);
 
             return false;
         }

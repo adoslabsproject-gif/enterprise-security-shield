@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace AdosLabs\EnterpriseSecurityShield\Notifications;
 
+use AdosLabs\EnterprisePSR3Logger\LoggerFacade as Logger;
+
 /**
  * Email Notifier.
  *
@@ -115,6 +117,7 @@ class EmailNotifier implements NotifierInterface
     public function send(string $message, array $context = []): bool
     {
         if (!$this->isConfigured()) {
+            Logger::channel('email')->warning('EmailNotifier not configured');
             return false;
         }
 
@@ -127,6 +130,7 @@ class EmailNotifier implements NotifierInterface
     public function alert(string $title, string $message, array $context = []): bool
     {
         if (!$this->isConfigured()) {
+            Logger::channel('email')->warning('EmailNotifier alert called but not configured');
             return false;
         }
 
@@ -300,14 +304,16 @@ class EmailNotifier implements NotifierInterface
             $port = $this->smtpPort ?? 587;
 
             if ($host === null) {
-                error_log('EmailNotifier: SMTP host not configured');
+                Logger::channel('email')->error('EmailNotifier SMTP host not configured');
 
                 return false;
             }
 
             // Validate encryption setting
             if (!in_array($this->smtpEncryption, ['tls', 'ssl', 'none', null], true)) {
-                error_log("EmailNotifier: Invalid SMTP encryption: {$this->smtpEncryption}");
+                Logger::channel('email')->error('EmailNotifier invalid SMTP encryption', [
+                    'encryption' => $this->smtpEncryption,
+                ]);
 
                 return false;
             }
@@ -320,7 +326,12 @@ class EmailNotifier implements NotifierInterface
             $socket = @fsockopen($host, $port, $errno, $errstr, 10);
 
             if (!$socket) {
-                error_log("EmailNotifier: Connection failed to {$host}:{$port} - {$errstr} ({$errno})");
+                Logger::channel('email')->error('EmailNotifier SMTP connection failed', [
+                    'host' => $host,
+                    'port' => $port,
+                    'errno' => $errno,
+                    'errstr' => $errstr,
+                ]);
 
                 return false;
             }
@@ -345,7 +356,10 @@ class EmailNotifier implements NotifierInterface
                 );
 
                 if ($cryptoResult !== true) {
-                    error_log('EmailNotifier: TLS handshake failed');
+                    Logger::channel('email')->error('EmailNotifier TLS handshake failed', [
+                        'host' => $host,
+                        'port' => $port,
+                    ]);
 
                     return false;
                 }
@@ -395,7 +409,11 @@ class EmailNotifier implements NotifierInterface
             return true;
 
         } catch (\Throwable $e) {
-            error_log('EmailNotifier: SMTP error - ' . $e->getMessage());
+            Logger::channel('email')->error('EmailNotifier SMTP error', [
+                'error' => $e->getMessage(),
+                'host' => $this->smtpHost,
+                'port' => $this->smtpPort,
+            ]);
 
             return false;
         } finally {
@@ -441,7 +459,7 @@ class EmailNotifier implements NotifierInterface
             if ($line === false) {
                 $meta = stream_get_meta_data($socket);
                 if ($meta['timed_out']) {
-                    error_log('EmailNotifier: SMTP read timeout');
+                    Logger::channel('email')->error('EmailNotifier SMTP read timeout');
                 }
                 break;
             }

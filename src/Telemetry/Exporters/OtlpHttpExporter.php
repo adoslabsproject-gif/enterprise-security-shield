@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AdosLabs\EnterpriseSecurityShield\Telemetry\Exporters;
 
 use AdosLabs\EnterpriseSecurityShield\Telemetry\SpanExporterInterface;
+use AdosLabs\EnterprisePSR3Logger\LoggerFacade as Logger;
 
 /**
  * OTLP HTTP Exporter.
@@ -102,6 +103,9 @@ class OtlpHttpExporter implements SpanExporterInterface
         $response = @file_get_contents($this->endpoint, false, $context);
 
         if ($response === false) {
+            Logger::channel('api')->error('OTLP HTTP export failed', [
+                'endpoint' => $this->endpoint,
+            ]);
             return false;
         }
 

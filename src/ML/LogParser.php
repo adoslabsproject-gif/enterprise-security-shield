@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace AdosLabs\EnterpriseSecurityShield\ML;
 
+use AdosLabs\EnterprisePSR3Logger\LoggerFacade as Logger;
+
 /**
  * Security Log Parser.
  *
  * Parses security logs to extract attack patterns for model training.
- * Compatible with need2talk-style security log format.
+ * Compatible with PSR-3 style security log format.
  *
  * LOG FORMAT SUPPORTED:
  * [YYYY-MM-DD HH:MM:SS] LEVEL.SEVERITY: MESSAGE {json_context}
@@ -126,6 +128,10 @@ final class LogParser
             } catch (\Throwable $e) {
                 // Log error but continue with other files
                 $this->stats['parse_errors']++;
+                Logger::channel('security')->warning('LogParser: Failed to parse log file', [
+                    'file_path' => $filePath,
+                    'error' => $e->getMessage(),
+                ]);
             }
         }
 

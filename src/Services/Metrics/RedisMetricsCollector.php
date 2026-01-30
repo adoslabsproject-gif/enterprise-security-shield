@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AdosLabs\EnterpriseSecurityShield\Services\Metrics;
 
 use AdosLabs\EnterpriseSecurityShield\Contracts\MetricsCollectorInterface;
+use AdosLabs\EnterprisePSR3Logger\LoggerFacade as Logger;
 
 /**
  * Redis Metrics Collector.
@@ -55,6 +56,10 @@ class RedisMetricsCollector implements MetricsCollectorInterface
             // Set TTL only if key is new (doesn't reset on existing keys)
             $this->redis->expire($key, $this->defaultTTL);
         } catch (\RedisException $e) {
+            Logger::channel('database')->debug('Metrics increment failed', [
+                'metric' => $metric,
+                'error' => $e->getMessage(),
+            ]);
             // Graceful degradation - metrics are non-critical
         }
     }
@@ -72,6 +77,10 @@ class RedisMetricsCollector implements MetricsCollectorInterface
             $this->redis->set($key, (string) $value);
             $this->redis->expire($key, $this->defaultTTL);
         } catch (\RedisException $e) {
+            Logger::channel('database')->debug('Metrics gauge failed', [
+                'metric' => $metric,
+                'error' => $e->getMessage(),
+            ]);
             // Graceful degradation
         }
     }
@@ -102,6 +111,10 @@ class RedisMetricsCollector implements MetricsCollectorInterface
             $this->redis->zRemRangeByRank($key, 0, -1001);
             $this->redis->expire($key, $this->defaultTTL);
         } catch (\RedisException $e) {
+            Logger::channel('database')->debug('Metrics sample failed', [
+                'metric' => $metric,
+                'error' => $e->getMessage(),
+            ]);
             // Graceful degradation
         }
     }

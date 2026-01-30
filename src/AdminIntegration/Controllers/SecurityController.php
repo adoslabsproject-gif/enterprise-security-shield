@@ -14,6 +14,7 @@ use AdosLabs\EnterpriseSecurityShield\Config\SecurityConfig;
 use AdosLabs\EnterpriseSecurityShield\Contracts\StorageInterface;
 use AdosLabs\EnterpriseSecurityShield\Storage\DatabaseStorage;
 use AdosLabs\EnterpriseSecurityShield\Storage\RedisStorage;
+use AdosLabs\EnterprisePSR3Logger\LoggerFacade as Logger;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -98,6 +99,9 @@ final class SecurityController extends BaseController
                 return $this->storage;
             } catch (\Throwable $e) {
                 // Fallback to database
+                Logger::channel('database')->warning('SecurityController: Redis connection failed, falling back to database', [
+                    'error' => $e->getMessage(),
+                ]);
             }
         }
 
@@ -470,6 +474,9 @@ final class SecurityController extends BaseController
             );
             $total = (int) ($countRows[0]['cnt'] ?? 0);
         } catch (\Throwable $e) {
+            Logger::channel('database')->error('SecurityController: Failed to fetch security events', [
+                'error' => $e->getMessage(),
+            ]);
             $events = [];
             $total = 0;
         }
@@ -648,6 +655,9 @@ final class SecurityController extends BaseController
                 );
                 $eventsLearned = count($events);
             } catch (\Throwable $e2) {
+                Logger::channel('database')->error('SecurityController: Failed to fetch events for ML retraining', [
+                    'error' => $e2->getMessage(),
+                ]);
                 $eventsLearned = 0;
             }
         }
@@ -962,6 +972,9 @@ final class SecurityController extends BaseController
                 'active_bans' => $activeBans,
             ];
         } catch (\Throwable $e) {
+            Logger::channel('database')->warning('SecurityController: Failed to get today stats', [
+                'error' => $e->getMessage(),
+            ]);
             return [
                 'total_events_today' => 0,
                 'bans_today' => 0,
@@ -987,6 +1000,9 @@ final class SecurityController extends BaseController
 
             return $events;
         } catch (\Throwable $e) {
+            Logger::channel('database')->warning('SecurityController: Failed to get recent threats', [
+                'error' => $e->getMessage(),
+            ]);
             return [];
         }
     }

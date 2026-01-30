@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace AdosLabs\EnterpriseSecurityShield\Services;
 
+use AdosLabs\EnterprisePSR3Logger\LoggerFacade as Logger;
+
 /**
  * Webhook Notifier.
  *
@@ -95,7 +97,10 @@ class WebhookNotifier
         $json = json_encode($payload);
 
         if ($json === false) {
-            return; // JSON encoding failed
+            Logger::channel('api')->error('WebhookNotifier JSON encoding failed', [
+                'event' => $event,
+            ]);
+            return;
         }
 
         if ($this->async) {
@@ -160,7 +165,12 @@ class WebhookNotifier
         $fp = @fsockopen($host, $port, $errno, $errstr, 1);
 
         if (!$fp) {
-            error_log("WebhookNotifier: Async connection failed to {$host}:{$port} - {$errstr} ({$errno})");
+            Logger::channel('api')->error('WebhookNotifier async connection failed', [
+                'host' => $host,
+                'port' => $port,
+                'errno' => $errno,
+                'errstr' => $errstr,
+            ]);
 
             return;
         }
@@ -170,7 +180,9 @@ class WebhookNotifier
 
             // SECURITY: Prevent CRLF injection in Host header
             if (empty($hostHeader) || preg_match('/[\r\n]/', $hostHeader)) {
-                error_log('WebhookNotifier: Invalid host header detected');
+                Logger::channel('security')->warning('WebhookNotifier CRLF injection attempt detected', [
+                    'host_header' => $hostHeader,
+                ]);
 
                 return;
             }
@@ -190,7 +202,9 @@ class WebhookNotifier
 
             $written = fwrite($fp, $request);
             if ($written === false) {
-                error_log('WebhookNotifier: Failed to write to socket');
+                Logger::channel('api')->error('WebhookNotifier failed to write to socket', [
+                    'host' => $hostHeader,
+                ]);
             }
         } finally {
             @fclose($fp);
@@ -225,6 +239,10 @@ class WebhookNotifier
                 curl_close($ch);
             }
         } catch (\Throwable $e) {
+            Logger::channel('api')->error('WebhookNotifier sync request failed', [
+                'url' => $url,
+                'error' => $e->getMessage(),
+            ]);
             // Graceful degradation - don't crash on webhook failure
         }
     }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AdosLabs\EnterpriseSecurityShield\Storage;
 
 use AdosLabs\EnterpriseSecurityShield\Contracts\StorageInterface;
+use AdosLabs\EnterprisePSR3Logger\LoggerFacade as Logger;
 
 /**
  * Database Storage Backend - Dual-Write Architecture.
@@ -26,14 +27,19 @@ use AdosLabs\EnterpriseSecurityShield\Contracts\StorageInterface;
  * - Score increment: ~2ms
  * - Security event log: ~1ms
  *
+ * TABLE NAMING:
+ * - All tables use 'security_shield_' prefix for namespace isolation
+ * - Tables: security_shield_scores, security_shield_bans, security_shield_events,
+ *           security_shield_request_counts, security_shield_bot_cache, security_shield_rate_limits
+ *
  * REQUIREMENTS:
  * - PHP 8.0+ with PDO extension
  * - PostgreSQL 9.5+ or MySQL 5.7+
  * - Redis 5.0+ (optional but recommended)
  *
- * @version 2.0.0
+ * @version 2.1.0
  *
- * @author Senza1dio Security Team
+ * @author ADOS Labs Security Team
  * @license MIT
  */
 class DatabaseStorage implements StorageInterface
@@ -82,12 +88,12 @@ class DatabaseStorage implements StorageInterface
         try {
             // Write to PostgreSQL (persistence)
             $stmt = $this->pdo->prepare('
-                INSERT INTO threat_scores (ip, score, expires_at, last_updated, request_count)
-                VALUES (:ip, :score, :expires_at, NOW(), 1)
+                INSERT INTO security_shield_scores (ip, score, expires_at, last_seen)
+                VALUES (:ip, :score, :expires_at, NOW())
                 ON CONFLICT (ip) DO UPDATE
                 SET score = :score,
                     expires_at = :expires_at,
-                    last_updated = NOW()
+                    last_seen = NOW()
             ');
             $stmt->execute([
                 ':ip' => $ip,
@@ -103,6 +109,11 @@ class DatabaseStorage implements StorageInterface
 
             return true;
         } catch (\PDOException $e) {
+            Logger::channel('database')->error('WAF setScore DB write failed', [
+                'ip' => $ip,
+                'score' => $score,
+                'error' => $e->getMessage(),
+            ]);
             // Graceful degradation - continue with Redis only
             if ($this->redis) {
                 $key = $this->keyPrefix . 'score:' . $ip;
@@ -131,6 +142,10 @@ class DatabaseStorage implements StorageInterface
                     return (int) $score;
                 }
             } catch (\RedisException $e) {
+                Logger::channel('database')->warning('WAF getScore Redis cache miss', [
+                    'ip' => $ip,
+                    'error' => $e->getMessage(),
+                ]);
                 // Fall through to database
             }
         }
@@ -138,7 +153,7 @@ class DatabaseStorage implements StorageInterface
         // Slow path: Query PostgreSQL
         try {
             $stmt = $this->pdo->prepare('
-                SELECT score FROM threat_scores
+                SELECT score FROM security_shield_scores
                 WHERE ip = :ip AND expires_at > NOW()
             ');
             $stmt->execute([':ip' => $ip]);
@@ -158,6 +173,10 @@ class DatabaseStorage implements StorageInterface
 
             return null;
         } catch (\PDOException $e) {
+            Logger::channel('database')->error('WAF getScore DB query failed', [
+                'ip' => $ip,
+                'error' => $e->getMessage(),
+            ]);
             return null;
         }
     }
@@ -176,13 +195,12 @@ class DatabaseStorage implements StorageInterface
         try {
             // STEP 1: Increment in PostgreSQL (source of truth)
             $stmt = $this->pdo->prepare('
-                INSERT INTO threat_scores (ip, score, expires_at, last_updated, request_count, reasons)
-                VALUES (:ip, :points, :expires_at, NOW(), 1, \'[]\'::JSONB)
+                INSERT INTO security_shield_scores (ip, score, expires_at, last_seen)
+                VALUES (:ip, :points, :expires_at, NOW())
                 ON CONFLICT (ip) DO UPDATE
-                SET score = threat_scores.score + :points,
+                SET score = security_shield_scores.score + :points,
                     expires_at = :expires_at,
-                    last_updated = NOW(),
-                    request_count = threat_scores.request_count + 1
+                    last_seen = NOW()
                 RETURNING score
             ');
             $stmt->execute([
@@ -201,6 +219,11 @@ class DatabaseStorage implements StorageInterface
 
             return $newScore;
         } catch (\PDOException $e) {
+            Logger::channel('database')->error('WAF incrementScore DB failed', [
+                'ip' => $ip,
+                'points' => $points,
+                'error' => $e->getMessage(),
+            ]);
             // Fallback: Redis-only increment (volatile but functional)
             if ($this->redis) {
                 $key = $this->keyPrefix . 'score:' . $ip;
@@ -265,6 +288,10 @@ class DatabaseStorage implements StorageInterface
                     return true; // Cache hit - banned
                 }
             } catch (\RedisException $e) {
+                Logger::channel('database')->warning('WAF isBanned Redis check failed', [
+                    'ip' => $ip,
+                    'error' => $e->getMessage(),
+                ]);
                 // Fallthrough to database
             }
         }
@@ -273,7 +300,7 @@ class DatabaseStorage implements StorageInterface
         // NOTE: This is ONLY hit when Redis is unavailable or cold cache
         try {
             $stmt = $this->pdo->prepare('
-                SELECT 1 FROM ip_bans
+                SELECT 1 FROM security_shield_bans
                 WHERE ip = :ip AND expires_at > NOW()
                 LIMIT 1
             ');
@@ -287,7 +314,7 @@ class DatabaseStorage implements StorageInterface
                 // Get ban duration from DB to set correct TTL
                 $stmt = $this->pdo->prepare('
                     SELECT EXTRACT(EPOCH FROM (expires_at - NOW()))::INTEGER AS ttl
-                    FROM ip_bans
+                    FROM security_shield_bans
                     WHERE ip = :ip AND expires_at > NOW()
                     LIMIT 1
                 ');
@@ -301,6 +328,10 @@ class DatabaseStorage implements StorageInterface
 
             return $banned;
         } catch (\PDOException $e) {
+            Logger::channel('database')->error('WAF isBanned DB query failed (FAIL-OPEN)', [
+                'ip' => $ip,
+                'error' => $e->getMessage(),
+            ]);
             // FAIL-OPEN: Both Redis and DB failed
             // Probability: ~4 minutes/year with proper HA setup
             // Alternative: Return true for fail-closed (block all traffic)
@@ -334,6 +365,10 @@ class DatabaseStorage implements StorageInterface
 
                 return is_int($exists) && $exists > 0;
             } catch (\RedisException $e) {
+                Logger::channel('database')->warning('WAF isIpBannedCached Redis check failed', [
+                    'ip' => $ip,
+                    'error' => $e->getMessage(),
+                ]);
                 // Graceful degradation - assume not banned (fail-open)
                 return false;
             }
@@ -356,8 +391,8 @@ class DatabaseStorage implements StorageInterface
         try {
             // STEP 1: Write to PostgreSQL (audit trail)
             $stmt = $this->pdo->prepare('
-                INSERT INTO ip_bans (ip, reason, banned_at, expires_at, ban_count)
-                VALUES (:ip, :reason, :banned_at, :expires_at, 1)
+                INSERT INTO security_shield_bans (ip, reason, banned_at, expires_at)
+                VALUES (:ip, :reason, :banned_at, :expires_at)
             ');
             $stmt->execute([
                 ':ip' => $ip,
@@ -380,6 +415,12 @@ class DatabaseStorage implements StorageInterface
 
             return true;
         } catch (\PDOException $e) {
+            Logger::channel('security')->error('WAF banIP DB write failed', [
+                'ip' => $ip,
+                'reason' => $reason,
+                'duration' => $duration,
+                'error' => $e->getMessage(),
+            ]);
             // Fallback: Redis-only ban (volatile but functional)
             if ($this->redis) {
                 $key = $this->keyPrefix . 'ban:' . $ip;
@@ -407,7 +448,7 @@ class DatabaseStorage implements StorageInterface
         try {
             // Delete from PostgreSQL
             $stmt = $this->pdo->prepare('
-                DELETE FROM ip_bans WHERE ip = :ip
+                DELETE FROM security_shield_bans WHERE ip = :ip
             ');
             $stmt->execute([':ip' => $ip]);
 
@@ -419,6 +460,10 @@ class DatabaseStorage implements StorageInterface
 
             return true;
         } catch (\PDOException $e) {
+            Logger::channel('database')->error('WAF unbanIP DB delete failed', [
+                'ip' => $ip,
+                'error' => $e->getMessage(),
+            ]);
             // Fallback: Redis-only delete
             if ($this->redis) {
                 $key = $this->keyPrefix . 'ban:' . $ip;
@@ -443,21 +488,17 @@ class DatabaseStorage implements StorageInterface
         try {
             // Write to PostgreSQL
             $stmt = $this->pdo->prepare('
-                INSERT INTO bot_verifications (ip, is_legitimate, hostname, bot_type, metadata, expires_at)
-                VALUES (:ip, :is_legitimate, :hostname, :bot_type, :metadata, :expires_at)
+                INSERT INTO security_shield_bot_cache (ip, is_legitimate, metadata, cached_at, expires_at)
+                VALUES (:ip, :is_legitimate, :metadata, NOW(), :expires_at)
                 ON CONFLICT (ip) DO UPDATE
                 SET is_legitimate = :is_legitimate,
-                    hostname = :hostname,
-                    bot_type = :bot_type,
                     metadata = :metadata,
-                    verified_at = NOW(),
+                    cached_at = NOW(),
                     expires_at = :expires_at
             ');
             $stmt->execute([
                 ':ip' => $ip,
                 ':is_legitimate' => $isLegitimate ? 'true' : 'false',
-                ':hostname' => $metadata['hostname'] ?? null,
-                ':bot_type' => $metadata['bot_type'] ?? null,
                 ':metadata' => json_encode($metadata),
                 ':expires_at' => $expiresAt,
             ]);
@@ -475,6 +516,11 @@ class DatabaseStorage implements StorageInterface
 
             return true;
         } catch (\PDOException $e) {
+            Logger::channel('database')->error('WAF cacheBotVerification DB write failed', [
+                'ip' => $ip,
+                'is_legitimate' => $isLegitimate,
+                'error' => $e->getMessage(),
+            ]);
             // Fallback: Redis-only cache
             if ($this->redis) {
                 $key = $this->keyPrefix . 'bot:' . $ip;
@@ -514,6 +560,10 @@ class DatabaseStorage implements StorageInterface
                     }
                 }
             } catch (\RedisException $e) {
+                Logger::channel('database')->warning('WAF getCachedBotVerification Redis miss', [
+                    'ip' => $ip,
+                    'error' => $e->getMessage(),
+                ]);
                 // Fall through to database
             }
         }
@@ -521,7 +571,7 @@ class DatabaseStorage implements StorageInterface
         // Slow path: PostgreSQL fallback
         try {
             $stmt = $this->pdo->prepare('
-                SELECT is_legitimate, metadata FROM bot_verifications
+                SELECT is_legitimate, metadata FROM security_shield_bot_cache
                 WHERE ip = :ip AND expires_at > NOW()
             ');
             $stmt->execute([':ip' => $ip]);
@@ -550,6 +600,10 @@ class DatabaseStorage implements StorageInterface
 
             return null;
         } catch (\PDOException $e) {
+            Logger::channel('database')->error('WAF getCachedBotVerification DB query failed', [
+                'ip' => $ip,
+                'error' => $e->getMessage(),
+            ]);
             return null;
         }
     }
@@ -604,6 +658,11 @@ class DatabaseStorage implements StorageInterface
                 // Mark as logged for 300 seconds (5 minutes) to prevent log inflation
                 $this->redis->setex($dedupKey, 300, '1');
             } catch (\RedisException $e) {
+                Logger::channel('database')->warning('WAF event dedup Redis check failed', [
+                    'type' => $type,
+                    'ip' => $ip,
+                    'error' => $e->getMessage(),
+                ]);
                 // Dedup failed - log anyway (better than losing events)
             }
         }
@@ -619,14 +678,13 @@ class DatabaseStorage implements StorageInterface
 
             // Write to PostgreSQL (compliance)
             $stmt = $this->pdo->prepare('
-                INSERT INTO security_events (event_type, ip, event_data, severity)
-                VALUES (:event_type, :ip, :event_data, :severity)
+                INSERT INTO security_shield_events (type, ip, data)
+                VALUES (:event_type, :ip, :event_data)
             ');
             $stmt->execute([
                 ':event_type' => $type,
                 ':ip' => $ip,
                 ':event_data' => json_encode($data),
-                ':severity' => $severity,
             ]);
 
             // Write to Redis list (fast analytics)
@@ -645,6 +703,11 @@ class DatabaseStorage implements StorageInterface
 
             return true;
         } catch (\PDOException $e) {
+            Logger::channel('database')->error('WAF logSecurityEvent DB insert failed', [
+                'type' => $type,
+                'ip' => $ip,
+                'error' => $e->getMessage(),
+            ]);
             // Fallback: Redis-only logging
             if ($this->redis) {
                 $key = $this->keyPrefix . 'events:' . $type;
@@ -675,9 +738,9 @@ class DatabaseStorage implements StorageInterface
             if ($type) {
                 // Get events for specific type
                 $stmt = $this->pdo->prepare('
-                    SELECT event_type AS type, ip, event_data AS data, EXTRACT(EPOCH FROM created_at)::INTEGER AS timestamp
-                    FROM security_events
-                    WHERE event_type = :type
+                    SELECT type, ip, data, EXTRACT(EPOCH FROM created_at)::INTEGER AS timestamp
+                    FROM security_shield_events
+                    WHERE type = :type
                     ORDER BY created_at DESC
                     LIMIT :limit
                 ');
@@ -686,8 +749,8 @@ class DatabaseStorage implements StorageInterface
             } else {
                 // Get all events
                 $stmt = $this->pdo->prepare('
-                    SELECT event_type AS type, ip, event_data AS data, EXTRACT(EPOCH FROM created_at)::INTEGER AS timestamp
-                    FROM security_events
+                    SELECT type, ip, data, EXTRACT(EPOCH FROM created_at)::INTEGER AS timestamp
+                    FROM security_shield_events
                     ORDER BY created_at DESC
                     LIMIT :limit
                 ');
@@ -704,6 +767,11 @@ class DatabaseStorage implements StorageInterface
                 return $row;
             }, $results);
         } catch (\PDOException $e) {
+            Logger::channel('database')->error('WAF getRecentEvents DB query failed', [
+                'type' => $type,
+                'limit' => $limit,
+                'error' => $e->getMessage(),
+            ]);
             // Fallback: Redis list (limited retention)
             if ($this->redis) {
                 $events = [];
@@ -745,20 +813,16 @@ class DatabaseStorage implements StorageInterface
             // PostgreSQL increment with proper window expiration handling
             // If window expired, reset count to 1; otherwise increment
             $stmt = $this->pdo->prepare('
-                INSERT INTO request_counts (ip, request_type, count, window_start, expires_at)
+                INSERT INTO security_shield_request_counts (ip, action, count, window_start, expires_at)
                 VALUES (:ip, :action, 1, NOW(), :expires_at)
-                ON CONFLICT (ip, request_type) DO UPDATE
+                ON CONFLICT (ip, action, window_start) DO UPDATE
                 SET count = CASE
-                    WHEN request_counts.expires_at < NOW() THEN 1
-                    ELSE request_counts.count + 1
-                END,
-                window_start = CASE
-                    WHEN request_counts.expires_at < NOW() THEN NOW()
-                    ELSE request_counts.window_start
+                    WHEN security_shield_request_counts.expires_at < NOW() THEN 1
+                    ELSE security_shield_request_counts.count + 1
                 END,
                 expires_at = CASE
-                    WHEN request_counts.expires_at < NOW() THEN :expires_at
-                    ELSE request_counts.expires_at
+                    WHEN security_shield_request_counts.expires_at < NOW() THEN :expires_at
+                    ELSE security_shield_request_counts.expires_at
                 END
                 RETURNING count
             ');
@@ -778,6 +842,11 @@ class DatabaseStorage implements StorageInterface
 
             return $count;
         } catch (\PDOException $e) {
+            Logger::channel('database')->error('WAF incrementRequestCount DB failed', [
+                'ip' => $ip,
+                'action' => $action,
+                'error' => $e->getMessage(),
+            ]);
             // Fallback: Redis-only increment with action-specific key
             if ($this->redis) {
                 $key = $this->keyPrefix . 'rate_limit:' . $action . ':' . $ip;
@@ -815,6 +884,11 @@ class DatabaseStorage implements StorageInterface
                     return (int) $count;
                 }
             } catch (\RedisException $e) {
+                Logger::channel('database')->warning('WAF getRequestCount Redis miss', [
+                    'ip' => $ip,
+                    'action' => $action,
+                    'error' => $e->getMessage(),
+                ]);
                 // Fall through to database
             }
         }
@@ -822,8 +896,8 @@ class DatabaseStorage implements StorageInterface
         // Slow path: PostgreSQL with action filter
         try {
             $stmt = $this->pdo->prepare('
-                SELECT count FROM request_counts
-                WHERE ip = :ip AND request_type = :action AND expires_at > NOW()
+                SELECT count FROM security_shield_request_counts
+                WHERE ip = :ip AND action = :action AND expires_at > NOW()
             ');
             $stmt->execute([
                 ':ip' => $ip,
@@ -845,6 +919,11 @@ class DatabaseStorage implements StorageInterface
 
             return 0;
         } catch (\PDOException $e) {
+            Logger::channel('database')->error('WAF getRequestCount DB query failed', [
+                'ip' => $ip,
+                'action' => $action,
+                'error' => $e->getMessage(),
+            ]);
             return 0;
         }
     }
@@ -859,7 +938,7 @@ class DatabaseStorage implements StorageInterface
     {
         try {
             // Clear PostgreSQL tables
-            $this->pdo->exec('TRUNCATE TABLE ip_bans, threat_scores, security_events, request_counts, bot_verifications');
+            $this->pdo->exec('TRUNCATE TABLE security_shield_bans, security_shield_scores, security_shield_events, security_shield_request_counts, security_shield_bot_cache CASCADE');
 
             // Clear Redis keys with safety limits
             if ($this->redis) {
@@ -902,7 +981,9 @@ class DatabaseStorage implements StorageInterface
                             break;
                         }
                     } catch (\RedisException $e) {
-                        error_log('DatabaseStorage::clear() Redis SCAN error: ' . $e->getMessage());
+                        Logger::channel('database')->error('WAF clear() Redis SCAN failed', [
+                            'error' => $e->getMessage(),
+                        ]);
                         break;
                     }
                 } while ((int) $cursor > 0);
@@ -910,6 +991,9 @@ class DatabaseStorage implements StorageInterface
 
             return true;
         } catch (\PDOException | \RedisException $e) {
+            Logger::channel('database')->error('WAF clear() failed', [
+                'error' => $e->getMessage(),
+            ]);
             return false;
         }
     }
@@ -962,6 +1046,10 @@ class DatabaseStorage implements StorageInterface
                     return $value;
                 }
             } catch (\RedisException $e) {
+                Logger::channel('database')->warning('WAF get() Redis failed', [
+                    'key' => $key,
+                    'error' => $e->getMessage(),
+                ]);
                 // Fall through to null
             }
         }
@@ -985,6 +1073,10 @@ class DatabaseStorage implements StorageInterface
 
                 return $this->redis->setex($this->keyPrefix . $key, $ttl, $value) !== false;
             } catch (\RedisException $e) {
+                Logger::channel('database')->error('WAF set() Redis failed', [
+                    'key' => $key,
+                    'error' => $e->getMessage(),
+                ]);
                 return false;
             }
         }
@@ -1003,6 +1095,10 @@ class DatabaseStorage implements StorageInterface
 
                 return $result !== false;
             } catch (\RedisException $e) {
+                Logger::channel('database')->error('WAF delete() Redis failed', [
+                    'key' => $key,
+                    'error' => $e->getMessage(),
+                ]);
                 return false;
             }
         }
@@ -1021,6 +1117,10 @@ class DatabaseStorage implements StorageInterface
 
                 return is_int($result) ? $result > 0 : (bool) $result;
             } catch (\RedisException $e) {
+                Logger::channel('database')->warning('WAF exists() Redis failed', [
+                    'key' => $key,
+                    'error' => $e->getMessage(),
+                ]);
                 return false;
             }
         }
@@ -1053,6 +1153,11 @@ class DatabaseStorage implements StorageInterface
 
                 return is_int($result) ? $result : 0;
             } catch (\RedisException $e) {
+                Logger::channel('database')->error('WAF increment() Redis failed', [
+                    'key' => $key,
+                    'delta' => $delta,
+                    'error' => $e->getMessage(),
+                ]);
                 return 0;
             }
         }
@@ -1129,6 +1234,11 @@ class DatabaseStorage implements StorageInterface
                     ];
                 }
             } catch (\RedisException $e) {
+                Logger::channel('database')->warning('WAF atomicRateLimitCheck Redis failed', [
+                    'key' => $key,
+                    'limit' => $limit,
+                    'error' => $e->getMessage(),
+                ]);
                 // Fall through to database
             }
         }
@@ -1140,7 +1250,7 @@ class DatabaseStorage implements StorageInterface
             // Use SELECT FOR UPDATE to lock the row
             $stmt = $this->pdo->prepare('
                 SELECT count, EXTRACT(EPOCH FROM expires_at)::INTEGER as expires_epoch
-                FROM rate_limits
+                FROM security_shield_rate_limits
                 WHERE key = :key
                 FOR UPDATE
             ');
@@ -1152,7 +1262,7 @@ class DatabaseStorage implements StorageInterface
             if (!$row || (isset($row['expires_epoch']) && $row['expires_epoch'] < $now)) {
                 // New window or expired: insert/reset with cost
                 $stmt = $this->pdo->prepare('
-                    INSERT INTO rate_limits (key, count, expires_at)
+                    INSERT INTO security_shield_rate_limits (key, count, expires_at)
                     VALUES (:key, :cost, :expires_at)
                     ON CONFLICT (key) DO UPDATE
                     SET count = :cost, expires_at = :expires_at
@@ -1191,7 +1301,7 @@ class DatabaseStorage implements StorageInterface
 
             // Under limit - increment
             $stmt = $this->pdo->prepare('
-                UPDATE rate_limits SET count = count + :cost WHERE key = :key
+                UPDATE security_shield_rate_limits SET count = count + :cost WHERE key = :key
             ');
             $stmt->execute([':cost' => $cost, ':key' => $key]);
 
@@ -1204,6 +1314,11 @@ class DatabaseStorage implements StorageInterface
                 'reset' => $resetTime,
             ];
         } catch (\PDOException $e) {
+            Logger::channel('database')->error('WAF atomicRateLimitCheck DB failed (FAIL-OPEN)', [
+                'key' => $key,
+                'limit' => $limit,
+                'error' => $e->getMessage(),
+            ]);
             if ($this->pdo->inTransaction()) {
                 $this->pdo->rollBack();
             }

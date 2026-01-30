@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace AdosLabs\EnterpriseSecurityShield\Storage;
 
 use AdosLabs\EnterpriseSecurityShield\Contracts\StorageInterface;
+use AdosLabs\EnterprisePSR3Logger\LoggerFacade as Logger;
 
 /**
  * Redis Sentinel Storage - Enterprise High Availability.
@@ -168,9 +169,19 @@ final class RedisSentinelStorage implements StorageInterface
 
                 $errors[] = "Sentinel {$sentinel['host']}:{$sentinel['port']} returned invalid master info";
             } catch (\RedisException $e) {
+                Logger::channel('database')->warning('Sentinel connection error', [
+                    'sentinel_host' => $sentinel['host'],
+                    'sentinel_port' => $sentinel['port'],
+                    'error' => $e->getMessage(),
+                ]);
                 $errors[] = "Sentinel {$sentinel['host']}:{$sentinel['port']} error: " . $e->getMessage();
             }
         }
+
+        Logger::channel('database')->error('Failed to discover Redis master from all Sentinels', [
+            'sentinels_count' => count($this->config['sentinels']),
+            'errors' => $errors,
+        ]);
 
         throw new \RuntimeException(
             'Failed to discover Redis master from all Sentinels. Errors: ' . implode('; ', $errors),
@@ -192,6 +203,9 @@ final class RedisSentinelStorage implements StorageInterface
                     return $this->redis;
                 }
             } catch (\RedisException $e) {
+                Logger::channel('database')->warning('Redis Sentinel connection lost, reconnecting', [
+                    'error' => $e->getMessage(),
+                ]);
                 // Connection lost, will reconnect
             }
         }
@@ -244,7 +258,18 @@ final class RedisSentinelStorage implements StorageInterface
 
                 return $this->redis;
             } catch (\RedisException $e) {
+                Logger::channel('database')->warning('Redis Sentinel connection attempt failed', [
+                    'attempt' => $attempt,
+                    'max_retries' => $this->maxRetries,
+                    'master_host' => $master['host'] ?? null,
+                    'master_port' => $master['port'] ?? null,
+                    'error' => $e->getMessage(),
+                ]);
                 if ($attempt === $this->maxRetries) {
+                    Logger::channel('database')->error('Redis Sentinel connection exhausted all retries', [
+                        'max_retries' => $this->maxRetries,
+                        'error' => $e->getMessage(),
+                    ]);
                     throw new \RuntimeException(
                         "Failed to connect to Redis master after {$this->maxRetries} attempts: " . $e->getMessage(),
                     );
@@ -275,20 +300,36 @@ final class RedisSentinelStorage implements StorageInterface
 
                 return $operation($redis);
             } catch (\RedisException $e) {
+                Logger::channel('database')->warning('Redis Sentinel operation failed, retrying', [
+                    'attempt' => $attempt,
+                    'max_retries' => $this->maxRetries,
+                    'fail_closed' => $this->failClosed,
+                    'error' => $e->getMessage(),
+                ]);
                 // Connection failed, try to reconnect
                 $this->redis = null;
                 $this->currentMaster = null;
 
                 if ($attempt === $this->maxRetries) {
                     if ($this->failClosed) {
+                        Logger::channel('database')->error('Redis Sentinel operation failed (FAIL-CLOSED)', [
+                            'error' => $e->getMessage(),
+                        ]);
                         throw new \RuntimeException('Redis operation failed: ' . $e->getMessage());
                     }
 
+                    Logger::channel('database')->error('Redis Sentinel operation failed (FAIL-OPEN)', [
+                        'error' => $e->getMessage(),
+                    ]);
                     return $failOpenValue;
                 }
 
                 usleep($this->config['retry_interval'] * 1000);
             } catch (\RuntimeException $e) {
+                Logger::channel('database')->error('Redis Sentinel runtime error', [
+                    'fail_closed' => $this->failClosed,
+                    'error' => $e->getMessage(),
+                ]);
                 if ($this->failClosed) {
                     throw $e;
                 }
@@ -704,6 +745,11 @@ final class RedisSentinelStorage implements StorageInterface
 
                 break; // Got info from one Sentinel, no need to query others
             } catch (\RedisException $e) {
+                Logger::channel('database')->warning('Redis Sentinel getSlaves query failed', [
+                    'sentinel_host' => $sentinel['host'],
+                    'sentinel_port' => $sentinel['port'],
+                    'error' => $e->getMessage(),
+                ]);
                 // Try next Sentinel
             }
         }
@@ -745,6 +791,11 @@ final class RedisSentinelStorage implements StorageInterface
 
                 return $result !== false;
             } catch (\RedisException $e) {
+                Logger::channel('database')->warning('Redis Sentinel forceFailover failed', [
+                    'sentinel_host' => $sentinel['host'],
+                    'sentinel_port' => $sentinel['port'],
+                    'error' => $e->getMessage(),
+                ]);
                 // Try next Sentinel
             }
         }
@@ -788,6 +839,11 @@ final class RedisSentinelStorage implements StorageInterface
                     $sentinelConn->close();
                 }
             } catch (\RedisException $e) {
+                Logger::channel('database')->debug('Sentinel health check failed', [
+                    'sentinel_host' => $sentinel['host'],
+                    'sentinel_port' => $sentinel['port'],
+                    'error' => $e->getMessage(),
+                ]);
                 // Sentinel down
             }
         }
@@ -796,6 +852,9 @@ final class RedisSentinelStorage implements StorageInterface
             $master = $this->discoverMaster();
             $slavesCount = count($this->getSlaves());
         } catch (\RuntimeException $e) {
+            Logger::channel('database')->warning('Redis Sentinel master discovery failed', [
+                'error' => $e->getMessage(),
+            ]);
             // Could not discover master
         }
 
@@ -857,6 +916,11 @@ final class RedisSentinelStorage implements StorageInterface
 
                 return false;
             } catch (\RedisException $e) {
+                Logger::channel('database')->warning('Redis Sentinel isFailoverInProgress check failed', [
+                    'sentinel_host' => $sentinel['host'],
+                    'sentinel_port' => $sentinel['port'],
+                    'error' => $e->getMessage(),
+                ]);
                 // Try next Sentinel
             }
         }
@@ -931,6 +995,9 @@ final class RedisSentinelStorage implements StorageInterface
             try {
                 $this->redis->close();
             } catch (\RedisException $e) {
+                Logger::channel('database')->debug('Redis Sentinel close error (ignored)', [
+                    'error' => $e->getMessage(),
+                ]);
                 // Ignore close errors
             }
             $this->redis = null;

@@ -6,6 +6,7 @@ namespace AdosLabs\EnterpriseSecurityShield\Services\GeoIP;
 
 use AdosLabs\EnterpriseSecurityShield\Contracts\StorageInterface;
 use AdosLabs\EnterpriseSecurityShield\Utils\IPUtils;
+use AdosLabs\EnterprisePSR3Logger\LoggerFacade as Logger;
 
 /**
  * GeoIP Service - Multi-Provider with Redis Caching.
@@ -139,6 +140,11 @@ class GeoIPService
                     return $data;
                 }
             } catch (\Throwable $e) {
+                Logger::channel('api')->warning('GeoIP provider lookup failed', [
+                    'ip' => $ip,
+                    'provider' => get_class($provider),
+                    'error' => $e->getMessage(),
+                ]);
                 // Provider failed - try next
                 continue;
             }

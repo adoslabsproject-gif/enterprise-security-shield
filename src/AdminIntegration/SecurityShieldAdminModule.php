@@ -11,6 +11,7 @@ use AdosLabs\EnterpriseSecurityShield\Config\SecurityConfig;
 use AdosLabs\EnterpriseSecurityShield\Contracts\StorageInterface;
 use AdosLabs\EnterpriseSecurityShield\Storage\DatabaseStorage;
 use AdosLabs\EnterpriseSecurityShield\Storage\RedisStorage;
+use AdosLabs\EnterprisePSR3Logger\LoggerFacade as Logger;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -126,6 +127,9 @@ final class SecurityShieldAdminModule implements AdminModuleInterface
                     $this->storage = new RedisStorage($redis);
                 } catch (\Throwable $e) {
                     // Fallback to database
+                    Logger::channel('database')->warning('SecurityShieldAdminModule: Redis connection failed, falling back to database', [
+                        'error' => $e->getMessage(),
+                    ]);
                 }
             }
 
@@ -365,6 +369,9 @@ final class SecurityShieldAdminModule implements AdminModuleInterface
                 $driver = 'postgresql';
             }
         } catch (\Throwable $e) {
+            Logger::channel('database')->debug('SecurityShieldAdminModule: Could not detect database driver, defaulting to postgresql', [
+                'error' => $e->getMessage(),
+            ]);
             $driver = 'postgresql';
         }
 

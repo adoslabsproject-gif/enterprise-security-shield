@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace AdosLabs\EnterpriseSecurityShield\Network;
 
+use AdosLabs\EnterprisePSR3Logger\LoggerFacade as Logger;
+
 /**
  * Enterprise DNS Resolver with Timeout Support.
  *
@@ -124,7 +126,7 @@ final class DNSResolver
     /**
      * Statistics.
      *
-     * @var array<string, int>
+     * @var array<string, int|float|string>
      */
     private array $stats = [
         'queries' => 0,
@@ -134,6 +136,7 @@ final class DNSResolver
         'failures' => 0,
         'timeouts' => 0,
         'retries' => 0,
+        'errors' => 0,
     ];
 
     public function __construct(array $config = [])
@@ -426,8 +429,23 @@ final class DNSResolver
                 }
             } catch (DNSTimeoutException $e) {
                 $this->stats['timeouts']++;
+                $this->stats['last_timeout_error'] = $e->getMessage();
+                Logger::channel('api')->warning('DNS query timeout', [
+                    'name' => $name,
+                    'type' => $type,
+                    'attempt' => $attempts,
+                    'error' => $e->getMessage(),
+                ]);
             } catch (\Throwable $e) {
-                // Log error but continue to retry
+                // Log error and continue to retry
+                $this->stats['errors']++;
+                $this->stats['last_error'] = $e->getMessage();
+                Logger::channel('api')->error('DNS query error', [
+                    'name' => $name,
+                    'type' => $type,
+                    'attempt' => $attempts,
+                    'error' => $e->getMessage(),
+                ]);
             }
 
             if ($attempts < $maxAttempts) {
@@ -950,9 +968,18 @@ final class DNSResolver
 
     /**
      * Record failure for nameserver.
+     *
+     * NOTE: In async environments (Swoole/ReactPHP), concurrent access to
+     * $this->circuitBreaker is possible. This implementation is idempotent
+     * and tolerates race conditions - worst case is slightly delayed circuit
+     * opening, which is acceptable for DNS failover.
+     *
+     * For production high-concurrency use, consider using Redis for atomic
+     * circuit breaker state management.
      */
     private function recordFailure(string $server): void
     {
+        // Initialize if needed (idempotent)
         if (!isset($this->circuitBreaker[$server])) {
             $this->circuitBreaker[$server] = [
                 'failures' => 0,
@@ -961,10 +988,15 @@ final class DNSResolver
             ];
         }
 
-        $this->circuitBreaker[$server]['failures']++;
+        // Increment failures and update timestamp
+        // Note: In async context, concurrent increments may result in
+        // slight under-counting, but circuit will still open correctly
+        $failures = $this->circuitBreaker[$server]['failures'] + 1;
+        $this->circuitBreaker[$server]['failures'] = $failures;
         $this->circuitBreaker[$server]['last_failure'] = time();
 
-        if ($this->circuitBreaker[$server]['failures'] >= $this->circuitBreakerThreshold) {
+        // Open circuit if threshold reached
+        if ($failures >= $this->circuitBreakerThreshold) {
             $this->circuitBreaker[$server]['open'] = true;
         }
     }
@@ -997,18 +1029,46 @@ final class DNSResolver
     }
 
     /**
-     * Add to cache.
+     * Add to cache with TTL-based cleanup.
+     *
+     * Performs periodic cleanup of expired entries to prevent memory leaks
+     * in long-running processes (daemons, Swoole workers, etc.).
      */
     private function addToCache(string $key, mixed $value): void
     {
+        $now = time();
+
         $this->cache[$key] = [
             'result' => $value,
-            'expires' => time() + $this->cacheTTL,
+            'expires' => $now + $this->cacheTTL,
         ];
 
-        // Limit cache size
+        // Periodic cleanup: every 100 inserts, remove expired entries
+        static $insertCount = 0;
+        $insertCount++;
+
+        if ($insertCount >= 100) {
+            $insertCount = 0;
+            $this->cleanupExpiredCache($now);
+        }
+
+        // Hard limit: if cache still too large after cleanup, evict oldest
         if (count($this->cache) > 1000) {
+            // Sort by expiry and keep newest 500
+            uasort($this->cache, fn ($a, $b) => $a['expires'] <=> $b['expires']);
             $this->cache = array_slice($this->cache, -500, null, true);
+        }
+    }
+
+    /**
+     * Remove expired entries from cache.
+     */
+    private function cleanupExpiredCache(int $now): void
+    {
+        foreach ($this->cache as $key => $entry) {
+            if ($entry['expires'] < $now) {
+                unset($this->cache[$key]);
+            }
         }
     }
 
@@ -1027,18 +1087,22 @@ final class DNSResolver
      */
     public function getStatistics(): array
     {
-        $total = $this->stats['queries'];
+        $total = (int) $this->stats['queries'];
+        $cacheHits = (int) $this->stats['cache_hits'];
+        $cacheMisses = (int) $this->stats['cache_misses'];
+        $successes = (int) $this->stats['successes'];
+        $timeouts = (int) $this->stats['timeouts'];
 
         return [
             ...$this->stats,
             'cache_hit_rate' => $total > 0
-                ? round(($this->stats['cache_hits'] / $total) * 100, 2)
+                ? round(($cacheHits / $total) * 100, 2)
                 : 0,
             'success_rate' => $total > 0
-                ? round(($this->stats['successes'] / max(1, $this->stats['cache_misses'])) * 100, 2)
+                ? round(($successes / max(1, $cacheMisses)) * 100, 2)
                 : 0,
             'timeout_rate' => $total > 0
-                ? round(($this->stats['timeouts'] / max(1, $this->stats['cache_misses'])) * 100, 2)
+                ? round(($timeouts / max(1, $cacheMisses)) * 100, 2)
                 : 0,
             'circuit_breaker_status' => $this->circuitBreaker,
         ];

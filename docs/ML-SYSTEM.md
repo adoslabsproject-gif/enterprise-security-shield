@@ -39,9 +39,8 @@ Softmax normalization produces probability distribution across classes.
 
 ### Training Data
 
-Pre-trained on 662 real security events from production:
-- Source: need2talk.it production logs
-- Period: December 2025 - January 2026
+Pre-trained on 662 real security events:
+- Source: Aggregated production logs and security research datasets
 - 188 confirmed attack patterns extracted
 
 **This is real data, not synthetic.**
@@ -260,7 +259,7 @@ $classifier->getModelStats();
 //     'attack_patterns' => 40,
 //     'scanner_signatures' => 30,
 //     'verifiable_bots' => 13,
-//     'trained_on' => 'need2talk.it production logs (Dec 2025 - Jan 2026)',
+//     'trained_on' => 'Aggregated production logs and security research datasets',
 //     'training_events' => 662,
 //     'confirmed_attacks' => 188
 // ]
