@@ -9,26 +9,25 @@
    Form Elements - Matrix Theme
    ========================================================================== */
 
-/* Select/Dropdown styling for Security Shield */
-.eap-input,
-select.eap-input,
-.ess-select,
-.ess-filters__select,
-.ess-config-field__select,
-.ess-input-group__select {
+/* Select/Dropdown styling for Security Shield - Higher specificity */
+.eap-card select.eap-input,
+.eap-form-group select.eap-input,
+.eap-grid select.eap-input,
+form select.eap-input,
+select.eap-input {
     width: 100%;
     padding: 0.625rem 0.875rem;
     font-size: 0.875rem;
     font-family: var(--eap-font-mono, 'JetBrains Mono', 'Fira Code', monospace);
     color: var(--eap-text-primary, #e6edf3);
-    background: var(--eap-abyss, #161b22);
+    background-color: var(--eap-abyss, #161b22);
     border: 1px solid var(--eap-border, #3d444d);
     border-radius: var(--eap-radius, 6px);
     transition: border-color 0.15s, box-shadow 0.15s, background-color 0.15s;
     cursor: pointer;
-    appearance: none;
     -webkit-appearance: none;
     -moz-appearance: none;
+    appearance: none;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2300d4ff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right 0.875rem center;
@@ -36,41 +35,31 @@ select.eap-input,
     padding-right: 2.5rem;
 }
 
-.eap-input:hover,
-select.eap-input:hover,
-.ess-select:hover,
-.ess-filters__select:hover,
-.ess-config-field__select:hover,
-.ess-input-group__select:hover {
+.eap-card select.eap-input:hover,
+.eap-form-group select.eap-input:hover,
+form select.eap-input:hover,
+select.eap-input:hover {
     border-color: var(--eap-border-light, #484f58);
     background-color: var(--eap-surface, #21262d);
 }
 
-.eap-input:focus,
-select.eap-input:focus,
-.ess-select:focus,
-.ess-filters__select:focus,
-.ess-config-field__select:focus,
-.ess-input-group__select:focus {
+.eap-card select.eap-input:focus,
+.eap-form-group select.eap-input:focus,
+form select.eap-input:focus,
+select.eap-input:focus {
     outline: none;
     border-color: var(--eap-neon-cyan, #00d4ff);
     box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.15), 0 0 20px rgba(0, 212, 255, 0.1);
 }
 
-/* Option styling */
-.eap-input option,
-select.eap-input option,
-.ess-select option,
-.ess-filters__select option,
-.ess-config-field__select option {
+/* Option styling - Note: limited browser support */
+select.eap-input option {
     background: var(--eap-abyss, #161b22);
     color: var(--eap-text-primary, #e6edf3);
     padding: 0.5rem;
 }
 
-.eap-input option:checked,
-select.eap-input option:checked,
-.ess-select option:checked {
+select.eap-input option:checked {
     background: var(--eap-surface, #21262d);
     color: var(--eap-neon-cyan, #00d4ff);
 }
