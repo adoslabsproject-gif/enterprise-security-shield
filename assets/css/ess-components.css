@@ -1,17 +1,107 @@
 /**
  * Enterprise Security Shield - Component Styles
- *
+ * Matrix Edition - Cyberpunk/Terminal Theme
  * BEM Naming Convention with .ess- prefix
  * No inline styles - CSP compliant (A+ security headers)
  */
 
 /* ==========================================================================
-   Events Page
+   Form Elements - Matrix Theme
+   ========================================================================== */
+
+/* Select/Dropdown styling for Security Shield */
+.eap-input,
+select.eap-input,
+.ess-select,
+.ess-filters__select,
+.ess-config-field__select,
+.ess-input-group__select {
+    width: 100%;
+    padding: 0.625rem 0.875rem;
+    font-size: 0.875rem;
+    font-family: var(--eap-font-mono, 'JetBrains Mono', 'Fira Code', monospace);
+    color: var(--eap-text-primary, #e6edf3);
+    background: var(--eap-abyss, #161b22);
+    border: 1px solid var(--eap-border, #3d444d);
+    border-radius: var(--eap-radius, 6px);
+    transition: border-color 0.15s, box-shadow 0.15s, background-color 0.15s;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2300d4ff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.875rem center;
+    background-size: 12px;
+    padding-right: 2.5rem;
+}
+
+.eap-input:hover,
+select.eap-input:hover,
+.ess-select:hover,
+.ess-filters__select:hover,
+.ess-config-field__select:hover,
+.ess-input-group__select:hover {
+    border-color: var(--eap-border-light, #484f58);
+    background-color: var(--eap-surface, #21262d);
+}
+
+.eap-input:focus,
+select.eap-input:focus,
+.ess-select:focus,
+.ess-filters__select:focus,
+.ess-config-field__select:focus,
+.ess-input-group__select:focus {
+    outline: none;
+    border-color: var(--eap-neon-cyan, #00d4ff);
+    box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.15), 0 0 20px rgba(0, 212, 255, 0.1);
+}
+
+/* Option styling */
+.eap-input option,
+select.eap-input option,
+.ess-select option,
+.ess-filters__select option,
+.ess-config-field__select option {
+    background: var(--eap-abyss, #161b22);
+    color: var(--eap-text-primary, #e6edf3);
+    padding: 0.5rem;
+}
+
+.eap-input option:checked,
+select.eap-input option:checked,
+.ess-select option:checked {
+    background: var(--eap-surface, #21262d);
+    color: var(--eap-neon-cyan, #00d4ff);
+}
+
+/* Text input styling */
+input.eap-input,
+.ess-filters__input,
+.ess-config-field__input,
+.ess-input-group__input {
+    background-image: none;
+    padding-right: 0.875rem;
+}
+
+input.eap-input::placeholder,
+.ess-filters__input::placeholder,
+.ess-config-field__input::placeholder {
+    color: var(--eap-text-muted, #6e7681);
+}
+
+/* Date input styling */
+input[type="date"].eap-input {
+    color-scheme: dark;
+}
+
+/* ==========================================================================
+   Events Page - Matrix Theme
    ========================================================================== */
 
 .ess-events {
     padding: 1.5rem;
-    background-color: #f8fafc;
+    background-color: var(--eap-void, #0d1117);
     min-height: 100vh;
 }
 
@@ -26,7 +116,8 @@
     margin: 0;
     font-size: 1.75rem;
     font-weight: 700;
-    color: #1e293b;
+    color: var(--eap-text-primary, #e6edf3);
+    font-family: var(--eap-font-mono, 'JetBrains Mono', monospace);
 }
 
 .ess-events__actions {
@@ -35,13 +126,13 @@
 }
 
 /* ==========================================================================
-   Filters
+   Filters - Matrix Theme
    ========================================================================== */
 
 .ess-filters {
-    background-color: #ffffff;
-    border-radius: 0.5rem;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    background-color: var(--eap-abyss, #161b22);
+    border: 1px solid var(--eap-border, #3d444d);
+    border-radius: var(--eap-radius, 6px);
     padding: 1rem 1.25rem;
     margin-bottom: 1.5rem;
 }
@@ -70,31 +161,14 @@
 .ess-filters__label {
     font-size: 0.75rem;
     font-weight: 500;
-    color: #64748b;
+    color: var(--eap-text-muted, #6e7681);
     text-transform: uppercase;
     letter-spacing: 0.05em;
-}
-
-.ess-filters__select,
-.ess-filters__input {
-    padding: 0.5rem 0.75rem;
-    font-size: 0.875rem;
-    border: 1px solid #e2e8f0;
-    border-radius: 0.375rem;
-    background-color: #ffffff;
-    color: #1e293b;
-    min-width: 140px;
-}
-
-.ess-filters__select:focus,
-.ess-filters__input:focus {
-    outline: none;
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    font-family: var(--eap-font-mono, 'JetBrains Mono', monospace);
 }
 
 /* ==========================================================================
-   Pagination
+   Pagination - Matrix Theme
    ========================================================================== */
 
 .ess-pagination {
@@ -106,7 +180,8 @@
 
 .ess-pagination__info {
     font-size: 0.875rem;
-    color: #64748b;
+    color: var(--eap-text-muted, #6e7681);
+    font-family: var(--eap-font-mono, 'JetBrains Mono', monospace);
 }
 
 .ess-pagination__nav {
@@ -117,32 +192,36 @@
 .ess-pagination__btn {
     padding: 0.5rem 0.75rem;
     font-size: 0.875rem;
-    border: 1px solid #e2e8f0;
-    border-radius: 0.375rem;
-    background-color: #ffffff;
-    color: #475569;
+    font-family: var(--eap-font-mono, 'JetBrains Mono', monospace);
+    border: 1px solid var(--eap-border, #3d444d);
+    border-radius: var(--eap-radius-sm, 4px);
+    background-color: var(--eap-surface, #21262d);
+    color: var(--eap-text-secondary, #8b949e);
     text-decoration: none;
     cursor: pointer;
     transition: all 0.15s ease;
 }
 
 .ess-pagination__btn:hover {
-    background-color: #f1f5f9;
-    border-color: #cbd5e1;
+    background-color: var(--eap-elevated, #30363d);
+    border-color: var(--eap-border-light, #484f58);
+    color: var(--eap-text-primary, #e6edf3);
 }
 
 .ess-pagination__btn--active {
-    background-color: #3b82f6;
-    border-color: #3b82f6;
-    color: #ffffff;
+    background-color: var(--eap-neon-cyan, #00d4ff);
+    border-color: var(--eap-neon-cyan, #00d4ff);
+    color: var(--eap-void, #0d1117);
 }
 
 .ess-pagination__btn--active:hover {
-    background-color: #2563eb;
+    background-color: transparent;
+    color: var(--eap-neon-cyan, #00d4ff);
+    box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
 }
 
 /* ==========================================================================
-   Modals
+   Modals - Matrix Theme
    ========================================================================== */
 
 .ess-modal {
@@ -161,7 +240,7 @@
 .ess-modal__backdrop {
     position: absolute;
     inset: 0;
-    background-color: rgba(15, 23, 42, 0.6);
+    background-color: rgba(13, 17, 23, 0.8);
     backdrop-filter: blur(4px);
 }
 
@@ -171,9 +250,10 @@
     max-width: 600px;
     max-height: 90vh;
     margin: 1rem;
-    background-color: #ffffff;
-    border-radius: 0.5rem;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    background-color: var(--eap-abyss, #161b22);
+    border: 1px solid var(--eap-border, #3d444d);
+    border-radius: var(--eap-radius-lg, 8px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 0 40px rgba(0, 212, 255, 0.1);
     overflow: hidden;
     display: flex;
     flex-direction: column;
@@ -184,21 +264,23 @@
     align-items: center;
     justify-content: space-between;
     padding: 1rem 1.25rem;
-    border-bottom: 1px solid #e2e8f0;
+    border-bottom: 1px solid var(--eap-border, #3d444d);
+    background: var(--eap-surface, #21262d);
 }
 
 .ess-modal__title {
     margin: 0;
     font-size: 1.125rem;
     font-weight: 600;
-    color: #1e293b;
+    color: var(--eap-neon-cyan, #00d4ff);
+    font-family: var(--eap-font-mono, 'JetBrains Mono', monospace);
 }
 
 .ess-modal__close {
     padding: 0.25rem 0.5rem;
     font-size: 1.5rem;
     line-height: 1;
-    color: #64748b;
+    color: var(--eap-text-muted, #6e7681);
     background: none;
     border: none;
     cursor: pointer;
@@ -206,7 +288,7 @@
 }
 
 .ess-modal__close:hover {
-    color: #1e293b;
+    color: var(--eap-neon-red, #ff5555);
 }
 
 .ess-modal__body {
@@ -220,12 +302,12 @@
     justify-content: flex-end;
     gap: 0.75rem;
     padding: 1rem 1.25rem;
-    border-top: 1px solid #e2e8f0;
-    background-color: #f8fafc;
+    border-top: 1px solid var(--eap-border, #3d444d);
+    background-color: var(--eap-surface, #21262d);
 }
 
 /* ==========================================================================
-   Detail Grid
+   Detail Grid - Matrix Theme
    ========================================================================== */
 
 .ess-detail-grid {
@@ -247,39 +329,43 @@
 .ess-detail-grid__label {
     font-size: 0.75rem;
     font-weight: 500;
-    color: #64748b;
+    color: var(--eap-text-muted, #6e7681);
     text-transform: uppercase;
     letter-spacing: 0.05em;
+    font-family: var(--eap-font-mono, 'JetBrains Mono', monospace);
 }
 
 .ess-detail-grid__value {
     font-size: 0.875rem;
-    color: #1e293b;
+    color: var(--eap-text-primary, #e6edf3);
 }
 
 .ess-detail-grid__text {
     margin: 0;
     font-size: 0.875rem;
-    color: #475569;
+    color: var(--eap-text-secondary, #8b949e);
     line-height: 1.5;
 }
 
 /* ==========================================================================
-   Code Block
+   Code Block - Matrix Theme
    ========================================================================== */
 
 .ess-code--block {
     display: block;
     padding: 0.75rem;
-    background-color: #f1f5f9;
-    border-radius: 0.375rem;
+    background-color: var(--eap-void, #0d1117);
+    border: 1px solid var(--eap-border, #3d444d);
+    border-radius: var(--eap-radius-sm, 4px);
     overflow-x: auto;
     white-space: pre-wrap;
     word-break: break-all;
+    font-family: var(--eap-font-mono, 'JetBrains Mono', monospace);
+    color: var(--eap-neon-yellow, #f1fa8c);
 }
 
 /* ==========================================================================
-   Tags
+   Tags - Matrix Theme
    ========================================================================== */
 
 .ess-tag-list {
@@ -292,9 +378,11 @@
     display: inline-flex;
     padding: 0.25rem 0.5rem;
     font-size: 0.75rem;
-    background-color: #e2e8f0;
-    color: #475569;
-    border-radius: 0.25rem;
+    font-family: var(--eap-font-mono, 'JetBrains Mono', monospace);
+    background-color: var(--eap-surface, #21262d);
+    color: var(--eap-text-secondary, #8b949e);
+    border: 1px solid var(--eap-border, #3d444d);
+    border-radius: var(--eap-radius-sm, 4px);
 }
 
 /* ==========================================================================
@@ -316,6 +404,7 @@
 
 .ess-datetime {
     white-space: nowrap;
+    font-family: var(--eap-font-mono, 'JetBrains Mono', monospace);
 }
 
 /* ==========================================================================
@@ -329,12 +418,12 @@
 }
 
 /* ==========================================================================
-   IPs Page
+   IPs Page - Matrix Theme
    ========================================================================== */
 
 .ess-ips {
     padding: 1.5rem;
-    background-color: #f8fafc;
+    background-color: var(--eap-void, #0d1117);
     min-height: 100vh;
 }
 
@@ -342,11 +431,12 @@
     margin: 0 0 1.5rem 0;
     font-size: 1.75rem;
     font-weight: 700;
-    color: #1e293b;
+    color: var(--eap-text-primary, #e6edf3);
+    font-family: var(--eap-font-mono, 'JetBrains Mono', monospace);
 }
 
 /* ==========================================================================
-   Quick Actions
+   Quick Actions - Matrix Theme
    ========================================================================== */
 
 .ess-quick-actions {
@@ -357,9 +447,9 @@
 }
 
 .ess-quick-actions__card {
-    background-color: #ffffff;
-    border-radius: 0.5rem;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    background-color: var(--eap-abyss, #161b22);
+    border: 1px solid var(--eap-border, #3d444d);
+    border-radius: var(--eap-radius, 6px);
     padding: 1.25rem;
 }
 
@@ -367,7 +457,8 @@
     margin: 0 0 1rem 0;
     font-size: 0.875rem;
     font-weight: 600;
-    color: #1e293b;
+    color: var(--eap-neon-cyan, #00d4ff);
+    font-family: var(--eap-font-mono, 'JetBrains Mono', monospace);
 }
 
 .ess-quick-actions__form {
@@ -377,7 +468,7 @@
 }
 
 /* ==========================================================================
-   Input Group
+   Input Group - Matrix Theme
    ========================================================================== */
 
 .ess-input-group {
@@ -393,20 +484,21 @@
     flex: 1;
     padding: 0.5rem 0.75rem;
     font-size: 0.875rem;
-    border: 1px solid #e2e8f0;
-    border-radius: 0.375rem;
-    background-color: #ffffff;
-    color: #1e293b;
+    font-family: var(--eap-font-mono, 'JetBrains Mono', monospace);
+    border: 1px solid var(--eap-border, #3d444d);
+    border-radius: var(--eap-radius-sm, 4px);
+    background-color: var(--eap-abyss, #161b22);
+    color: var(--eap-text-primary, #e6edf3);
 }
 
 .ess-input-group__input:focus {
     outline: none;
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    border-color: var(--eap-neon-cyan, #00d4ff);
+    box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.15);
 }
 
 /* ==========================================================================
-   Stats Row
+   Stats Row - Matrix Theme
    ========================================================================== */
 
 .ess-stats-row {
@@ -415,9 +507,9 @@
     gap: 1rem;
     margin-bottom: 1.5rem;
     padding: 1rem;
-    background-color: #ffffff;
-    border-radius: 0.5rem;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    background-color: var(--eap-abyss, #161b22);
+    border: 1px solid var(--eap-border, #3d444d);
+    border-radius: var(--eap-radius, 6px);
 }
 
 .ess-stats-row__item {
@@ -425,7 +517,7 @@
     flex-direction: column;
     align-items: center;
     padding: 0 1.5rem;
-    border-right: 1px solid #e2e8f0;
+    border-right: 1px solid var(--eap-border, #3d444d);
 }
 
 .ess-stats-row__item:last-child {
@@ -435,30 +527,33 @@
 .ess-stats-row__value {
     font-size: 1.5rem;
     font-weight: 700;
-    color: #1e293b;
+    color: var(--eap-neon-cyan, #00d4ff);
+    font-family: var(--eap-font-mono, 'JetBrains Mono', monospace);
 }
 
 .ess-stats-row__label {
     font-size: 0.75rem;
-    color: #64748b;
+    color: var(--eap-text-muted, #6e7681);
     text-transform: uppercase;
     letter-spacing: 0.05em;
+    font-family: var(--eap-font-mono, 'JetBrains Mono', monospace);
 }
 
 /* ==========================================================================
-   Tabs
+   Tabs - Matrix Theme
    ========================================================================== */
 
 .ess-tabs {
-    background-color: #ffffff;
-    border-radius: 0.5rem;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    background-color: var(--eap-abyss, #161b22);
+    border: 1px solid var(--eap-border, #3d444d);
+    border-radius: var(--eap-radius, 6px);
     overflow: hidden;
 }
 
 .ess-tabs__nav {
     display: flex;
-    border-bottom: 1px solid #e2e8f0;
+    border-bottom: 1px solid var(--eap-border, #3d444d);
+    background: var(--eap-surface, #21262d);
 }
 
 .ess-tabs__btn {
@@ -468,7 +563,8 @@
     padding: 1rem 1.5rem;
     font-size: 0.875rem;
     font-weight: 500;
-    color: #64748b;
+    font-family: var(--eap-font-mono, 'JetBrains Mono', monospace);
+    color: var(--eap-text-muted, #6e7681);
     background: none;
     border: none;
     border-bottom: 2px solid transparent;
@@ -478,24 +574,24 @@
 }
 
 .ess-tabs__btn:hover {
-    color: #1e293b;
+    color: var(--eap-text-primary, #e6edf3);
 }
 
 .ess-tabs__btn--active {
-    color: #3b82f6;
-    border-bottom-color: #3b82f6;
+    color: var(--eap-neon-cyan, #00d4ff);
+    border-bottom-color: var(--eap-neon-cyan, #00d4ff);
 }
 
 .ess-tabs__count {
     padding: 0.125rem 0.5rem;
     font-size: 0.75rem;
-    background-color: #f1f5f9;
+    background-color: var(--eap-elevated, #30363d);
     border-radius: 9999px;
 }
 
 .ess-tabs__btn--active .ess-tabs__count {
-    background-color: #dbeafe;
-    color: #3b82f6;
+    background-color: rgba(0, 212, 255, 0.2);
+    color: var(--eap-neon-cyan, #00d4ff);
 }
 
 .ess-tabs__panel {
@@ -507,12 +603,12 @@
 }
 
 /* ==========================================================================
-   Config Page
+   Config Page - Matrix Theme
    ========================================================================== */
 
 .ess-config {
     padding: 1.5rem;
-    background-color: #f8fafc;
+    background-color: var(--eap-void, #0d1117);
     min-height: 100vh;
 }
 
@@ -520,11 +616,12 @@
     margin: 0 0 1.5rem 0;
     font-size: 1.75rem;
     font-weight: 700;
-    color: #1e293b;
+    color: var(--eap-text-primary, #e6edf3);
+    font-family: var(--eap-font-mono, 'JetBrains Mono', monospace);
 }
 
 /* ==========================================================================
-   Presets
+   Presets - Matrix Theme
    ========================================================================== */
 
 .ess-presets {
@@ -535,7 +632,8 @@
     margin: 0 0 1rem 0;
     font-size: 1rem;
     font-weight: 600;
-    color: #1e293b;
+    color: var(--eap-neon-cyan, #00d4ff);
+    font-family: var(--eap-font-mono, 'JetBrains Mono', monospace);
 }
 
 .ess-presets__grid {
@@ -545,16 +643,20 @@
 }
 
 .ess-preset-card {
-    background-color: #ffffff;
-    border-radius: 0.5rem;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    background-color: var(--eap-abyss, #161b22);
+    border: 1px solid var(--eap-border, #3d444d);
+    border-radius: var(--eap-radius, 6px);
     padding: 1.25rem;
-    border: 2px solid transparent;
-    transition: border-color 0.15s ease;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.ess-preset-card:hover {
+    border-color: var(--eap-border-light, #484f58);
 }
 
 .ess-preset-card--active {
-    border-color: #3b82f6;
+    border-color: var(--eap-neon-cyan, #00d4ff);
+    box-shadow: 0 0 20px rgba(0, 212, 255, 0.2);
 }
 
 .ess-preset-card__header {
@@ -568,13 +670,14 @@
     margin: 0;
     font-size: 1rem;
     font-weight: 600;
-    color: #1e293b;
+    color: var(--eap-text-primary, #e6edf3);
+    font-family: var(--eap-font-mono, 'JetBrains Mono', monospace);
 }
 
 .ess-preset-card__desc {
     margin: 0 0 0.75rem 0;
     font-size: 0.875rem;
-    color: #64748b;
+    color: var(--eap-text-muted, #6e7681);
     line-height: 1.5;
 }
 
@@ -582,7 +685,7 @@
     margin: 0 0 1rem 0;
     padding-left: 1.25rem;
     font-size: 0.8125rem;
-    color: #475569;
+    color: var(--eap-text-secondary, #8b949e);
 }
 
 .ess-preset-card__item {
@@ -594,7 +697,7 @@
 }
 
 /* ==========================================================================
-   Config Form
+   Config Form - Matrix Theme
    ========================================================================== */
 
 .ess-config-form {
@@ -604,9 +707,9 @@
 }
 
 .ess-config-section {
-    background-color: #ffffff;
-    border-radius: 0.5rem;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    background-color: var(--eap-abyss, #161b22);
+    border: 1px solid var(--eap-border, #3d444d);
+    border-radius: var(--eap-radius, 6px);
     padding: 1.5rem;
 }
 
@@ -615,8 +718,9 @@
     padding-bottom: 0.75rem;
     font-size: 1rem;
     font-weight: 600;
-    color: #1e293b;
-    border-bottom: 1px solid #e2e8f0;
+    color: var(--eap-neon-cyan, #00d4ff);
+    font-family: var(--eap-font-mono, 'JetBrains Mono', monospace);
+    border-bottom: 1px solid var(--eap-border, #3d444d);
 }
 
 .ess-config-row {
@@ -642,7 +746,8 @@
 .ess-config-field__label {
     font-size: 0.875rem;
     font-weight: 500;
-    color: #1e293b;
+    color: var(--eap-text-primary, #e6edf3);
+    font-family: var(--eap-font-mono, 'JetBrains Mono', monospace);
 }
 
 .ess-config-field__input,
@@ -650,18 +755,19 @@
 .ess-config-field__textarea {
     padding: 0.625rem 0.875rem;
     font-size: 0.875rem;
-    border: 1px solid #e2e8f0;
-    border-radius: 0.375rem;
-    background-color: #ffffff;
-    color: #1e293b;
+    font-family: var(--eap-font-mono, 'JetBrains Mono', monospace);
+    border: 1px solid var(--eap-border, #3d444d);
+    border-radius: var(--eap-radius-sm, 4px);
+    background-color: var(--eap-abyss, #161b22);
+    color: var(--eap-text-primary, #e6edf3);
 }
 
 .ess-config-field__input:focus,
 .ess-config-field__select:focus,
 .ess-config-field__textarea:focus {
     outline: none;
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    border-color: var(--eap-neon-cyan, #00d4ff);
+    box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.15);
 }
 
 .ess-config-field__textarea {
@@ -672,14 +778,14 @@
 .ess-config-field__help {
     margin: 0;
     font-size: 0.75rem;
-    color: #64748b;
+    color: var(--eap-text-muted, #6e7681);
 }
 
 .ess-config-field__range {
     width: 100%;
     height: 6px;
     appearance: none;
-    background-color: #e2e8f0;
+    background-color: var(--eap-surface, #21262d);
     border-radius: 3px;
     cursor: pointer;
 }
@@ -688,15 +794,16 @@
     appearance: none;
     width: 18px;
     height: 18px;
-    background-color: #3b82f6;
+    background-color: var(--eap-neon-cyan, #00d4ff);
     border-radius: 50%;
     cursor: pointer;
+    box-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
 }
 
 .ess-config-field__range::-moz-range-thumb {
     width: 18px;
     height: 18px;
-    background-color: #3b82f6;
+    background-color: var(--eap-neon-cyan, #00d4ff);
     border-radius: 50%;
     border: none;
     cursor: pointer;
@@ -706,16 +813,17 @@
     display: flex;
     justify-content: space-between;
     font-size: 0.75rem;
-    color: #64748b;
+    color: var(--eap-text-muted, #6e7681);
+    font-family: var(--eap-font-mono, 'JetBrains Mono', monospace);
 }
 
 .ess-config-field__range-value {
     font-weight: 600;
-    color: #3b82f6;
+    color: var(--eap-neon-cyan, #00d4ff);
 }
 
 /* ==========================================================================
-   Toggle
+   Toggle - Matrix Theme
    ========================================================================== */
 
 .ess-toggle {
@@ -736,10 +844,11 @@
     display: inline-block;
     width: 44px;
     height: 24px;
-    background-color: #cbd5e1;
+    background-color: var(--eap-surface, #21262d);
+    border: 1px solid var(--eap-border, #3d444d);
     border-radius: 12px;
     cursor: pointer;
-    transition: background-color 0.2s ease;
+    transition: all 0.2s ease;
 }
 
 .ess-toggle__slider::after {
@@ -747,32 +856,35 @@
     position: absolute;
     top: 2px;
     left: 2px;
-    width: 20px;
-    height: 20px;
-    background-color: #ffffff;
+    width: 18px;
+    height: 18px;
+    background-color: var(--eap-text-muted, #6e7681);
     border-radius: 50%;
-    transition: transform 0.2s ease;
+    transition: all 0.2s ease;
 }
 
 .ess-toggle__input:checked + .ess-toggle__slider {
-    background-color: #3b82f6;
+    background-color: rgba(0, 212, 255, 0.2);
+    border-color: var(--eap-neon-cyan, #00d4ff);
 }
 
 .ess-toggle__input:checked + .ess-toggle__slider::after {
     transform: translateX(20px);
+    background-color: var(--eap-neon-cyan, #00d4ff);
+    box-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
 }
 
 .ess-toggle__input:focus + .ess-toggle__slider {
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.2);
 }
 
 .ess-toggle__label {
     font-size: 0.875rem;
-    color: #475569;
+    color: var(--eap-text-secondary, #8b949e);
 }
 
 /* ==========================================================================
-   Checkbox Group
+   Checkbox Group - Matrix Theme
    ========================================================================== */
 
 .ess-checkbox-group {
@@ -791,28 +903,29 @@
 .ess-checkbox__input {
     width: 18px;
     height: 18px;
-    border: 2px solid #cbd5e1;
+    border: 2px solid var(--eap-border, #3d444d);
     border-radius: 0.25rem;
     cursor: pointer;
-    accent-color: #3b82f6;
+    accent-color: var(--eap-neon-cyan, #00d4ff);
+    background-color: var(--eap-abyss, #161b22);
 }
 
 .ess-checkbox__label {
     font-size: 0.875rem;
-    color: #475569;
+    color: var(--eap-text-secondary, #8b949e);
 }
 
 /* ==========================================================================
-   Config Actions
+   Config Actions - Matrix Theme
    ========================================================================== */
 
 .ess-config-actions {
     display: flex;
     gap: 1rem;
     padding: 1.5rem;
-    background-color: #ffffff;
-    border-radius: 0.5rem;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    background-color: var(--eap-abyss, #161b22);
+    border: 1px solid var(--eap-border, #3d444d);
+    border-radius: var(--eap-radius, 6px);
 }
 
 .ess-btn--lg {
