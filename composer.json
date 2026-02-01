@@ -29,6 +29,7 @@
         "ext-json": "*"
     },
     "require-dev": {
+        "ados-labs/enterprise-psr3-logger": "^1.0",
         "ext-pdo": "*",
         "ext-redis": "*",
         "friendsofphp/php-cs-fixer": "^3.0",
