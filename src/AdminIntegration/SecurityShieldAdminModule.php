@@ -160,50 +160,44 @@ final class SecurityShieldAdminModule implements AdminModuleInterface
 
     public function getTabs(): array
     {
-        // NOTE: Admin panel sidebar expects FLAT tabs, not nested children
-        // Each tab is a separate entry in the sidebar under the module section
         return [
             [
-                'label' => 'WAF Dashboard',
+                'label' => 'Security',
                 'url' => '/security',
                 'icon' => 'shield',
                 'priority' => 15,
-            ],
-            [
-                'label' => 'WAF Rules',
-                'url' => '/security/waf',
-                'icon' => 'shield',
-                'priority' => 16,
-            ],
-            [
-                'label' => 'ML Threats',
-                'url' => '/security/ml',
-                'icon' => 'activity',
-                'priority' => 17,
-            ],
-            [
-                'label' => 'Rate Limiting',
-                'url' => '/security/ratelimit',
-                'icon' => 'activity',
-                'priority' => 18,
-            ],
-            [
-                'label' => 'IP Management',
-                'url' => '/security/ips',
-                'icon' => 'shield',
-                'priority' => 19,
-            ],
-            [
-                'label' => 'Security Events',
-                'url' => '/security/events',
-                'icon' => 'file-text',
-                'priority' => 20,
-            ],
-            [
-                'label' => 'WAF Config',
-                'url' => '/security/config',
-                'icon' => 'database',
-                'priority' => 21,
+                'children' => [
+                    [
+                        'label' => 'WAF Rules',
+                        'url' => '/security/waf',
+                        'icon' => 'shield',
+                    ],
+                    [
+                        'label' => 'ML Threats',
+                        'url' => '/security/ml',
+                        'icon' => 'activity',
+                    ],
+                    [
+                        'label' => 'Rate Limiting',
+                        'url' => '/security/ratelimit',
+                        'icon' => 'activity',
+                    ],
+                    [
+                        'label' => 'IP Management',
+                        'url' => '/security/ips',
+                        'icon' => 'shield',
+                    ],
+                    [
+                        'label' => 'Security Events',
+                        'url' => '/security/events',
+                        'icon' => 'file-text',
+                    ],
+                    [
+                        'label' => 'WAF Config',
+                        'url' => '/security/config',
+                        'icon' => 'database',
+                    ],
+                ],
             ],
         ];
     }
