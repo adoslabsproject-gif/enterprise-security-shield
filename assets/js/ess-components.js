@@ -67,7 +67,7 @@
          */
         openModal: function(modal) {
             modal.classList.add('ess-modal--open');
-            document.body.style.overflow = 'hidden';
+            document.body.classList.add('ess-body--modal-open');
 
             // Focus first focusable element
             const focusable = modal.querySelector('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
@@ -82,7 +82,7 @@
          */
         closeModal: function(modal) {
             modal.classList.remove('ess-modal--open');
-            document.body.style.overflow = '';
+            document.body.classList.remove('ess-body--modal-open');
         },
 
         /**
@@ -164,7 +164,8 @@
 
             scoreBars.forEach(function(bar) {
                 const score = parseInt(bar.dataset.score, 10) || 0;
-                bar.style.setProperty('--ess-score', score);
+                // Use CSS class instead of inline style for CSP compliance
+                bar.setAttribute('data-score-value', score);
             });
         }
     };

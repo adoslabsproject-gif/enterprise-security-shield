@@ -29,7 +29,8 @@
 
             scoreBars.forEach(function(bar) {
                 const score = parseInt(bar.dataset.score, 10) || 0;
-                bar.style.setProperty('--ess-score', score);
+                // Use data attribute instead of inline style for CSP compliance
+                bar.setAttribute('data-score-value', score);
             });
         },
 

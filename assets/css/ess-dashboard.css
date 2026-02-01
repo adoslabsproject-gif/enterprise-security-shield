@@ -110,6 +110,29 @@
 .ess-score-bar__fill--danger::after { background: var(--ess-danger); }
 .ess-score-bar__value { font-size: 0.75rem; font-weight: 600; color: var(--ess-text-muted); min-width: 28px; text-align: right; }
 
+/* CSP-compliant score bar widths using data attributes */
+.ess-score-bar__fill[data-score="0"]::after { width: 0%; }
+.ess-score-bar__fill[data-score="5"]::after { width: 5%; }
+.ess-score-bar__fill[data-score="10"]::after { width: 10%; }
+.ess-score-bar__fill[data-score="15"]::after { width: 15%; }
+.ess-score-bar__fill[data-score="20"]::after { width: 20%; }
+.ess-score-bar__fill[data-score="25"]::after { width: 25%; }
+.ess-score-bar__fill[data-score="30"]::after { width: 30%; }
+.ess-score-bar__fill[data-score="35"]::after { width: 35%; }
+.ess-score-bar__fill[data-score="40"]::after { width: 40%; }
+.ess-score-bar__fill[data-score="45"]::after { width: 45%; }
+.ess-score-bar__fill[data-score="50"]::after { width: 50%; }
+.ess-score-bar__fill[data-score="55"]::after { width: 55%; }
+.ess-score-bar__fill[data-score="60"]::after { width: 60%; }
+.ess-score-bar__fill[data-score="65"]::after { width: 65%; }
+.ess-score-bar__fill[data-score="70"]::after { width: 70%; }
+.ess-score-bar__fill[data-score="75"]::after { width: 75%; }
+.ess-score-bar__fill[data-score="80"]::after { width: 80%; }
+.ess-score-bar__fill[data-score="85"]::after { width: 85%; }
+.ess-score-bar__fill[data-score="90"]::after { width: 90%; }
+.ess-score-bar__fill[data-score="95"]::after { width: 95%; }
+.ess-score-bar__fill[data-score="100"]::after { width: 100%; }
+
 .ess-form--inline { display: inline-flex; align-items: center; gap: 0.5rem; }
 
 @media (max-width: 768px) {
