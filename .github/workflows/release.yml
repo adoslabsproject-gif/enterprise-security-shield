@@ -8,9 +8,6 @@ on:
     tags:
       - 'v[0-9]+.[0-9]+.[0-9]+'
       - 'v[0-9]+.[0-9]+.[0-9]+-*'
-    # IMPORTANT: Do NOT trigger on branch pushes
-    branches-ignore:
-      - '**'
   workflow_dispatch:
     inputs:
       version:
