@@ -10,11 +10,11 @@ use AdosLabs\AdminPanel\Database\Pool\DatabasePool;
 use AdosLabs\AdminPanel\Http\Response;
 use AdosLabs\AdminPanel\Services\AuditService;
 use AdosLabs\AdminPanel\Services\SessionService;
+use AdosLabs\EnterprisePSR3Logger\LoggerFacade as Logger;
 use AdosLabs\EnterpriseSecurityShield\Config\SecurityConfig;
 use AdosLabs\EnterpriseSecurityShield\Contracts\StorageInterface;
 use AdosLabs\EnterpriseSecurityShield\Storage\DatabaseStorage;
 use AdosLabs\EnterpriseSecurityShield\Storage\RedisStorage;
-use AdosLabs\EnterprisePSR3Logger\LoggerFacade as Logger;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -975,6 +975,7 @@ final class SecurityController extends BaseController
             Logger::channel('database')->warning('SecurityController: Failed to get today stats', [
                 'error' => $e->getMessage(),
             ]);
+
             return [
                 'total_events_today' => 0,
                 'bans_today' => 0,
@@ -1003,6 +1004,7 @@ final class SecurityController extends BaseController
             Logger::channel('database')->warning('SecurityController: Failed to get recent threats', [
                 'error' => $e->getMessage(),
             ]);
+
             return [];
         }
     }

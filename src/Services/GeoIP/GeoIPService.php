@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace AdosLabs\EnterpriseSecurityShield\Services\GeoIP;
 
+use AdosLabs\EnterprisePSR3Logger\LoggerFacade as Logger;
 use AdosLabs\EnterpriseSecurityShield\Contracts\StorageInterface;
 use AdosLabs\EnterpriseSecurityShield\Utils\IPUtils;
-use AdosLabs\EnterprisePSR3Logger\LoggerFacade as Logger;
 
 /**
  * GeoIP Service - Multi-Provider with Redis Caching.

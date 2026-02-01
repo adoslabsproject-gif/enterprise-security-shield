@@ -73,6 +73,7 @@ class DiscordNotifier implements NotifierInterface
     {
         if (!$this->isConfigured()) {
             Logger::channel('api')->warning('DiscordNotifier not configured');
+
             return false;
         }
 
@@ -91,6 +92,7 @@ class DiscordNotifier implements NotifierInterface
     {
         if (!$this->isConfigured()) {
             Logger::channel('api')->warning('DiscordNotifier alert called but not configured');
+
             return false;
         }
 
@@ -124,6 +126,7 @@ class DiscordNotifier implements NotifierInterface
     ): bool {
         if (!$this->isConfigured()) {
             Logger::channel('api')->warning('DiscordNotifier sendEmbed called but not configured');
+
             return false;
         }
 
@@ -156,6 +159,7 @@ class DiscordNotifier implements NotifierInterface
     {
         if (!$this->isConfigured()) {
             Logger::channel('api')->warning('DiscordNotifier success called but not configured');
+
             return false;
         }
 
@@ -180,6 +184,7 @@ class DiscordNotifier implements NotifierInterface
     {
         if (!$this->isConfigured()) {
             Logger::channel('api')->warning('DiscordNotifier warning called but not configured');
+
             return false;
         }
 
@@ -289,6 +294,7 @@ class DiscordNotifier implements NotifierInterface
 
             if ($json === false) {
                 Logger::channel('api')->error('DiscordNotifier JSON encoding failed');
+
                 return false;
             }
 
@@ -316,6 +322,7 @@ class DiscordNotifier implements NotifierInterface
             Logger::channel('api')->error('DiscordNotifier request failed', [
                 'error' => $e->getMessage(),
             ]);
+
             return false;
         }
     }

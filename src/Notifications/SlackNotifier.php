@@ -80,6 +80,7 @@ class SlackNotifier implements NotifierInterface
     {
         if (!$this->isConfigured()) {
             Logger::channel('api')->warning('SlackNotifier not configured');
+
             return false;
         }
 
@@ -98,6 +99,7 @@ class SlackNotifier implements NotifierInterface
     {
         if (!$this->isConfigured()) {
             Logger::channel('api')->warning('SlackNotifier alert called but not configured');
+
             return false;
         }
 
@@ -131,6 +133,7 @@ class SlackNotifier implements NotifierInterface
     {
         if (!$this->isConfigured()) {
             Logger::channel('api')->warning('SlackNotifier sendBlocks called but not configured');
+
             return false;
         }
 
@@ -153,6 +156,7 @@ class SlackNotifier implements NotifierInterface
     {
         if (!$this->isConfigured()) {
             Logger::channel('api')->warning('SlackNotifier sendWithColor called but not configured');
+
             return false;
         }
 
@@ -255,6 +259,7 @@ class SlackNotifier implements NotifierInterface
 
             if ($json === false) {
                 Logger::channel('api')->error('SlackNotifier JSON encoding failed');
+
                 return false;
             }
 
@@ -281,6 +286,7 @@ class SlackNotifier implements NotifierInterface
             Logger::channel('api')->error('SlackNotifier request failed', [
                 'error' => $e->getMessage(),
             ]);
+
             return false;
         }
     }

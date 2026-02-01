@@ -82,6 +82,7 @@ class TelegramNotifier implements NotifierInterface
     {
         if (!$this->isConfigured()) {
             Logger::channel('api')->warning('TelegramNotifier not configured');
+
             return false;
         }
 
@@ -97,6 +98,7 @@ class TelegramNotifier implements NotifierInterface
     {
         if (!$this->isConfigured()) {
             Logger::channel('api')->warning('TelegramNotifier alert called but not configured');
+
             return false;
         }
 
@@ -124,6 +126,7 @@ class TelegramNotifier implements NotifierInterface
     {
         if (!$this->isConfigured()) {
             Logger::channel('api')->warning('TelegramNotifier sendWithButtons called but not configured');
+
             return false;
         }
 
@@ -144,6 +147,7 @@ class TelegramNotifier implements NotifierInterface
     {
         if (!$this->isConfigured()) {
             Logger::channel('api')->warning('TelegramNotifier sendDocument called but not configured');
+
             return false;
         }
 
@@ -170,6 +174,7 @@ class TelegramNotifier implements NotifierInterface
             Logger::channel('api')->error('TelegramNotifier document file not found', [
                 'file_path' => $filePath,
             ]);
+
             return false;
         }
 
@@ -190,6 +195,7 @@ class TelegramNotifier implements NotifierInterface
     {
         if (!$this->isConfigured()) {
             Logger::channel('api')->warning('TelegramNotifier sendLocation called but not configured');
+
             return false;
         }
 
@@ -265,6 +271,7 @@ class TelegramNotifier implements NotifierInterface
                     'http_code' => $httpCode,
                     'response' => is_string($response) ? substr($response, 0, 200) : null,
                 ]);
+
                 return false;
             }
 
@@ -276,6 +283,7 @@ class TelegramNotifier implements NotifierInterface
             Logger::channel('api')->error('TelegramNotifier request exception', [
                 'error' => $e->getMessage(),
             ]);
+
             return false;
         }
     }
@@ -309,6 +317,7 @@ class TelegramNotifier implements NotifierInterface
                 Logger::channel('api')->error('TelegramNotifier multipart request failed', [
                     'http_code' => $httpCode,
                 ]);
+
                 return false;
             }
 
@@ -320,6 +329,7 @@ class TelegramNotifier implements NotifierInterface
             Logger::channel('api')->error('TelegramNotifier multipart request exception', [
                 'error' => $e->getMessage(),
             ]);
+
             return false;
         }
     }

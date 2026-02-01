@@ -25,6 +25,7 @@ use AdosLabs\EnterprisePSR3Logger\LoggerFacade as Logger;
  * - ASN blocking (block entire hosting providers)
  *
  * @version 1.0.0
+ *
  * @see \AdosLabs\EnterpriseSecurityShield\Services\GeoIP\GeoIPService For enterprise multi-provider version
  */
 final class MaxMindGeoIP

@@ -297,6 +297,7 @@ final class ClamAVClient
             $ping = $this->ping();
             if (!$ping) {
                 Logger::channel('security')->warning('ClamAV daemon not responding to ping');
+
                 return [
                     'healthy' => false,
                     'version' => null,
@@ -318,6 +319,7 @@ final class ClamAVClient
             Logger::channel('security')->error('ClamAV health check failed', [
                 'error' => $e->getMessage(),
             ]);
+
             return [
                 'healthy' => false,
                 'version' => null,
@@ -406,6 +408,7 @@ final class ClamAVClient
                 'errno' => $errno,
                 'errstr' => $errstr,
             ]);
+
             throw new ClamAVException("Failed to connect to ClamAV: [{$errno}] {$errstr}");
         }
 
@@ -429,6 +432,7 @@ final class ClamAVClient
 
         if ($written === false || $written !== strlen($data)) {
             Logger::channel('security')->error('ClamAV write failed');
+
             throw new ClamAVException('Failed to write to ClamAV');
         }
     }
@@ -449,6 +453,7 @@ final class ClamAVClient
 
             if ($chunk === false) {
                 Logger::channel('security')->error('ClamAV read failed');
+
                 throw new ClamAVException('Failed to read from ClamAV');
             }
 
@@ -462,6 +467,7 @@ final class ClamAVClient
             $meta = stream_get_meta_data($connection);
             if ($meta['timed_out']) {
                 Logger::channel('security')->error('ClamAV connection timed out');
+
                 throw new ClamAVException('Connection to ClamAV timed out');
             }
 

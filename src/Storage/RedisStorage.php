@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace AdosLabs\EnterpriseSecurityShield\Storage;
 
-use AdosLabs\EnterpriseSecurityShield\Contracts\StorageInterface;
 use AdosLabs\EnterprisePSR3Logger\LoggerFacade as Logger;
+use AdosLabs\EnterpriseSecurityShield\Contracts\StorageInterface;
 
 /**
  * Redis Storage Backend - High Performance.
@@ -55,6 +55,7 @@ class RedisStorage implements StorageInterface
                 'ip' => $ip,
                 'error' => $e->getMessage(),
             ]);
+
             return false;
         }
     }
@@ -81,6 +82,7 @@ class RedisStorage implements StorageInterface
                 'ip' => $ip,
                 'error' => $e->getMessage(),
             ]);
+
             return null;
         }
     }
@@ -147,6 +149,7 @@ class RedisStorage implements StorageInterface
                 'points' => $points,
                 'error' => $e->getMessage(),
             ]);
+
             return 0;
         }
     }
@@ -202,6 +205,7 @@ class RedisStorage implements StorageInterface
                 'ip' => $ip,
                 'error' => $e->getMessage(),
             ]);
+
             return false;
         }
     }
@@ -231,6 +235,7 @@ class RedisStorage implements StorageInterface
                 'ip' => $ip,
                 'error' => $e->getMessage(),
             ]);
+
             return false;
         }
     }
@@ -258,6 +263,7 @@ class RedisStorage implements StorageInterface
                 'reason' => $reason,
                 'error' => $e->getMessage(),
             ]);
+
             return false;
         }
     }

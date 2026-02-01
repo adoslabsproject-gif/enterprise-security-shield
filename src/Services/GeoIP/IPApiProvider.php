@@ -111,6 +111,7 @@ class IPApiProvider implements GeoIPInterface
                 'ip' => $ip,
                 'error' => $e->getMessage(),
             ]);
+
             // Graceful degradation
             return null;
         }

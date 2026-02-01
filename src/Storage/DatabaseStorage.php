@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace AdosLabs\EnterpriseSecurityShield\Storage;
 
-use AdosLabs\EnterpriseSecurityShield\Contracts\StorageInterface;
 use AdosLabs\EnterprisePSR3Logger\LoggerFacade as Logger;
+use AdosLabs\EnterpriseSecurityShield\Contracts\StorageInterface;
 
 /**
  * Database Storage Backend - Dual-Write Architecture.
@@ -177,6 +177,7 @@ class DatabaseStorage implements StorageInterface
                 'ip' => $ip,
                 'error' => $e->getMessage(),
             ]);
+
             return null;
         }
     }
@@ -332,6 +333,7 @@ class DatabaseStorage implements StorageInterface
                 'ip' => $ip,
                 'error' => $e->getMessage(),
             ]);
+
             // FAIL-OPEN: Both Redis and DB failed
             // Probability: ~4 minutes/year with proper HA setup
             // Alternative: Return true for fail-closed (block all traffic)
@@ -369,6 +371,7 @@ class DatabaseStorage implements StorageInterface
                     'ip' => $ip,
                     'error' => $e->getMessage(),
                 ]);
+
                 // Graceful degradation - assume not banned (fail-open)
                 return false;
             }
@@ -604,6 +607,7 @@ class DatabaseStorage implements StorageInterface
                 'ip' => $ip,
                 'error' => $e->getMessage(),
             ]);
+
             return null;
         }
     }
@@ -924,6 +928,7 @@ class DatabaseStorage implements StorageInterface
                 'action' => $action,
                 'error' => $e->getMessage(),
             ]);
+
             return 0;
         }
     }
@@ -994,6 +999,7 @@ class DatabaseStorage implements StorageInterface
             Logger::channel('database')->error('WAF clear() failed', [
                 'error' => $e->getMessage(),
             ]);
+
             return false;
         }
     }
@@ -1077,6 +1083,7 @@ class DatabaseStorage implements StorageInterface
                     'key' => $key,
                     'error' => $e->getMessage(),
                 ]);
+
                 return false;
             }
         }
@@ -1099,6 +1106,7 @@ class DatabaseStorage implements StorageInterface
                     'key' => $key,
                     'error' => $e->getMessage(),
                 ]);
+
                 return false;
             }
         }
@@ -1121,6 +1129,7 @@ class DatabaseStorage implements StorageInterface
                     'key' => $key,
                     'error' => $e->getMessage(),
                 ]);
+
                 return false;
             }
         }
@@ -1158,6 +1167,7 @@ class DatabaseStorage implements StorageInterface
                     'delta' => $delta,
                     'error' => $e->getMessage(),
                 ]);
+
                 return 0;
             }
         }

@@ -100,6 +100,7 @@ class WebhookNotifier
             Logger::channel('api')->error('WebhookNotifier JSON encoding failed', [
                 'event' => $event,
             ]);
+
             return;
         }
 

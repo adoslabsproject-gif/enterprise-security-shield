@@ -6,12 +6,12 @@ namespace AdosLabs\EnterpriseSecurityShield\AdminIntegration;
 
 use AdosLabs\AdminPanel\Core\AdminModuleInterface;
 use AdosLabs\AdminPanel\Database\Pool\DatabasePool;
+use AdosLabs\EnterprisePSR3Logger\LoggerFacade as Logger;
 use AdosLabs\EnterpriseSecurityShield\AdminIntegration\Controllers\SecurityController;
 use AdosLabs\EnterpriseSecurityShield\Config\SecurityConfig;
 use AdosLabs\EnterpriseSecurityShield\Contracts\StorageInterface;
 use AdosLabs\EnterpriseSecurityShield\Storage\DatabaseStorage;
 use AdosLabs\EnterpriseSecurityShield\Storage\RedisStorage;
-use AdosLabs\EnterprisePSR3Logger\LoggerFacade as Logger;
 use Psr\Log\LoggerInterface;
 
 /**

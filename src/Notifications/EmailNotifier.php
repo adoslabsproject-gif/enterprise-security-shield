@@ -118,6 +118,7 @@ class EmailNotifier implements NotifierInterface
     {
         if (!$this->isConfigured()) {
             Logger::channel('email')->warning('EmailNotifier not configured');
+
             return false;
         }
 
@@ -131,6 +132,7 @@ class EmailNotifier implements NotifierInterface
     {
         if (!$this->isConfigured()) {
             Logger::channel('email')->warning('EmailNotifier alert called but not configured');
+
             return false;
         }
 

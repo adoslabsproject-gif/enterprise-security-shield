@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace AdosLabs\EnterpriseSecurityShield\Storage;
 
-use AdosLabs\EnterpriseSecurityShield\Contracts\StorageInterface;
 use AdosLabs\EnterprisePSR3Logger\LoggerFacade as Logger;
+use AdosLabs\EnterpriseSecurityShield\Contracts\StorageInterface;
 
 /**
  * Redis Sentinel Storage - Enterprise High Availability.
@@ -270,6 +270,7 @@ final class RedisSentinelStorage implements StorageInterface
                         'max_retries' => $this->maxRetries,
                         'error' => $e->getMessage(),
                     ]);
+
                     throw new \RuntimeException(
                         "Failed to connect to Redis master after {$this->maxRetries} attempts: " . $e->getMessage(),
                     );
@@ -315,12 +316,14 @@ final class RedisSentinelStorage implements StorageInterface
                         Logger::channel('database')->error('Redis Sentinel operation failed (FAIL-CLOSED)', [
                             'error' => $e->getMessage(),
                         ]);
+
                         throw new \RuntimeException('Redis operation failed: ' . $e->getMessage());
                     }
 
                     Logger::channel('database')->error('Redis Sentinel operation failed (FAIL-OPEN)', [
                         'error' => $e->getMessage(),
                     ]);
+
                     return $failOpenValue;
                 }
 

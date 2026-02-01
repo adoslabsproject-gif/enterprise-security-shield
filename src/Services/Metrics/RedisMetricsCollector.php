@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace AdosLabs\EnterpriseSecurityShield\Services\Metrics;
 
-use AdosLabs\EnterpriseSecurityShield\Contracts\MetricsCollectorInterface;
 use AdosLabs\EnterprisePSR3Logger\LoggerFacade as Logger;
+use AdosLabs\EnterpriseSecurityShield\Contracts\MetricsCollectorInterface;
 
 /**
  * Redis Metrics Collector.
